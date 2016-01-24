@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?taskcoach release="1.4.2" tskversion="37"?>
+
+<tasks>
+<task actualstartdate="2015-12-25 10:57:01.636000" creationDateTime="2015-12-25 10:57:01.636000" duedate="2016-01-02 18:00:00" id="22d51040-ab20-11e5-9d21-902b3450890d" modificationDateTime="2015-12-25 10:58:19.085000" status="1" subject="Pouvoir pauser l'auto-detection">
+<description>
+Comme nous attendons durant 2 secondes la réponse du contrôleur, si ce dernier n'est pas là, c'est deux secondes que ça fige. On pourrait avoir une possibilité de faire une pause de cette auto détection dans le menu.
+On ne sauvegarde pas cet état cependant.
+
+</description>
+</task>
+<task creationDateTime="2015-12-23 07:37:29.611000" expandedContexts="('taskviewer',)" id="ee1f85b0-a971-11e5-ab30-001b2124b59e" modificationDateTime="2015-12-23 07:38:04.228000" prerequisites="b65bb44f-a971-11e5-9439-001b2124b59e" status="1" subject="ALL applications">
+<description>
+Ici on place ce qui pourrait s'appliquer à TOUTES les applications.
+</description>
+<task actualstartdate="2015-12-23 07:35:56.053000" completiondate="2015-12-23 08:27:00" creationDateTime="2015-12-23 07:35:56.053000" duedate="2016-01-13 18:00:00" id="b65bb44f-a971-11e5-9439-001b2124b59e" modificationDateTime="2015-12-23 08:27:43.815000" percentageComplete="100" status="1" subject="Close all">
+<description>
+Ce serait bien d'avoir la possibilité de faire un genre de CLOSE ALL qui pourrait fermer sur le même PC les applications CALLIDUS genre le "Controller", le "Radar" et le "Display" genre.
+Ça serait commode en tous cas pour quand on fait le développement et qu'on passe notre temps à fermer et repartir.
+</description>
+</task>
+</task>
+<syncmlconfig>
+<TaskCoach-00000151ced658a7e7528167000a40e14d707843>
+<spds>
+<sources>
+<TaskCoach-00000151ced658a7e7528167000a40e14d707843.Tasks />
+<TaskCoach-00000151ced658a7e7528167000a40e14d707843.Notes />
+</sources>
+<syncml>
+<Auth />
+<Conn />
+</syncml>
+</spds>
+</TaskCoach-00000151ced658a7e7528167000a40e14d707843>
+</syncmlconfig>
+<guid>
+00000151ced658a7e7528167000a40e14d707843
+</guid>
+</tasks>

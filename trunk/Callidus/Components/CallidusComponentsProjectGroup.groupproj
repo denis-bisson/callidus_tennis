@@ -1,0 +1,36 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{00634073-C529-4281-93A6-293E3EFB135E}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="CallidusComponents.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CallidusComponents">
+        <MSBuild Projects="CallidusComponents.dproj"/>
+    </Target>
+    <Target Name="CallidusComponents:Clean">
+        <MSBuild Projects="CallidusComponents.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CallidusComponents:Make">
+        <MSBuild Projects="CallidusComponents.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CallidusComponents"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CallidusComponents:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CallidusComponents:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

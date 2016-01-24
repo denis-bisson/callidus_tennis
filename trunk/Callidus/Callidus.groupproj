@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{2B99699E-A846-4AEB-B17A-75B170A9FF93}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="CallidusController\CallidusController.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CallidusRadar\CallidusRadar.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CallidusDisplay\CallidusDisplay.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CallidusController">
+        <MSBuild Projects="CallidusController\CallidusController.dproj"/>
+    </Target>
+    <Target Name="CallidusController:Clean">
+        <MSBuild Projects="CallidusController\CallidusController.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CallidusController:Make">
+        <MSBuild Projects="CallidusController\CallidusController.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CallidusRadar">
+        <MSBuild Projects="CallidusRadar\CallidusRadar.dproj"/>
+    </Target>
+    <Target Name="CallidusRadar:Clean">
+        <MSBuild Projects="CallidusRadar\CallidusRadar.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CallidusRadar:Make">
+        <MSBuild Projects="CallidusRadar\CallidusRadar.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CallidusDisplay">
+        <MSBuild Projects="CallidusDisplay\CallidusDisplay.dproj"/>
+    </Target>
+    <Target Name="CallidusDisplay:Clean">
+        <MSBuild Projects="CallidusDisplay\CallidusDisplay.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CallidusDisplay:Make">
+        <MSBuild Projects="CallidusDisplay\CallidusDisplay.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CallidusController;CallidusRadar;CallidusDisplay"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CallidusController:Clean;CallidusRadar:Clean;CallidusDisplay:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CallidusController:Make;CallidusRadar:Make;CallidusDisplay:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
