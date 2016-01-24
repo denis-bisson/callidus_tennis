@@ -67,6 +67,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <DCC_ExeOutput>..\Executables\</DCC_ExeOutput>
         <DCC_DebugInfoInExe>false</DCC_DebugInfoInExe>
         <DCC_UnitSearchPath>..\Components;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
@@ -74,11 +75,11 @@
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
         <Icon_MainIcon>CallidusController.ico</Icon_MainIcon>
-        <VerInfo_Build>253</VerInfo_Build>
+        <VerInfo_Build>255</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.253;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.255;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <AppEnableHighDPI>true</AppEnableHighDPI>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
