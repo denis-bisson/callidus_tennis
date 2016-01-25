@@ -1577,6 +1577,10 @@ begin
             end;
           end;
           bFirstNetworkDetection := FALSE;
+        end
+        else
+        begin
+          ProtocolePROTO_Radar.SendIamAliveMessage;
         end;
       end
       else
@@ -1779,7 +1783,8 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       cbSaveLogEachTimeWhenQuiting.Checked := ReadBool(sConfigSectionName, 'cbSaveLogEachTimeWhenQuiting', True);
-      miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', FALSE);
+      //  miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', FALSE);
+      miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
       cbKeepRetryingAutodetect.Checked := ReadBool(sConfigSectionName, 'cbKeepRetryingAutodetect', TRUE);
       cbTryAllBaudRate.Checked := ReadBool(sConfigSectionName, 'cbTryAllBaudRate', FALSE);

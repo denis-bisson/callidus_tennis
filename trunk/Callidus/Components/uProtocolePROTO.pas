@@ -23,6 +23,8 @@ const
   PROTO_CMD_SPLTEST = $06;
   PROTO_CMD_AREUYTR = $07;
   PROTO_CMD_SNDINFO = $08;
+  PROTO_CMD_DISCRTC = $09;
+  // ATTENTION! Si t'ajoutes une nouvelle commande, il faut aussi l'ajouter dans "FCommandList"...
 
   IDX_PROTO_LENGTH = 0;
   IDX_PROTO_SEQ = 3;
@@ -181,6 +183,7 @@ begin
     FCommandList.Add('SPLTEST'); // 6
     FCommandList.Add('AREUYTR'); // 7
     FCommandList.Add('SNDINFO'); // 8
+    FCommandList.Add('DISCRTC'); // 9
 
     if FClientSocket <> nil then
     begin
@@ -236,6 +239,7 @@ var
   iChar, iNbBytesToSend, iNbBytesReceived: integer;
   slPayloadDataReceived: TStringList;
   sAnswer: AnsiString;
+  FreezeTime: DWord;
 begin
   result := FALSE;
   ControllerAddress := '0.0.0.0';
@@ -258,8 +262,15 @@ begin
     if FWriteDebugFlag then WriteStatusLg('About to broadcast our request for controller address...', 'Sur le point de diffuser notre requête de recherche du contrôleur...', COLORDANGER);
     FClientUDP.SendBuffer(Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]), PORT_FOR_IDENTIFICATION, TxBuffer);
     WriteStatusLg('Request to identify controller sent!', 'La requête pour identifier le contrôleur a été envoyée!', COLORSUCCESS);
+    //On va attendre ici 2 secondes au pire pire pire
+    FreezeTime := GetTickCount;
+    while (FreezeTime + 1980 < FreezeTime) do
+    begin
+      sleep(10);
+      if FreezeTime + 1980 < FreezeTime then Application.ProcessMessages;
+    end;
     SetLength(RxBuffer, 100);
-    iNbBytesReceived := FClientUDP.ReceiveBuffer(RxBuffer, 2000);
+    iNbBytesReceived := FClientUDP.ReceiveBuffer(RxBuffer, 20);
     SetLength(RxBuffer, iNbBytesReceived);
     if isValidPacketReceived(RxBuffer, iNbBytesReceived) then
     begin
@@ -519,57 +530,65 @@ var
   wComputedCRC16: word;
 begin
   try
-    for iIndexChar := 0 to pred(sizeof(paramTxBuffer)) do
-      paramTxBuffer[iIndexChar] := $00;
-
-    paramTxBuffer[IDX_PROTO_SEQ] := FSequenceNumber;
-    paramTxBuffer[IDX_PROTO_LEFT_BRACKET] := ord('[');
-
-    sCommandAnswer := FCommandList.Strings[CommandAnswerIndex];
-    for iIndexChar := 0 to pred(length(sCommandAnswer)) do
-      paramTxBuffer[IDX_PROTO_COMMAND + iIndexChar] := ord(sCommandAnswer[iIndexChar + 1]);
-
-    paramTxBuffer[IDX_PROTO_CLOSE_BRACKET] := ord(']');
-
-    iLineNumber := 0;
-    iIndexInPayloadData := IDX_PROTO_PAYLOAD_DATA;
-    if PayloadData <> nil then
+    if CommandAnswerIndex < FCommandList.Count then
     begin
-      while iLineNumber < PayloadData.Count do
-      begin
-        sWorking := PayloadData.Strings[iLineNumber];
-        iNbBytes := length(sWorking);
-        for iIndexChar := 0 to pred(iNbBytes) do
-          paramTxBuffer[iIndexInPayloadData + iIndexChar] := ord(sWorking[iIndexChar + 1]);
-        paramTxBuffer[iIndexInPayloadData + iNbBytes] := $0D;
-        paramTxBuffer[iIndexInPayloadData + iNbBytes + 1] := $0A;
-        iIndexInPayloadData := iIndexInPayloadData + iNbBytes + 2;
+      for iIndexChar := 0 to pred(sizeof(paramTxBuffer)) do
+        paramTxBuffer[iIndexChar] := $00;
 
-        inc(iLineNumber);
+      paramTxBuffer[IDX_PROTO_SEQ] := FSequenceNumber;
+      paramTxBuffer[IDX_PROTO_LEFT_BRACKET] := ord('[');
+
+      sCommandAnswer := FCommandList.Strings[CommandAnswerIndex];
+      for iIndexChar := 0 to pred(length(sCommandAnswer)) do
+        paramTxBuffer[IDX_PROTO_COMMAND + iIndexChar] := ord(sCommandAnswer[iIndexChar + 1]);
+
+      paramTxBuffer[IDX_PROTO_CLOSE_BRACKET] := ord(']');
+
+      iLineNumber := 0;
+      iIndexInPayloadData := IDX_PROTO_PAYLOAD_DATA;
+      if PayloadData <> nil then
+      begin
+        while iLineNumber < PayloadData.Count do
+        begin
+          sWorking := PayloadData.Strings[iLineNumber];
+          iNbBytes := length(sWorking);
+          for iIndexChar := 0 to pred(iNbBytes) do
+            paramTxBuffer[iIndexInPayloadData + iIndexChar] := ord(sWorking[iIndexChar + 1]);
+          paramTxBuffer[iIndexInPayloadData + iNbBytes] := $0D;
+          paramTxBuffer[iIndexInPayloadData + iNbBytes + 1] := $0A;
+          iIndexInPayloadData := iIndexInPayloadData + iNbBytes + 2;
+
+          inc(iLineNumber);
+        end;
+      end
+      else
+      begin
+        case CommandAnswerIndex of
+          PROTO_CMD_WHOSERV, PROTO_CMD_SERVRIS:
+            begin
+              for iIndexChar := 0 to pred(4) do
+                paramTxBuffer[iIndexInPayloadData + iIndexChar] := FMyIpAddress[iIndexChar];
+              iIndexInPayloadData := iIndexInPayloadData + 4;
+            end;
+        end;
       end;
+
+      iPacketLength := iIndexInPayloadData + 2;
+      paramTxBuffer[IDX_PROTO_LENGTH + 0] := (iPacketLength shr 16) and $FF;
+      paramTxBuffer[IDX_PROTO_LENGTH + 1] := (iPacketLength shr 8) and $FF;
+      paramTxBuffer[IDX_PROTO_LENGTH + 2] := (iPacketLength and $FF);
+
+      wComputedCRC16 := MyCrc16(addr(paramTxBuffer[0]), iPacketLength - 2, $0000);
+      paramTxBuffer[iPacketLength - 2] := ((wComputedCRC16 shr 8) and $FF);
+      paramTxBuffer[iPacketLength - 1] := (wComputedCRC16 and $FF);
+
+      result := iPacketLength;
     end
     else
     begin
-      case CommandAnswerIndex of
-        PROTO_CMD_WHOSERV, PROTO_CMD_SERVRIS:
-          begin
-            for iIndexChar := 0 to pred(4) do
-              paramTxBuffer[iIndexInPayloadData + iIndexChar] := FMyIpAddress[iIndexChar];
-            iIndexInPayloadData := iIndexInPayloadData + 4;
-          end;
-      end;
+      WriteStatusLg('ERROR: Command to send in "PreparePacket" is larger than the supported one... Contact the author!', 'ERREUR: La commande a envoyée dans la routine "PreparePacket" est trop grande! Contactez l''auteur!', COLORERROR);
+      result := -1;
     end;
-
-    iPacketLength := iIndexInPayloadData + 2;
-    paramTxBuffer[IDX_PROTO_LENGTH + 0] := (iPacketLength shr 16) and $FF;
-    paramTxBuffer[IDX_PROTO_LENGTH + 1] := (iPacketLength shr 8) and $FF;
-    paramTxBuffer[IDX_PROTO_LENGTH + 2] := (iPacketLength and $FF);
-
-    wComputedCRC16 := MyCrc16(addr(paramTxBuffer[0]), iPacketLength - 2, $0000);
-    paramTxBuffer[iPacketLength - 2] := ((wComputedCRC16 shr 8) and $FF);
-    paramTxBuffer[iPacketLength - 1] := (wComputedCRC16 and $FF);
-
-    result := iPacketLength;
   except
     result := -1;
   end;
@@ -842,7 +861,7 @@ procedure TProtocole_PROTO.WriteStatusLg(MsgInEnglish, MsgInFrench: string; Colo
 begin
   if FMessageWindow <> nil then
   begin
-    if FWriteDebugFlag then
+    if FWriteDebugFlag OR (ColorToUse=ColorError) then
     begin
       FMessageWindow.WriteStatusLg(FFriendlyNameForLog + ':' + MsgInEnglish, FFriendlyNameForLog + ':' + MsgInFrench, ColorToUse);
     end;

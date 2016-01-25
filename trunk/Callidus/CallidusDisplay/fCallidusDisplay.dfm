@@ -196,7 +196,7 @@ object frmCallidusDisplay: TfrmCallidusDisplay
     Top = 151
   end
   object ActionManagerRadarConfig: TActionManager
-    Left = 188
+    Left = 228
     Top = 26
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
@@ -227,8 +227,8 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
     OnIdle = aeMainApplicationEventsIdle
-    Left = 195
-    Top = 82
+    Left = 227
+    Top = 90
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
     WorkingClientUDP = IdUDPClientDisplay
