@@ -16,6 +16,24 @@ uses
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient;
 
 type
+  TInformationForShowingServiceSpeed = record
+    PosY: integer;
+    SizY: integer;
+    sSpeedValue: string;
+    sSpeedUnit: string;
+    UnitPosY: integer;
+    UnitSizY: integer;
+    iRatioUnitOnValue: integer;
+    iShadowCount: integer;
+    iUnitshadowcount: integer;
+    colorBackground: tColor;
+    colorSpeed: tColor;
+    colorSpeedShadow: tColor;
+    colorUnit: tColor;
+    colorUnitShadow: tColor;
+    iCommenditaire: integer;
+  end;
+
   TfrmCallidusDisplay = class(TForm)
     pmMainPopUpMenu: TPopupMenu;
     ogglefullscreenornot1: TMenuItem;
@@ -44,6 +62,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure actToggleDebugWindowExecute(Sender: TObject);
     procedure actToggleScreenModeExecute(Sender: TObject);
+    procedure SetInFullScreen(bWantedFullScreen: boolean);
     procedure actStartServicingExecute(Sender: TObject);
     procedure ProtocolePROTO_DisplayServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
     procedure actCloseAllApplicationsExecute(Sender: TObject);
@@ -58,13 +77,14 @@ type
     Rect: TRect;
     FullScreen: Boolean;
     iIndexApplication: integer;
+    LastSpeedInformationReceived: TInformationForShowingServiceSpeed;
     procedure WMGetMinMaxInfo(var msg: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
     procedure LoadConfiguration;
     procedure SaveConfiguration;
   public
     { Public declarations }
-    procedure ShowServiceSpeed(sSpeedValue, sSpeedUnit: string; iRatioUnitOnValue, iShadowCount: integer; colorBackground, colorSpeed, colorSpeedShadow, colorUnit, colorUnitShadow: tColor);
+    procedure ShowServiceSpeed(ServiceSpeedInfo: TInformationForShowingServiceSpeed);
   end;
 
 var
@@ -76,12 +96,12 @@ implementation
 
 uses
   // Delphi
-  IniFiles,
+  IniFiles, System.UITypes, jpeg,
 
   // Third party
 
   // My stuff
-  fDebugWindow;
+  fDebugWindow, MyEnhancedRichedit;
 
 procedure TfrmCallidusDisplay.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -90,6 +110,7 @@ end;
 
 procedure TfrmCallidusDisplay.FormCreate(Sender: TObject);
 begin
+  LastSpeedInformationReceived.sSpeedValue := '';
   isFirstActivation := True;
   iIndexApplication := GetApplicationNbOfThisClass(Self.ClassName);
   ProtocolePROTO_Display.ComplementDeviceName := Format('Instance%.2d', [iIndexApplication]);
@@ -154,10 +175,20 @@ begin
   begin
     Rect := BoundsRect;
     SetBounds(Left - ClientOrigin.X, Top - ClientOrigin.Y, GetDeviceCaps(Canvas.handle, HORZRES) + (Width - ClientWidth), GetDeviceCaps(Canvas.handle, VERTRES) + (Height - ClientHeight));
+    ShowCursor(False);  // Hide cursor
   end
   else
+  begin
     BoundsRect := Rect;
+      ShowCursor(True);  // Show cursor
+  end;
+  if LastSpeedInformationReceived.sSpeedValue <> '' then ShowServiceSpeed(LastSpeedInformationReceived);
   Application.ProcessMessages;
+end;
+
+procedure TfrmCallidusDisplay.SetInFullScreen(bWantedFullScreen: boolean);
+begin
+  if (bWantedFullScreen and not FullScreen) or (not bWantedFullScreen and FullScreen) then actToggleScreenModeExecute(actToggleScreenMode);
 end;
 
 procedure TfrmCallidusDisplay.aeMainApplicationEventsException(Sender: TObject; E: Exception);
@@ -195,34 +226,46 @@ begin
 end;
 
 { TfrmCallidusDisplay.ShowServiceSpeed }
-procedure TfrmCallidusDisplay.ShowServiceSpeed(sSpeedValue, sSpeedUnit: string; iRatioUnitOnValue, iShadowCount: integer; colorBackground, colorSpeed, colorSpeedShadow, colorUnit, colorUnitShadow: tColor);
+procedure TfrmCallidusDisplay.ShowServiceSpeed(ServiceSpeedInfo: TInformationForShowingServiceSpeed);
 var
   rWindowRect: TRect;
-  iSpeedSize, iSpeedWidthRequired, iSpeedHeightRequired, iPosX, iThisPosXChar, iThisPosYChar, iPosY, iOffset: Integer;
+  iSpeedSize, iUnitShadowCount, iSpeedWidthRequired, iSpeedHeightRequired, iPosX, iThisPosXChar, iThisPosYChar, iPosY, iOffset: Integer;
   iUnitSize, iUnitWidthRequired, iTotalWidthRequired, iChar: integer;
   iUnitOneCharHeight, iUnitHeightRequired, iThisCharWidth: integer;
+  ImageCommenditaire: TImage;
+  StdRect: TRect;
+  ImageEnJpeg: TJpegImage;
+  sNomfichierCommenditaire: string;
 
   procedure SetRequiredWithAccordingToSpecifiedTextSize;
   begin
-    iUnitSize := ((iSpeedSize * iRatioUnitOnValue) div 100);
+    if (not FullScreen) or (ServiceSpeedInfo.UnitSizY = 0) then
+      iUnitSize := ((iSpeedSize * ServiceSpeedInfo.iRatioUnitOnValue) div 100)
+    else
+      iUnitSize := ServiceSpeedInfo.UnitSizY;
 
     Canvas.Font.Size := iSpeedSize;
-    iSpeedWidthRequired := Canvas.TextWidth(sSpeedValue);
-    iSpeedHeightRequired := Canvas.TextHeight(sSpeedValue);
+    iSpeedWidthRequired := Canvas.TextWidth(ServiceSpeedInfo.sSpeedValue);
+    iSpeedHeightRequired := Canvas.TextHeight(ServiceSpeedInfo.sSpeedValue);
 
-    if sSpeedUnit <> '' then
+    if ServiceSpeedInfo.sSpeedUnit <> '' then
     begin
       Canvas.Font.Size := iUnitSize;
       iUnitWidthRequired := Canvas.TextWidth('W');
       iUnitOneCharHeight := Canvas.TextHeight('W');
       iUnitOneCharHeight := ((iUnitOneCharHeight * 75) div 100);
-      iUnitHeightRequired := length(sSpeedUnit) * iUnitOneCharHeight;
+      iUnitHeightRequired := length(ServiceSpeedInfo.sSpeedUnit) * iUnitOneCharHeight;
+    end
+    else
+    begin
+      iUnitWidthRequired:=0;
     end;
 
     iTotalWidthRequired := iSpeedWidthRequired + (iUnitWidthRequired) + (iUnitWidthRequired div 2);
   end;
 
 begin
+  LastSpeedInformationReceived := ServiceSpeedInfo;
   Canvas.Font.Size := 12;
   Canvas.Font.Name := 'Arial';
   Canvas.Font.Color := clWhite;
@@ -234,60 +277,103 @@ begin
   rWindowRect.Height := ClientHeight;
   rWindowRect.Width := ClientWidth;
 
-  Canvas.Brush.Color := colorBackground;
+  Canvas.Brush.Color := ServiceSpeedInfo.colorBackground;
   Canvas.Brush.Style := bsSolid;
   Canvas.FillRect(rWindowRect);
 
-  if sSpeedValue <> '' then
+  // 01. Si nous sommes en Full Screen ET QUE nous avons une commenditaire, on l'affiche!
+  if FullScreen and (ServiceSpeedInfo.iCommenditaire > 0) then
   begin
-    iSpeedSize := 20;
-    iUnitSize := ((iSpeedSize * iRatioUnitOnValue) div 100);
-    iUnitWidthRequired := 0;
+    sNomfichierCommenditaire := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + 'commanditaire' + IntToStr(ServiceSpeedInfo.iCommenditaire) + '.jpg';
+    if FileExists(sNomfichierCommenditaire) then
+    begin
+      ImageEnJpeg := TJpegImage.Create;
+      ImageCommenditaire := TImage.Create(Self);
+      try
+        ImageEnJpeg.CompressionQuality := 100;
+        ImageEnJpeg.LoadFromFile(sNomfichierCommenditaire);
+        ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
+        StdRect.Left := 0;
+        StdRect.Top := 0;
+        StdRect.Width := 1920;
+        StdRect.Height := 200;
+        Canvas.CopyRect(StdRect, ImageCommenditaire.Canvas, StdRect);
+      finally
+        FreeAndNil(ImageEnJpeg);
+        FreeAndNil(ImageCommenditaire);
+      end;
+    end;
+  end;
 
-    repeat
-      SetRequiredWithAccordingToSpecifiedTextSize;
-      inc(iSpeedSize);
-    until (iTotalWidthRequired >= ClientWidth) or (iSpeedHeightRequired >= ClientHeight);
+  if ServiceSpeedInfo.sSpeedValue <> '' then
+  begin
+    // 01. Ajuste la taille du texte. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
+    if (not FullScreen) or (ServiceSpeedInfo.SizY = 0) then
+    begin
+      iSpeedSize := 20;
+      iUnitSize := ((iSpeedSize * ServiceSpeedInfo.iRatioUnitOnValue) div 100);
+      iUnitWidthRequired := 0;
+      repeat
+        SetRequiredWithAccordingToSpecifiedTextSize;
+        inc(iSpeedSize);
+      until (iTotalWidthRequired >= ClientWidth) or (iSpeedHeightRequired >= ClientHeight);
+      dec(iSpeedSize);
+    end
+    else
+    begin
+      iSpeedSize := ServiceSpeedInfo.SizY;
+      iUnitSize := ServiceSpeedInfo.UnitSizY;
+    end;
 
-    // Let's set "iSpeedSize" and "iUnitSize" so they hold the desired text size
-    dec(iSpeedSize);
+    // 02. On ajuste nos variables. On doit le faire le cas où nous avons gossé plus haut pour trouvé taille optimale.
     SetRequiredWithAccordingToSpecifiedTextSize;
 
-    Canvas.Font.Name := 'Arial';
+    // 03. Calcul de la position Y pour la vitesse. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
+    if (not FullScreen) or (ServiceSpeedInfo.PosY = 0) then
+      iPosY := ((ClientHeight - iSpeedHeightRequired) div 2)
+    else
+      iPosY := ServiceSpeedInfo.PosY;
+
+    // 04. Calcule de la position X pour la vitesse.
+    iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
     Canvas.Brush.Style := bsClear;
 
-    // Let's show the SPEED first
-    iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
-    iPosY := ((ClientHeight - iSpeedHeightRequired) div 2);
-
-    Canvas.Font.Color := colorSpeedShadow;
+    // 05. On affiche notre vitesse.
+    Canvas.Font.Color := ServiceSpeedInfo.colorSpeedShadow;
     Canvas.Font.Size := iSpeedSize;
-    for iOffset := 1 to iShadowCount do
-      Canvas.TextOut(iPosX + iOffset, iPosY + iOffset, sSpeedValue);
-    Canvas.Font.Color := colorSpeed;
-    Canvas.TextOut(iPosX, iPosY, sSpeedValue);
+    for iOffset := 1 to ServiceSpeedInfo.iShadowCount do
+      Canvas.TextOut(iPosX + iOffset, iPosY + iOffset, ServiceSpeedInfo.sSpeedValue);
+    Canvas.Font.Color := ServiceSpeedInfo.colorSpeed;
+    Canvas.TextOut(iPosX, iPosY, ServiceSpeedInfo.sSpeedValue);
 
-    // If we have unit, let's show it!
-    if sSpeedUnit <> '' then
+    // 06. Si on le demande, on affiche notre unité de vitesse
+    if ServiceSpeedInfo.sSpeedUnit <> '' then
     begin
       Canvas.Font.Size := iUnitSize;
-      iShadowCount := ((iShadowCount * iRatioUnitOnValue) div 100);
-
       iPosX := iPosX + iSpeedWidthRequired + (iUnitWidthRequired div 2); //iUnitWidthRequired ici c'est juste pour avoir un espce.
-      iPosY := ((ClientHeight - iUnitHeightRequired) div 2);
+      if (not FullScreen) then
+        iUnitShadowCount := ((ServiceSpeedInfo.iShadowCount * ServiceSpeedInfo.iRatioUnitOnValue) div 100)
+      else
+        iUnitshadowcount := ServiceSpeedInfo.iUnitshadowcount;
 
-      for iChar := 1 to length(sSpeedUnit) do
+      // 07. Calcul de la position Y. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
+      if (not FullScreen) or (ServiceSpeedInfo.UnitPosY = 0) then
+        iPosY := ((ClientHeight - iUnitHeightRequired) div 2)
+      else
+        iPosY := ServiceSpeedInfo.UnitPosY;
+
+      for iChar := 1 to length(ServiceSpeedInfo.sSpeedUnit) do
       begin
-        iThisCharWidth := Canvas.TextWidth(sSpeedUnit[iChar]);
+        iThisCharWidth := Canvas.TextWidth(ServiceSpeedInfo.sSpeedUnit[iChar]);
         iThisPosXChar := iPosX + ((iUnitWidthRequired - iThisCharWidth) div 2);
         iThisPosYChar := iPosY + (pred(iChar) * iUnitOneCharHeight);
 
-        Canvas.Font.Color := colorUnitShadow;
-        for iOffset := 1 to iShadowCount do
-          Canvas.TextOut(iThisPosXChar + iOffset, iThisPosYChar + iOffset, sSpeedUnit[iChar]);
+        Canvas.Font.Color := ServiceSpeedInfo.colorUnitShadow;
+        for iOffset := 1 to iUnitshadowcount do
+          Canvas.TextOut(iThisPosXChar + iOffset, iThisPosYChar + iOffset, ServiceSpeedInfo.sSpeedUnit[iChar]);
 
-        Canvas.Font.Color := colorUnit;
-        Canvas.TextOut(iThisPosXChar, iThisPosYChar, sSpeedUnit[iChar]);
+        Canvas.Font.Color := ServiceSpeedInfo.colorUnit;
+        Canvas.TextOut(iThisPosXChar, iThisPosYChar, ServiceSpeedInfo.sSpeedUnit[iChar]);
       end;
     end;
   end;
@@ -305,6 +391,10 @@ begin
       begin
         ProtocolePROTO_Display.WorkingClientSocket.Address := sControllerIpAddress;
         // sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Display.WorkingClientSocket.Address;
+        ProtocolePROTO_Display.SendIamAliveMessage;
+      end
+      else
+      begin
         ProtocolePROTO_Display.SendIamAliveMessage;
       end;
     end
@@ -333,7 +423,7 @@ end;
 procedure TfrmCallidusDisplay.LoadConfiguration;
 var
   ConfigFile: TIniFile;
-  bDebugWasVisible: Boolean;
+  bDebugWasVisible, bWasInFullScreen: Boolean;
 begin
   ConfigFile := TIniFile.Create(NomFichierConfiguration);
   try
@@ -345,8 +435,11 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       miSaveLogEachTime.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', True);
-      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
+//      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
+      miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
+      bWasInFullScreen := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'FullScreen', False);
+      if bWasInFullScreen then actToggleScreenModeExecute(actToggleScreenMode);
       // ..LoadConfiguration
     end;
   finally
@@ -362,56 +455,90 @@ end;
 { ProtocolePROTO_DisplayServerSocketValidPacketReceived }
 procedure TfrmCallidusDisplay.ProtocolePROTO_DisplayServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
 var
+  ServiceSpeedInfo: TInformationForShowingServiceSpeed;
   slVariablesNames, slVariablesValues: TStringList;
   iIndexCommand: integer;
-  iSpeedValueIndex, iSpeedUnitIndex, iSpeedRatioIndex: integer;
-  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio: string;
-  iShadowIndex, iShadowCount: integer;
+  iAnyValue: integer;
+  iSpeedValueIndex: integer;
+  sAnyValue: string;
+  iShadowIndex: integer;
   iColorIndex: integer;
-  colorBackground, colorSpeed, colorSpeedShadow, colorUnit, colorUnitShadow: tColor;
 begin
+
   slVariablesNames := TStringList.Create;
   slVariablesValues := TStringList.Create;
   try
     iIndexCommand := ProtocolePROTO_Display.CommandList.IndexOf(Answer7);
 
     case iIndexCommand of
+      PROTO_CMD_DISCRTC:
+        begin
+          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
+
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_ADJUSTSCREEN);
+          if iAnyValue <> -1 then
+          begin
+            sAnyValue := slVariablesValues.Strings[iAnyValue];
+            if sAnyValue = sDISPLAY_PARAM_FULLSCREEN then SetInFullScreen(TRUE);
+            if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
+          end;
+
+        end;
+
       PROTO_CMD_SNDINFO:
         begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
           ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
 
-          sSpeedValueToShow := '';
-          sSpeedUnitToShow := '';
-          sSpeedRatio := '25';
-          iShadowCount := 10;
-          colorBackground := clGreen;
-          colorSpeed := clWhite;
-          colorSpeedShadow := clBlack;
-          colorUnit := clYellow;
-          colorUnitShadow := clBlack;
+          ServiceSpeedInfo.PosY := 0;
+          ServiceSpeedInfo.SizY := 0;
+          ServiceSpeedInfo.sSpeedValue := '';
+          ServiceSpeedInfo.sSpeedUnit := '';
+          ServiceSpeedInfo.UnitSizY := 0;
+          ServiceSpeedInfo.iRatioUnitOnValue := 25;
+          ServiceSpeedInfo.iShadowCount := 10;
+          ServiceSpeedInfo.iUnitshadowcount := 2;
+          ServiceSpeedInfo.colorBackground := clGreen;
+          ServiceSpeedInfo.colorSpeed := clWhite;
+          ServiceSpeedInfo.colorSpeedShadow := clBlack;
+          ServiceSpeedInfo.colorUnit := clYellow;
+          ServiceSpeedInfo.colorUnitShadow := clBlack;
+          ServiceSpeedInfo.iCommenditaire := 0;
 
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESIZY);
+          if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
           iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESPEED);
-          if iSpeedValueIndex <> -1 then sSpeedValueToShow := slVariablesValues.Strings[iSpeedValueIndex];
-          iSpeedUnitIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNIT);
-          if iSpeedUnitIndex <> -1 then sSpeedUnitToShow := slVariablesValues.Strings[iSpeedUnitIndex];
-          iSpeedRatioIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICERATIO);
-          if iSpeedRatioIndex <> -1 then sSpeedRatio := slVariablesValues.Strings[iSpeedRatioIndex];
+          if iSpeedValueIndex <> -1 then ServiceSpeedInfo.sSpeedValue := slVariablesValues.Strings[iSpeedValueIndex];
+
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNIT);
+          if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITPOSY);
+          if iAnyValue <> -1 then ServiceSpeedInfo.UnitPosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSIZY);
+          if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
           iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESHADOWSIZE);
-          if iShadowIndex <> -1 then iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
+          if iShadowIndex <> -1 then ServiceSpeedInfo.iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
+          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSHDY);
+          if iColorIndex <> -1 then ServiceSpeedInfo.iUnitshadowcount := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORBACK);
-          if iColorIndex <> -1 then colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+          if iColorIndex <> -1 then ServiceSpeedInfo.colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEED);
-          if iColorIndex <> -1 then colorSpeed := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+          if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeed := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEEDSHADOW);
-          if iColorIndex <> -1 then colorSpeedShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+          if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeedShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNIT);
-          if iColorIndex <> -1 then colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+          if iColorIndex <> -1 then ServiceSpeedInfo.colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
-          if iColorIndex <> -1 then colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+          if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
-          ShowServiceSpeed(sSpeedValueToShow, sSpeedUnitToShow, StrToIntDef(sSpeedRatio, 25), iShadowCount, colorBackground, colorSpeed, colorSpeedShadow, colorUnit, colorUnitShadow);
+          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
+          if iColorIndex <> -1 then ServiceSpeedInfo.iCommenditaire := StrToIntDef(slVariablesValues.Strings[iColorIndex], 0);
+
+          ShowServiceSpeed(ServiceSpeedInfo);
         end;
     end;
   finally
@@ -429,11 +556,13 @@ begin
   try
     with ConfigFile do
     begin
-      SaveWindowConfig(ConfigFile, Self, CALLIDUSDISPLAYCONFIGSECTION);
+      if not FullScreen then
+        SaveWindowConfig(ConfigFile, Self, CALLIDUSDISPLAYCONFIGSECTION);
       SaveWindowConfig(ConfigFile, frmDebugWindow, DEBUGWINDOWSECTION);
       WriteBool(CALLIDUSDISPLAYCONFIGSECTION, 'bDebugWasVisible', frmDebugWindow.Visible);
       WriteBool(CALLIDUSDISPLAYCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', miSaveLogEachTime.Checked);
       WriteBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', miFullCommunicationLog.Checked);
+      WriteBool(CALLIDUSDISPLAYCONFIGSECTION, 'FullScreen', FullScreen);
       // ..SaveConfiguration
     end;
   finally

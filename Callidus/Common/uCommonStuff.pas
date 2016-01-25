@@ -23,6 +23,7 @@ function Callidus_GetNetworkUsername: string;
 function Callidus_GetComputerName: string;
 procedure CallidusSplitVariablesNamesAndValues(slPayloadData, slVariablesNames, slVariablesValues: TStringList);
 function GetApplicationNbOfThisClass(sClassName: string): integer;
+function GetElapsedTime(A: int64): string;
 
 const
   COLORTX = clGreen;
@@ -48,7 +49,10 @@ const
 
   CALLIDUS_CMD_SHOWSERVICESPEED = 'Speed';
   CALLIDUS_CMD_SHOWSERVICEUNIT = 'Unit';
-  CALLIDUS_CMD_SHOWSERVICERATIO = 'FontRatio';
+  CALLIDUS_CMD_SHOWSERVICEPOSY = 'PosY';
+  CALLIDUS_CMD_SHOWSERVICESIZY     = 'SizY';
+  CALLIDUS_CMD_SHOWSERVICEUNITSIZY = 'USiz';
+  CALLIDUS_CMD_SHOWSERVICEUNITPOSY = 'Upos';
   CALLIDUS_CMD_SHOWSERVICESHADOWSIZE = 'ShadowSz';
   CALLIDUS_CMD_GOTASERVICESPEED = 'NewServiceSpeed';
   CALLIDUS_CMD_COLORBACK = 'ColBack';
@@ -56,10 +60,16 @@ const
   CALLIDUS_CMD_COLORSPEEDSHADOW = 'ColSpeedShad';
   CALLIDUS_CMD_COLORUNIT = 'ColUnit';
   CALLIDUS_CMD_COLORUNITSHADOW = 'ColUnitShad';
+  CALLIDUS_CMD_ADJUSTSCREEN = 'SetScreen';
+  CALLIDUS_CMD_SHOWSERVICEUNITSHDY = 'UShSz';
+  CALLIDUS_CMD_SSS_COMMENDITAIRE = 'IdxCmt';
 
   CALLIDUS_INFO_COMPUTERNAME = 'ComputerName';
   CALLIDUS_INFO_DEVICETYPE = 'DeviceType';
   CALLIDUS_INFO_COMPLEMENTNAME = 'ComplementName';
+
+  sDISPLAY_PARAM_FULLSCREEN = 'FullScreen';
+  sDISPLAY_PARAM_NORMALSCREEN = 'NormalScreen';
 
   DEVICETYPE_RADAR = 'CallidusRadar';
 
@@ -377,6 +387,51 @@ begin
     end;
 
   end;
+end;
+
+function GetElapsedTime(A: int64): string;
+var
+  NbHour: int64;
+  NbMinute, NbSeconde, NbMilli: longint;
+begin
+  result := '';
+
+  if A >= (60 * 1000 * 60) then
+  begin
+    NbHour := A div (60 * 1000 * 60);
+    A := A - (NbHour * (60 * 1000 * 60));
+  end
+  else
+  begin
+    NbHour := 0;
+  end;
+
+  if A >= (60 * 1000) then
+  begin
+    NbMinute := A div (60 * 1000);
+    A := A - (NbMinute * (60 * 1000));
+  end
+  else
+  begin
+    NbMinute := 0;
+  end;
+
+  if A >= (1000) then
+  begin
+    NbSeconde := A div (1000);
+    A := A - (NbSeconde * (1000));
+  end
+  else
+  begin
+    NbSeconde := 0;
+  end;
+
+  if A >= 0 then
+    NbMilli := A
+  else
+    NbMilli := 0;
+
+  result := FitWithZero(NbHour, 2) + ':' + FitWithZero(NbMinute, 2) + ':' + FitWithZero(NbSeconde, 2) + ':' + FitWithZero(NbMilli, 3);
 end;
 
 end.
