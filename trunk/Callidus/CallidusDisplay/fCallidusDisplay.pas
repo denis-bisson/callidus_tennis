@@ -175,12 +175,12 @@ begin
   begin
     Rect := BoundsRect;
     SetBounds(Left - ClientOrigin.X, Top - ClientOrigin.Y, GetDeviceCaps(Canvas.handle, HORZRES) + (Width - ClientWidth), GetDeviceCaps(Canvas.handle, VERTRES) + (Height - ClientHeight));
-    ShowCursor(False);  // Hide cursor
+    ShowCursor(False); // Hide cursor
   end
   else
   begin
     BoundsRect := Rect;
-      ShowCursor(True);  // Show cursor
+    ShowCursor(True); // Show cursor
   end;
   if LastSpeedInformationReceived.sSpeedValue <> '' then ShowServiceSpeed(LastSpeedInformationReceived);
   Application.ProcessMessages;
@@ -233,7 +233,7 @@ var
   iUnitSize, iUnitWidthRequired, iTotalWidthRequired, iChar: integer;
   iUnitOneCharHeight, iUnitHeightRequired, iThisCharWidth: integer;
   ImageCommenditaire: TImage;
-  StdRect: TRect;
+  SourceRect, DestRect: TRect;
   ImageEnJpeg: TJpegImage;
   sNomfichierCommenditaire: string;
 
@@ -258,7 +258,7 @@ var
     end
     else
     begin
-      iUnitWidthRequired:=0;
+      iUnitWidthRequired := 0;
     end;
 
     iTotalWidthRequired := iSpeedWidthRequired + (iUnitWidthRequired) + (iUnitWidthRequired div 2);
@@ -293,11 +293,36 @@ begin
         ImageEnJpeg.CompressionQuality := 100;
         ImageEnJpeg.LoadFromFile(sNomfichierCommenditaire);
         ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
-        StdRect.Left := 0;
-        StdRect.Top := 0;
-        StdRect.Width := 1920;
-        StdRect.Height := 200;
-        Canvas.CopyRect(StdRect, ImageCommenditaire.Canvas, StdRect);
+        DestRect.Left := ((Self.Width - ImageCommenditaire.Picture.Width) div 2);
+        DestRect.Right := (DestRect.Left + ImageCommenditaire.Picture.Width);
+        DestRect.Top := 0;
+        DestRect.Bottom := ImageCommenditaire.Picture.Height;
+        SourceRect.Left := 0;
+        SourceRect.Right := ImageCommenditaire.Picture.Width;
+        SourceRect.Top := 0;
+        SourceRect.Bottom := ImageCommenditaire.Picture.Height;
+        Canvas.CopyRect(DestRect, ImageCommenditaire.Canvas, SourceRect);
+
+        if ImageCommenditaire.Picture.Width < Self.Width then
+        begin
+          rWindowRect.Top := 0;
+          rWindowRect.Left := 0;
+          rWindowRect.Height := ImageCommenditaire.Picture.Height;
+          rWindowRect.Width := DestRect.Left;
+          Canvas.Brush.Color := ImageCommenditaire.Picture.Bitmap.Canvas.Pixels[0, 0];
+          Canvas.Brush.Style := bsSolid;
+          Canvas.FillRect(rWindowRect);
+
+          rWindowRect.Top := 0;
+          rWindowRect.Left := DestRect.Left + ImageCommenditaire.Picture.Width;
+          rWindowRect.Height := ImageCommenditaire.Picture.Height;
+          rWindowRect.Width := Self.Width - (DestRect.Left + ImageCommenditaire.Picture.Width);
+          Canvas.Brush.Color := ImageCommenditaire.Picture.Bitmap.Canvas.Pixels[pred(ImageCommenditaire.Picture.Width - 1), 0];
+          Canvas.Brush.Style := bsSolid;
+          Canvas.FillRect(rWindowRect);
+        end;
+
+        //              Destination and then target
       finally
         FreeAndNil(ImageEnJpeg);
         FreeAndNil(ImageCommenditaire);
@@ -435,7 +460,7 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       miSaveLogEachTime.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', True);
-//      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
+      //      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
       miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
       bWasInFullScreen := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'FullScreen', False);
