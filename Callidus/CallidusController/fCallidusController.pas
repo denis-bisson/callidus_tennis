@@ -407,10 +407,10 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSHDY + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
 
-  case cbCommenditaireIndex.ItemIndex of
-    1..5: AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(cbCommenditaireIndex.ItemIndex));
-    6: AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(Random(5) + 1));
-  end;
+  if (cbCommenditaireIndex.ItemIndex >= 1) and (cbCommenditaireIndex.ItemIndex < pred(cbCommenditaireIndex.Items.Count)) then
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(cbCommenditaireIndex.ItemIndex))
+  else if cbCommenditaireIndex.ItemIndex = pred(cbCommenditaireIndex.Items.Count) then
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(Random(cbCommenditaireIndex.Items.Count - 2) + 1));
 
   result := SendDisplayGenericCommand(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;

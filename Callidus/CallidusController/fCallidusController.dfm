@@ -176,7 +176,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 595
     Height = 387
-    ActivePage = Devices
+    ActivePage = tsCallidusDisplayOptions
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
@@ -252,6 +252,8 @@ object frmCallidusController: TfrmCallidusController
           'Drummondville'
           'Son X Plus'
           'Canadian Tire'
+          'Microchip'
+          'Budweiser'
           'Al'#233'atoire')
       end
       object GroupBox3: TGroupBox
@@ -746,7 +748,7 @@ object frmCallidusController: TfrmCallidusController
     Left = 324
     Top = 8
     Bitmap = {
-      494C010106000800580020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101060008005C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
