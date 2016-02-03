@@ -142,7 +142,7 @@ type
     Button1: TButton;
     btnMonitoring: TSpeedButton;
     ImageListRadar: TImageList;
-    Button4: TButton;
+    btnConfigFile: TButton;
     odMainApp: TOpenDialog;
     acSelectStalkerConfigFile: TAction;
     actCloseAllApplications: TAction;
@@ -155,7 +155,7 @@ type
     btnApply: TButton;
     actAutodetection: TAction;
     N3: TMenuItem;
-    TabSheet3: TTabSheet;
+    tsOptionsAutoDetection: TTabSheet;
     GroupBox1: TGroupBox;
     cbKeepRetryingAutodetect: TCheckBox;
     cbTryAllBaudRate: TCheckBox;
@@ -163,6 +163,8 @@ type
     cbDetectNetwork: TCheckBox;
     cbDetectRadar: TCheckBox;
     cbLanceMonitoring: TCheckBox;
+    btnStopAutoDetect: TSpeedButton;
+    pnlAutoDetection: TMemo;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
@@ -174,7 +176,7 @@ type
     procedure actReadStalkerConfigFileExecute(Sender: TObject);
     procedure actReadSensorValueExecute(Sender: TObject);
     procedure DisableToute;
-    procedure EnableToute;
+    procedure EnableToute(bShowLogWindowIfError: boolean = True);
     function SetTransmitterOnOrOff(StateWanted: boolean): boolean;
     procedure actStartMonitoringExecute(Sender: TObject);
     procedure actCloseConnexionExecute(Sender: TObject);
@@ -205,6 +207,7 @@ type
     procedure CloseConnexion;
     procedure cbDetectRadarClick(Sender: TObject);
     procedure cbDetectNetworkClick(Sender: TObject);
+    procedure btnStopAutoDetectClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -219,7 +222,7 @@ type
     isFirstActivation: boolean;
     NomFichierConfiguration: string;
     iIndexApplication: integer;
-    bFlagAbort: boolean;
+    bFlagAbort, bAbortAutoDetection: boolean;
     bFirstNetworkDetection: boolean;
   public
     { Public declarations }
@@ -686,6 +689,12 @@ end;
 procedure TfrmCallidusRadar.btnApplyClick(Sender: TObject);
 begin
   SetVariableFromVisibleServiceSpeedParam;
+end;
+
+procedure TfrmCallidusRadar.btnStopAutoDetectClick(Sender: TObject);
+begin
+  bAbortAutoDetection := True;
+  Application.ProcessMessages;
 end;
 
 procedure TfrmCallidusRadar.Button2Click(Sender: TObject);
@@ -1438,7 +1447,7 @@ begin
   InitialTabSheet := pcRadarPageControl.ActivePage;
 end;
 
-procedure TfrmCallidusRadar.EnableToute;
+procedure TfrmCallidusRadar.EnableToute(bShowLogWindowIfError: boolean = True);
 var
   iAction: integer;
   sNomFichierLog: string;
@@ -1446,6 +1455,7 @@ begin
   for iAction := 0 to pred(ActionManagerRadarConfig.ActionCount) do
     if (ActionManagerRadarConfig.Actions[iAction].Tag and $01) <> $01 then
       ActionManagerRadarConfig.Actions[iAction].Enabled := True;
+
   if bOverAllActionResult then
   begin
     frmDebugWindow.StatusWindow.Color := COLORBACK_SUCCESS;
@@ -1454,8 +1464,9 @@ begin
   else
   begin
     frmDebugWindow.StatusWindow.Color := COLORBACK_ERROR;
-    if not frmDebugWindow.Visible then
-      frmDebugWindow.Show;
+    if bShowLogWindowIfError then
+      if not frmDebugWindow.Visible then
+        frmDebugWindow.Show;
   end;
 
   lblComPort.Enabled := True;
@@ -1567,12 +1578,23 @@ begin
           begin
             if cbDetectRadar.Enabled and cbDetectRadar.Checked then
             begin
-              if AutoDetectRadar then
-              begin
-                if cbLanceMonitoring.Enabled and cbLanceMonitoring.Checked then
+              DisableToute;
+              btnMonitoring.Enabled := False;
+              edConfigFile.Enabled := FALSE;
+              btnConfigFile.Enabled := FALSE;
+              try
+                if AutoDetectRadar then
                 begin
-                  actStartMonitoringExecute(actStartMonitoring);
+                  if cbLanceMonitoring.Enabled and cbLanceMonitoring.Checked then
+                  begin
+                    actStartMonitoringExecute(actStartMonitoring);
+                  end;
                 end;
+              finally
+                btnConfigFile.Enabled := True;
+                edConfigFile.Enabled := True;
+                btnMonitoring.Enabled := True;
+                EnableToute(False);
               end;
             end;
           end;
@@ -1855,76 +1877,94 @@ const
   BAUDRATETABLE: array[0..9] of integer = (9600, 300, 600, 1200, 2400, 4800, 19200, 38400, 57600, 115200);
 begin
   try
-    bRadarFound := FALSE;
-    bFlagFirstAttempt := TRUE;
-    iRememberCom := cbComPort.ItemIndex;
+    pcRadarPageControl.ActivePage := tsOptionsAutoDetection;
+    pnlAutoDetection.Visible := True;
+    btnStopAutoDetect.Visible := True;
+    bAbortAutoDetection := FALSE;
+    pcRadarPageControl.Enabled := False;
+    Application.ProcessMessages;
 
-    repeat
-      PopulatecbComPort;
+    try
+      bRadarFound := FALSE;
+      bFlagFirstAttempt := TRUE;
+      iRememberCom := cbComPort.ItemIndex;
 
-      if bFlagFirstAttempt then
-      begin
-        iComPromeneur := cbComPort.ItemIndex;
-        WriteStatusLg('Since it''s the first attempt of auto-detection, we''ll test with current configured COM...', 'Puis que c''est notre première auto-détection, on teste pour commencer avec le COM présentement ajusté...', COLORDANGER);
-      end
-      else
-      begin
-        iComPromeneur := 0;
-      end;
+      repeat
+        if pnlAutoDetection.Color = clRed then
+          pnlAutoDetection.Color := clMaroon
+        else
+          pnlAutoDetection.Color := clRed;
+        PopulatecbComPort;
 
-      while (iComPromeneur < cbComPort.Items.Count) and (not bRadarFound) do
-      begin
-        cbComPort.ItemIndex := iComPromeneur;
-        Application.ProcessMessages;
-        try
-          if length(cbComPort.Items.Strings[cbComPort.ItemIndex]) > 0 then
-          begin
-            if cbComPort.Items.Strings[cbComPort.ItemIndex][1] = '1' then
-            begin
-              iIndexBaudRate := 0;
-
-              while (iIndexBaudRate < length(BAUDRATETABLE)) and (not bRadarFound) do
-              begin
-                try
-                  CloseConnexion;
-                  WriteStatusLg(Format('We will try to detect on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Nous allons nous essayer sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORDANGER);
-                  VaCommRadar.UserBaudrate := BAUDRATETABLE[iIndexBaudRate];
-                  if SetTransmitterOnOrOff(FALSE) then
-                  begin
-                    WriteStatusLg(Format('RADAR was detected successfully on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Le RADAR a été détecté avec succès sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORSUCCESS);
-                    bRadarFound := True;
-                  end
-                  else
-                  begin
-                    WriteStatusLg(Format('Sorry, RADAR was not detected on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Désolé, le RADAR n''a pas été détecté sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORFATIGUANTE);
-                  end;
-                except
-                  WriteStatusLg('ERROR: Major exception error happened...', 'ERREUR: Un exception majeure est arrivée là...', COLORERROR);
-                end;
-
-                if not bRadarFound then inc(iIndexBaudRate);
-                if not cbTryAllBaudRate.Checked then iIndexBaudRate := length(BAUDRATETABLE);
-              end;
-            end;
-          end;
-        except
-          WriteStatusLg('ERROR: Major exception error happened...', 'ERREUR: Un exception majeure est arrivée là...', COLORERROR);
-        end;
-
-        if not bRadarFound then inc(iComPromeneur);
-
-        if bFlagFirstAttempt and not bRadarFound then
+        if bFlagFirstAttempt then
+        begin
+          iComPromeneur := cbComPort.ItemIndex;
+          WriteStatusLg('Since it''s the first attempt of auto-detection, we''ll test with current configured COM...', 'Puis que c''est notre première auto-détection, on teste pour commencer avec le COM présentement ajusté...', COLORDANGER);
+        end
+        else
         begin
           iComPromeneur := 0;
-          bFlagFirstAttempt := FALSE;
-          WriteStatusLg('Since we did not find RADAR, we will now looping through ALL the detected COM ports...', 'Puisque nous n''avons pas détecter de RADAR, nous allons maintenant parcourir TOUS les COM''s qui ont été détectés...', COLORDANGER);
         end;
-      end; //while (iComPromeneur < cbComPort.Items.Count) and (not bRadarFound) do
-    until (bRadarFound) or (not cbKeepRetryingAutodetect.Checked);
 
-    if not bRadarFound then cbComPort.ItemIndex := iRememberCom;
-    result := bRadarFound;
-    CloseConnexion;
+        while (iComPromeneur < cbComPort.Items.Count) and (not bRadarFound) and (not bAbortAutoDetection) do
+        begin
+          cbComPort.ItemIndex := iComPromeneur;
+          Application.ProcessMessages;
+          try
+            if length(cbComPort.Items.Strings[cbComPort.ItemIndex]) > 0 then
+            begin
+              if cbComPort.Items.Strings[cbComPort.ItemIndex][1] = '1' then
+              begin
+                iIndexBaudRate := 0;
+
+                while (iIndexBaudRate < length(BAUDRATETABLE)) and (not bRadarFound) and (not bAbortAutoDetection) do
+                begin
+                  try
+                    CloseConnexion;
+                    WriteStatusLg(Format('We will try to detect on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Nous allons nous essayer sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORDANGER);
+                    VaCommRadar.UserBaudrate := BAUDRATETABLE[iIndexBaudRate];
+                    if SetTransmitterOnOrOff(FALSE) then
+                    begin
+                      WriteStatusLg(Format('RADAR was detected successfully on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Le RADAR a été détecté avec succès sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORSUCCESS);
+                      bRadarFound := True;
+                    end
+                    else
+                    begin
+                      WriteStatusLg(Format('Sorry, RADAR was not detected on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Désolé, le RADAR n''a pas été détecté sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORFATIGUANTE);
+                    end;
+                  except
+                    WriteStatusLg('ERROR: Major exception error happened...', 'ERREUR: Un exception majeure est arrivée là...', COLORERROR);
+                  end;
+
+                  if not bRadarFound then inc(iIndexBaudRate);
+                  if not cbTryAllBaudRate.Checked then iIndexBaudRate := length(BAUDRATETABLE);
+                end;
+              end;
+            end;
+          except
+            WriteStatusLg('ERROR: Major exception error happened...', 'ERREUR: Un exception majeure est arrivée là...', COLORERROR);
+          end;
+
+          if not bRadarFound then inc(iComPromeneur);
+
+          if (bFlagFirstAttempt) and (not bRadarFound) and (not bAbortAutoDetection) then
+          begin
+            iComPromeneur := 0;
+            bFlagFirstAttempt := FALSE;
+            WriteStatusLg('Since we did not find RADAR, we will now looping through ALL the detected COM ports...', 'Puisque nous n''avons pas détecter de RADAR, nous allons maintenant parcourir TOUS les COM''s qui ont été détectés...', COLORDANGER);
+          end;
+        end; //while (iComPromeneur < cbComPort.Items.Count) and (not bRadarFound) do
+      until (bRadarFound) or (not cbKeepRetryingAutodetect.Checked) or (bAbortAutoDetection);
+
+      if not bRadarFound then cbComPort.ItemIndex := iRememberCom;
+      result := bRadarFound and (not bAbortAutoDetection);
+      CloseConnexion;
+    finally
+      pnlAutoDetection.Visible := False;
+      btnStopAutoDetect.Visible := False;
+      pcRadarPageControl.Enabled := True;
+      if bAbortAutoDetection then MessageDlg('ATTENTION! Vous avez annulé l''auto-détection!', mtWarning, [mbOk], 0);
+    end;
   except
     result := FALSE;
   end;

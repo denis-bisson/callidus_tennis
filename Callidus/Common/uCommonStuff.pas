@@ -4,7 +4,7 @@ interface
 
 uses
   // Delphi
-  vcl.Graphics, vcl.Forms, IniFiles, Classes,
+  vcl.Graphics, vcl.Forms, IniFiles, Classes, Registry,
 
   // Third party
   IdGlobal;
@@ -13,6 +13,8 @@ uses
 
 procedure LoadWindowConfig(ConfigFile: TIniFile; WorkingForm: TForm; SectionName: string);
 procedure SaveWindowConfig(ConfigFile: TIniFile; WorkingForm: TForm; SectionName: string);
+procedure LoadWindowRegistryConfig(RegistryConfigFile: TRegistryIniFile; WorkingForm: TForm; SectionName: string);
+procedure SaveWindowRegistryConfig(RegistryConfigFile: TRegistryIniFile; WorkingForm: TForm; SectionName: string);
 function GetLocalIpAddress: string;
 function GetSystemPath(Folder: integer): string;
 function GetMyDocumentPath: string;
@@ -433,6 +435,37 @@ begin
 
   result := FitWithZero(NbHour, 2) + ':' + FitWithZero(NbMinute, 2) + ':' + FitWithZero(NbSeconde, 2) + ':' + FitWithZero(NbMilli, 3);
 end;
+
+procedure LoadWindowRegistryConfig(RegistryConfigFile: TRegistryIniFile; WorkingForm: TForm; SectionName: string);
+begin
+  WorkingForm.WindowState := TWindowState(RegistryConfigFile.ReadInteger(SectionName, 'WindowState', ord(wsNormal)));
+
+  if WorkingForm.WindowState <> wsMaximized then
+  begin
+    if WorkingForm.WindowState = wsMinimized then
+      WorkingForm.WindowState := wsNormal;
+    WorkingForm.Width := RegistryConfigFile.ReadInteger(SectionName, 'width', WorkingForm.Constraints.MinWidth);
+    WorkingForm.Height := RegistryConfigFile.ReadInteger(SectionName, 'height', WorkingForm.Constraints.MinHeight);
+  end;
+
+  WorkingForm.Left := RegistryConfigFile.ReadInteger(SectionName, 'left', (Screen.Width - WorkingForm.Width) div 2);
+  WorkingForm.Top := RegistryConfigFile.ReadInteger(SectionName, 'top', (Screen.Height - WorkingForm.Height) div 2);
+end;
+
+procedure SaveWindowRegistryConfig(RegistryConfigFile: TRegistryIniFile; WorkingForm: TForm; SectionName: string);
+begin
+  RegistryConfigFile.WriteInteger(SectionName, 'WindowState', ord(WorkingForm.WindowState));
+  if WorkingForm.WindowState <> wsMaximized then
+  begin
+    RegistryConfigFile.WriteInteger(SectionName, 'width', WorkingForm.Width);
+    RegistryConfigFile.WriteInteger(SectionName, 'height', WorkingForm.Height);
+  end;
+
+  RegistryConfigFile.WriteInteger(SectionName, 'left', WorkingForm.Left);
+  RegistryConfigFile.WriteInteger(SectionName, 'top', WorkingForm.Top);
+end;
+
+
 
 end.
 
