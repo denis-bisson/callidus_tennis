@@ -32,6 +32,12 @@ type
     colorUnit: tColor;
     colorUnitShadow: tColor;
     iCommenditaire: integer;
+    PlayerName: string;
+    PlayerNameTextY: integer; //Position du text à partir du bas
+    PlayerNameTextC: tColor; //Couleur du texte
+    PlayerNameTextS: integer; //Grosseur du texte
+    PlayerNameRectC: tColor; //Couleur du fond du rectangle
+    PlayerNameRectH: integer; //Hauteur du rectangle à partir du bas
   end;
 
   TfrmCallidusDisplay = class(TForm)
@@ -70,6 +76,7 @@ type
     procedure tmrControllerVerificationTimer(Sender: TObject);
     procedure miFullCommunicationLogClick(Sender: TObject);
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
+    procedure ShowThisFileFullScreen(sNomDuFichier: string);
   private
     { Private declarations }
     isFirstActivation: Boolean;
@@ -330,7 +337,7 @@ begin
     end;
   end;
 
-  if ServiceSpeedInfo.sSpeedValue <> '' then
+  if (ServiceSpeedInfo.sSpeedValue <> '') and (ServiceSpeedInfo.sSpeedValue <> '-1') then
   begin
     // 01. Ajuste la taille du texte. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
     if (not FullScreen) or (ServiceSpeedInfo.SizY = 0) then
@@ -401,6 +408,28 @@ begin
         Canvas.TextOut(iThisPosXChar, iThisPosYChar, ServiceSpeedInfo.sSpeedUnit[iChar]);
       end;
     end;
+
+    // 08. Si on le demande, on affiche le nom du joueur dans le bas
+    if ServiceSpeedInfo.PlayerName <> '' then
+    begin
+      // 08.1. On dessine la bande.
+      rWindowRect.Top := ClientHeight - ServiceSpeedInfo.PlayerNameRectH;
+      rWindowRect.Left := 0;
+      rWindowRect.Height := ServiceSpeedInfo.PlayerNameRectH;
+      rWindowRect.Width := ClientWidth;
+      Canvas.Brush.Color := ServiceSpeedInfo.PlayerNameRectC;
+      Canvas.Brush.Style := bsSolid;
+      Canvas.FillRect(rWindowRect);
+
+      // 08.2. On écrite le nom du joueur.
+      Canvas.Font.Color := ServiceSpeedInfo.PlayerNameTextC;
+      Canvas.Font.Size := ServiceSpeedInfo.PlayerNameTextS;
+      iTotalWidthRequired := Canvas.TextWidth(ServiceSpeedInfo.PlayerName);
+      iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
+      iPosY := ClientHeight - ServiceSpeedInfo.PlayerNameTextY;
+      Canvas.TextOut(iPosX, iPosY, ServiceSpeedInfo.PlayerName);
+    end;
+
   end;
 end;
 
@@ -509,6 +538,13 @@ begin
             if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
           end;
 
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
+          if iAnyValue <> -1 then
+          begin
+            sAnyValue := slVariablesValues.Strings[iAnyValue];
+            if sAnyValue <> '' then ShowThisFileFullScreen(sAnyValue);
+          end;
+
         end;
 
       PROTO_CMD_SNDINFO:
@@ -530,6 +566,12 @@ begin
           ServiceSpeedInfo.colorUnit := clYellow;
           ServiceSpeedInfo.colorUnitShadow := clBlack;
           ServiceSpeedInfo.iCommenditaire := 0;
+          ServiceSpeedInfo.PlayerName := '';
+          ServiceSpeedInfo.PlayerNameTextY := 30; //Position du text à partir du bas
+          ServiceSpeedInfo.PlayerNameTextC := clWhite; //Couleur du texte
+          ServiceSpeedInfo.PlayerNameTextS := 20; //Grosseur du texte
+          ServiceSpeedInfo.PlayerNameRectC := clBlack; //Couleur du fond du rectangle
+          ServiceSpeedInfo.PlayerNameRectH := 30; //Hauteur du rectangle à partir du bas
 
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
           if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
@@ -563,6 +605,19 @@ begin
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
           if iColorIndex <> -1 then ServiceSpeedInfo.iCommenditaire := StrToIntDef(slVariablesValues.Strings[iColorIndex], 0);
 
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERNAME);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerName := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTEXTY);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextY := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextY);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTCOLOR);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextC);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTSIZE);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextS := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextS);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTCOLOR);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectC);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTHEIGHT);
+          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectH := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectH);
+
           ShowServiceSpeed(ServiceSpeedInfo);
         end;
     end;
@@ -592,6 +647,51 @@ begin
     end;
   finally
     ConfigFile.Free;
+  end;
+end;
+
+procedure TfrmCallidusDisplay.ShowThisFileFullScreen(sNomDuFichier: string);
+var
+  sMaybeFilename: string;
+  ImageEnJpeg: TJpegImage;
+  ImageCommenditaire: TImage;
+  SourceRect, DestRect: TRect;
+begin
+  sMaybeFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sNomDuFichier;
+  if FileExists(sMaybeFilename) then
+  begin
+    ImageEnJpeg := TJpegImage.Create;
+    ImageCommenditaire := TImage.Create(Self);
+    try
+      // 1. On load notre image
+      ImageEnJpeg.CompressionQuality := 100;
+      ImageEnJpeg.LoadFromFile(sMaybeFilename);
+      ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
+
+      // 2. On ajuste rempli le fond de l'écran de la couleur du pixel de l'image en haut à gauche
+      if ImageCommenditaire.Picture.Width < ClientWidth then
+      begin
+        Canvas.Brush.Color := ImageCommenditaire.Picture.Bitmap.Canvas.Pixels[0, 0];
+        Canvas.Brush.Style := bsSolid;
+        Canvas.FillRect(ClientRect);
+      end;
+
+      // 3. On affiche notre image centré
+      DestRect.Left := ((ClientWidth - ImageCommenditaire.Picture.Width) div 2);
+      DestRect.Right := (DestRect.Left + ImageCommenditaire.Picture.Width);
+      DestRect.Top := ((ClientHeight - ImageCommenditaire.Picture.Height) div 2);
+      DestRect.Bottom := (DestRect.Top + ImageCommenditaire.Picture.Height);
+
+      SourceRect.Left := 0;
+      SourceRect.Right := ImageCommenditaire.Picture.Width;
+      SourceRect.Top := 0;
+      SourceRect.Bottom := ImageCommenditaire.Picture.Height;
+
+      Canvas.CopyRect(DestRect, ImageCommenditaire.Canvas, SourceRect);
+    finally
+      FreeAndNil(ImageEnJpeg);
+      FreeAndNil(ImageCommenditaire);
+    end;
   end;
 end;
 
