@@ -75,7 +75,7 @@ type
     actFlushCurrentDetectedList: TAction;
     Flushcurrentdetectedlist1: TMenuItem;
     miFullCommunicationLog: TMenuItem;
-    tsCallidusDisplayOptions: TTabSheet;
+    cbCommenditaireFullScreen: TTabSheet;
     ColorDialog1: TColorDialog;
     actSetInFullScreen: TAction;
     actSetInNormalScreen: TAction;
@@ -95,7 +95,7 @@ type
     Label5: TLabel;
     Label6: TLabel;
     Label2: TLabel;
-    pnlSpeed: TPanel;
+    pnlSpeedCote1: TPanel;
     pnlSpeedShadow: TPanel;
     edPositionSpeedY: TLabeledEdit;
     edTailleSpeedY: TLabeledEdit;
@@ -114,6 +114,37 @@ type
     edServiceSpeedUnit: TGlobal6LabeledEdit;
     lbDeviceDetected: TListBox;
     RefreshListTimer: TTimer;
+    pnlSpeedCote2: TPanel;
+    Label3: TLabel;
+    tsPlayer: TTabSheet;
+    EditJoueur1: TLabeledEdit;
+    EditJoueur2: TLabeledEdit;
+    Button1: TButton;
+    actSwapPlayers: TAction;
+    cbShowPlayerName: TCheckBox;
+    GroupBox1: TGroupBox;
+    Label7: TLabel;
+    Label11: TLabel;
+    pnlCouleurPlayerRectangle: TPanel;
+    edRectangleHeight: TLabeledEdit;
+    edPlayerSizeText: TLabeledEdit;
+    pnlCouleurPlayerText1: TPanel;
+    Label9: TLabel;
+    pnlCouleurPlayerText2: TPanel;
+    edPlayerPosY: TLabeledEdit;
+    ToolButton9: TToolButton;
+    cbCommenditairePleinEcran: TComboBox;
+    Label10: TLabel;
+    actStartPub: TAction;
+    tsPub: TTabSheet;
+    ToolButton10: TToolButton;
+    Label12: TLabel;
+    clCommenditaire: TCheckListGlobal6;
+    Button2: TButton;
+    rgPubType: TRadioGroup;
+    cbDisplayFullScreenTime: TComboBox;
+    Label13: TLabel;
+    TimerPublicityFullScreen: TTimer;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -125,7 +156,7 @@ type
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
     procedure ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
     procedure actTestCommWithDisplayExecute(Sender: TObject);
-    function InformeDisplayDuneNouvelleVitesse(Speed: string): boolean;
+    function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
     function SendDisplayGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
     procedure EnableToute;
@@ -144,6 +175,11 @@ type
     procedure lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure RefreshListTimerTimer(Sender: TObject);
+    procedure actSwapPlayersExecute(Sender: TObject);
+    procedure actStartPubExecute(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure DoLaPub;
+    procedure TimerPublicityFullScreenTimer(Sender: TObject);
 
   private
     { Private declarations }
@@ -272,6 +308,100 @@ begin
   lbDeviceDetected.Clear;
 end;
 
+procedure TfrmCallidusController.TimerPublicityFullScreenTimer(Sender: TObject);
+begin
+  TimerPublicityFullScreen.Enabled := False;
+  try
+    DoLaPub;
+  finally
+    TimerPublicityFullScreen.Enabled := True;
+  end;
+end;
+
+procedure TfrmCallidusController.DoLaPub;
+var
+  iMaybeIndex: integer;
+  sNomFichier: string;
+  iPreviousIndex: integer;
+  iLastChecked, iNbChecked, iIndex: integer;
+begin
+  if clCommenditaire.Items.Count > 0 then
+  begin
+    iMaybeIndex := 0;
+    iNbChecked := 0;
+    iLastChecked := 0;
+
+    if clCommenditaire.ItemIndex = -1 then
+      clCommenditaire.ItemIndex := 0;
+
+    for iIndex := 0 to pred(clCommenditaire.Items.Count) do
+      if clCommenditaire.Checked[iIndex] then
+      begin
+        inc(iNbChecked);
+        iLastChecked := iIndex;
+      end;
+
+    if iNbChecked = 0 then
+      clCommenditaire.Checked[0] := True;
+
+    iPreviousIndex := clCommenditaire.ItemIndex;
+
+    case rgPubType.ItemIndex of
+      0:
+        begin
+          iMaybeIndex := clCommenditaire.ItemIndex;
+        end;
+
+      1, 2:
+        begin
+          if iNbChecked = 1 then
+          begin
+            iMaybeIndex := iLastchecked
+          end
+          else
+          begin
+            case rgPubType.ItemIndex of
+              1:
+                begin
+                  repeat
+                    clCommenditaire.ItemIndex := ((clCommenditaire.ItemIndex + 1) mod clCommenditaire.Items.Count);
+                    iMaybeIndex := clCommenditaire.ItemIndex;
+                  until clCommenditaire.Checked[iMaybeIndex]
+                end;
+
+              2:
+                begin
+                  repeat
+                    iMaybeIndex := random(clCommenditaire.Items.Count);
+                  until (clCommenditaire.Checked[iMaybeIndex]) and (iMaybeIndex <> iPreviousIndex);
+                end;
+            end;
+          end;
+        end;
+    end;
+
+    if clCommenditaire.ItemIndex <> -1 then
+    begin
+      sNomFichier := clCommenditaire.Items.Strings[iMaybeIndex];
+      bOverAllActionResult := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sNomFichier]);
+    end;
+  end;
+end;
+
+procedure TfrmCallidusController.actStartPubExecute(Sender: TObject);
+var
+  sNomFichier: string;
+begin
+  DisableToute;
+  try
+    DoLaPub;
+    TimerPublicityFullScreen.Interval := 1000 * StrToIntDef(cbDisplayFullScreenTime.Items.Strings[cbDisplayFullScreenTime.ItemIndex], 2000);
+    TimerPublicityFullScreen.Enabled := True;
+  finally
+    EnableToute;
+  end;
+end;
+
 procedure TfrmCallidusController.actStartServicingExecute(Sender: TObject);
 begin
   try
@@ -296,6 +426,15 @@ begin
   end;
 end;
 
+procedure TfrmCallidusController.actSwapPlayersExecute(Sender: TObject);
+var
+  sTempo: string;
+begin
+  sTempo := EditJoueur1.Text;
+  EditJoueur1.Text := EditJoueur2.Text;
+  EditJoueur2.Text := sTempo;
+end;
+
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
 begin
   DisableToute;
@@ -317,10 +456,14 @@ begin
 end;
 
 procedure TfrmCallidusController.actTestCommWithDisplayExecute(Sender: TObject);
+var
+  ServiceSpeedTemporaire: TServiceSpeed;
 begin
   DisableToute;
   try
-    bOverAllActionResult := InformeDisplayDuneNouvelleVitesse(IntToStr(100 + random(100)));
+    ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
+    ServiceSpeedTemporaire.CurrentPeekDirection := (1 + random(2));
+    bOverAllActionResult := InformeDisplayDuneNouvelleVitesse(ServiceSpeedTemporaire);
   finally
     EnableToute;
   end;
@@ -338,7 +481,8 @@ begin
     result := TRUE;
 
     for iParam := 0 to pred(length(params)) do
-      PayloadDataRequest.Add(params[iParam]);
+      if params[iParam] <> '' then
+        PayloadDataRequest.Add(params[iParam]);
 
     for iDevice := 0 to pred(CallidusDeviceList.Count) do
     begin
@@ -371,17 +515,14 @@ begin
   for iElement := 0 to pred(length(Params)) do Params[iElement] := '';
 end;
 
-function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(Speed: string): boolean;
+function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
 var
   Params: array of string;
   iDevice: integer;
   sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio: string;
   icurrentIndexInArray: integer;
 begin
-  if edServiceSpeedUnit.Checkbox.Checked then
-    SetLength(Params, 9 + 6)
-  else
-    SetLength(Params, 9);
+  SetLength(Params, 20);
   CleanMonArray(Params);
   icurrentIndexInArray := 0;
 
@@ -391,11 +532,45 @@ begin
 
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEPOSY + '=' + edPositionSpeedY.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESIZY + '=' + edTailleSpeedY.Text);
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESPEED + '=' + Speed);
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESPEED + '=' + IntToStr(paramInfoSpeed.CurrentPeakSpeed));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESHADOWSIZE + '=' + IntToStr(cbShadowSize.ItemIndex));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORBACK + '=' + IntToStr(pnlBackground.Color));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeed.Color));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
+
+  case paramInfoSpeed.CurrentPeekDirection of
+    1:
+      begin
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
+        if cbShowPlayerName.Checked then
+        begin
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERNAME + '=' + EditJoueur1.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTCOLOR + '=' + IntToStr(pnlCouleurPlayerText1.Color));
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTSIZE + '=' + edPlayerSizeText.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTEXTY + '=' + edPlayerPosY.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTHEIGHT + '=' + edRectangleHeight.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTCOLOR + '=' + IntToStr(pnlCouleurPlayerRectangle.Color));
+        end;
+      end;
+    2:
+      begin
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote2.Color));
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
+        if cbShowPlayerName.Checked then
+        begin
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERNAME + '=' + EditJoueur2.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTCOLOR + '=' + IntToStr(pnlCouleurPlayerText2.Color));
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTSIZE + '=' + edPlayerSizeText.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTEXTY + '=' + edPlayerPosY.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTHEIGHT + '=' + edRectangleHeight.Text);
+          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTCOLOR + '=' + IntToStr(pnlCouleurPlayerRectangle.Color));
+        end;
+      end;
+    else
+      begin
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
+        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
+      end;
+  end;
 
   if edServiceSpeedUnit.Checkbox.Checked then
   begin
@@ -460,6 +635,18 @@ procedure TfrmCallidusController.AutoStartTimerTimer(Sender: TObject);
 begin
   AutoStartTimer.Enabled := FALSE;
   actStartServicingExecute(actStartServicing);
+end;
+
+procedure TfrmCallidusController.Button2Click(Sender: TObject);
+var
+  sNomFichierList: string;
+begin
+  sNomFichierList := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + 'PubFullScreen.lst';
+  if FileExists(sNomFichierList) then
+  begin
+    clCommenditaire.Clear;
+    clCommenditaire.Items.LoadFromFile(sNomFichierList);
+  end;
 end;
 
 procedure TfrmCallidusController.evMainApplicationEventsException(Sender: TObject; E: Exception);
@@ -547,7 +734,8 @@ begin
       cbShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShadowSize', 10);
       cbUnitShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', 5);
       pnlBackground.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', clGreen);
-      pnlSpeed.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', clWhite);
+      pnlSpeedCote1.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', clWhite);
+      pnlSpeedCote2.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed2', clYellow);
       pnlSpeedShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', clBlack);
       pnlUnit.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', clYellow);
       pnlUnitShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', clBlack);
@@ -558,6 +746,17 @@ begin
       edTailleUnitY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
       cbCommenditaireIndex.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditaireIndex', pred(cbCommenditaireIndex.Items.Count));
       edServiceSpeedUnitSubCheckboxClick(edServiceSpeedUnit.Checkbox);
+      EditJoueur1.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', 'Joueur #1');
+      EditJoueur2.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', 'Joueur #2');
+      cbShowPlayerName.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShowPlayerName', False);
+      edRectangleHeight.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edRectangleHeight', '120');
+      pnlCouleurPlayerRectangle.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerRectangle', clBlack);
+      pnlCouleurPlayerText1.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText1', clWhite);
+      pnlCouleurPlayerText2.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', clYellow);
+      edPlayerSizeText.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', '70');
+      edPlayerPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', '120');
+      cbCommenditairePleinEcran.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditairePleinEcran', 0);
+      cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
       // ..LoadConfiguration
     end;
   finally
@@ -582,10 +781,14 @@ begin
   with sender as TComponent do Dispatcher := tag;
   case Dispatcher of
     1: pnlWorking := pnlBackground;
-    2: pnlWorking := pnlSpeed;
+    2: pnlWorking := pnlSpeedCote1;
     3: pnlWorking := pnlSpeedShadow;
     4: pnlWorking := pnlUnit;
     5: pnlWorking := pnlUnitShadow;
+    6: pnlWorking := pnlSpeedCote2;
+    7: pnlWorking := pnlCouleurPlayerRectangle;
+    8: pnlWorking := pnlCouleurPlayerText1;
+    9: pnlWorking := pnlCouleurPlayerText2;
   end;
 
   if pnlWorking <> nil then
@@ -616,7 +819,8 @@ begin
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShadowSize', cbShadowSize.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', cbUnitShadowSize.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', pnlBackground.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', pnlSpeed.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', pnlSpeedCote1.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed2', pnlSpeedCote2.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', pnlSpeedShadow.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', pnlUnit.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', pnlUnitShadow.Color);
@@ -626,6 +830,17 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', edUnitPosY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', edTailleUnitY.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditaireIndex', cbCommenditaireIndex.ItemIndex);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', EditJoueur1.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', EditJoueur2.Text);
+      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShowPlayerName', cbShowPlayerName.Checked);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edRectangleHeight', edRectangleHeight.Text);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerRectangle', pnlCouleurPlayerRectangle.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText1', pnlCouleurPlayerText1.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', pnlCouleurPlayerText2.Color);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', edPlayerSizeText.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', edPlayerPosY.Text);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditairePleinEcran', cbCommenditairePleinEcran.ItemIndex);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
       // ..SaveConfiguration
     end;
   finally
@@ -642,6 +857,7 @@ var
   sRemoteDevice: string;
   sPerte: AnsiString;
   localDeviceType: tDeviceType;
+  ServiceSpeedInfo: TServiceSpeed;
 begin
   slVariablesNames := TStringList.Create;
   slVariablesValues := TStringList.Create;
@@ -678,11 +894,13 @@ begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
           ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
           Application.ProcessMessages;
+
+          ServiceSpeedInfo.CurrentPeakSpeed := -2;
           iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
-          if iIndexGeneric <> -1 then
-          begin
-            InformeDisplayDuneNouvelleVitesse(slVariablesValues.Strings[iIndexGeneric]);
-          end;
+          if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
+          iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
+          if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
+          if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
         end;
     end;
 

@@ -4,12 +4,31 @@ interface
 
 uses
   // Delphi
-  vcl.Graphics, vcl.Forms, IniFiles, Classes, Registry,
+  vcl.Graphics, vcl.Forms, IniFiles, Classes, Registry, Types,
 
   // Third party
   IdGlobal;
 
 // My stuff
+
+type
+  TStateMachine_ServiceSpeed = (tmss_STOPPED, tsmss_WAITING_SERVICE, tsmss_WAITINGIDLE);
+
+  TServiceSpeed = record
+    LowLimitServiceSpeed: integer;
+    HighLimitServiceSpeed: integer;
+    TimeToShowServiceSpeed: dword;
+    LowLimitInactivitySpeed: integer;
+    HighLimitInactivitySpeed: integer;
+    TimeInactivitySpeed: dword;
+    StateMachine: TStateMachine_ServiceSpeed;
+    CurrentPeakSpeed: integer;
+    CurrentPeekDirection: integer;
+    CurrentLiveSpeed: integer;
+    TickCountToStopShowingService: dword;
+    TickCountToSwitchBackToWaitingService: dword;
+  end;
+  PTServiceSpeed = ^TServiceSpeed; // Tiens Éric! L'utilisation d'un pointeur en Delphi! :-)
 
 procedure LoadWindowConfig(ConfigFile: TIniFile; WorkingForm: TForm; SectionName: string);
 procedure SaveWindowConfig(ConfigFile: TIniFile; WorkingForm: TForm; SectionName: string);
@@ -52,11 +71,12 @@ const
   CALLIDUS_CMD_SHOWSERVICESPEED = 'Speed';
   CALLIDUS_CMD_SHOWSERVICEUNIT = 'Unit';
   CALLIDUS_CMD_SHOWSERVICEPOSY = 'PosY';
-  CALLIDUS_CMD_SHOWSERVICESIZY     = 'SizY';
+  CALLIDUS_CMD_SHOWSERVICESIZY = 'SizY';
   CALLIDUS_CMD_SHOWSERVICEUNITSIZY = 'USiz';
   CALLIDUS_CMD_SHOWSERVICEUNITPOSY = 'Upos';
   CALLIDUS_CMD_SHOWSERVICESHADOWSIZE = 'ShadowSz';
   CALLIDUS_CMD_GOTASERVICESPEED = 'NewServiceSpeed';
+  CALLIDUS_CMD_SERVICEDIRECTION = 'ServSide';
   CALLIDUS_CMD_COLORBACK = 'ColBack';
   CALLIDUS_CMD_COLORSPEED = 'ColSpeed';
   CALLIDUS_CMD_COLORSPEEDSHADOW = 'ColSpeedShad';
@@ -65,6 +85,14 @@ const
   CALLIDUS_CMD_ADJUSTSCREEN = 'SetScreen';
   CALLIDUS_CMD_SHOWSERVICEUNITSHDY = 'UShSz';
   CALLIDUS_CMD_SSS_COMMENDITAIRE = 'IdxCmt';
+  CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY = 'FullPub';
+
+  CALLIDUS_CMD_PLAYERNAME = 'PName';
+  CALLIDUS_CMD_PLAYERTEXTY = 'PlyY';
+  CALLIDUS_CMD_PLAYERTXTSIZE = 'PlyTxSz';
+  CALLIDUS_CMD_PLAYERTXTCOLOR = 'PlyC';
+  CALLIDUS_CMD_PLAYERRECTCOLOR = 'PlyB';
+  CALLIDUS_CMD_PLAYERRECTHEIGHT = 'PlyRH';
 
   CALLIDUS_INFO_COMPUTERNAME = 'ComputerName';
   CALLIDUS_INFO_DEVICETYPE = 'DeviceType';
@@ -464,8 +492,6 @@ begin
   RegistryConfigFile.WriteInteger(SectionName, 'left', WorkingForm.Left);
   RegistryConfigFile.WriteInteger(SectionName, 'top', WorkingForm.Top);
 end;
-
-
 
 end.
 

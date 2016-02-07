@@ -35,22 +35,6 @@ uses
 type
   TRadarMethod = (rm_GetMethod, rm_ChangeMethod, rm_SetMethod);
 
-  TStateMachine_ServiceSpeed = (tmss_STOPPED, tsmss_WAITING_SERVICE, tsmss_WAITINGIDLE);
-
-  TServiceSpeed = record
-    LowLimitServiceSpeed: integer;
-    HighLimitServiceSpeed: integer;
-    TimeToShowServiceSpeed: dword;
-    LowLimitInactivitySpeed: integer;
-    HighLimitInactivitySpeed: integer;
-    TimeInactivitySpeed: dword;
-    StateMachine: TStateMachine_ServiceSpeed;
-    CurrentPeakSpeed: integer;
-    CurrentLiveSpeed: integer;
-    TickCountToStopShowingService: dword;
-    TickCountToSwitchBackToWaitingService: dword;
-  end;
-
   TParameter = class
   public
     Name: string;
@@ -199,7 +183,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure miFullCommunicationLogClick(Sender: TObject);
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
-    function FaisRemonterLeServiceSpeed(paramServiceSpeed: integer): boolean;
+    function FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed): boolean;
     procedure btnApplyClick(Sender: TObject);
     procedure ChangeServiceSettingClick(Sender: TObject);
     procedure actAutodetectionExecute(Sender: TObject);
@@ -534,7 +518,7 @@ begin
 end;
 
 { TfrmCallidusRadar.FaisRemonterLeServiceSpeed }
-function TfrmCallidusRadar.FaisRemonterLeServiceSpeed(paramServiceSpeed: integer): boolean;
+function TfrmCallidusRadar.FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed): boolean;
 var
   PayloadDataRequest: TStringList;
   Answer: AnsiString;
@@ -542,10 +526,16 @@ begin
   PayloadDataRequest := TStringList.Create;
   try
     ProtocolePROTO_Radar.LoadStringListWithIdentificationInfo(PayloadDataRequest);
-    if paramServiceSpeed = -1 then
-      PayloadDataRequest.Add(CALLIDUS_CMD_GOTASERVICESPEED + '=')
+    if pServiceSpeedInfo <> nil then
+    begin
+      PayloadDataRequest.Add(CALLIDUS_CMD_GOTASERVICESPEED + '=' + IntToStr(pServiceSpeedInfo^.CurrentPeakSpeed));
+      PayloadDataRequest.Add(CALLIDUS_CMD_SERVICEDIRECTION + '=' + IntToStr(pServiceSpeedInfo^.CurrentPeekDirection));
+    end
     else
-      PayloadDataRequest.Add(CALLIDUS_CMD_GOTASERVICESPEED + '=' + IntToStr(paramServiceSpeed));
+    begin
+      PayloadDataRequest.Add(CALLIDUS_CMD_GOTASERVICESPEED + '=');
+      PayloadDataRequest.Add(CALLIDUS_CMD_SERVICEDIRECTION + '=');
+    end;
 
     result := (ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(PROTO_CMD_SNDINFO, PayloadDataRequest, Answer) > 0);
   finally
@@ -556,6 +546,7 @@ end;
 procedure TfrmCallidusRadar.actTestConnexionWithTargetExecute(Sender: TObject);
 var
   Timeout: dword;
+  ServiceSpeedTemporaire: TServiceSpeed;
 begin
   DisableToute;
   try
@@ -563,7 +554,8 @@ begin
     while not bFlagAbort do
     begin
       // 1. On affiche la valeur durant 1 seconde
-      bOverAllActionResult := FaisRemonterLeServiceSpeed(100 + random(100));
+      ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
+      bOverAllActionResult := FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
       Timeout := GetTickCount + 500;
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
@@ -572,7 +564,7 @@ begin
       end;
 
       // 2. On efface la valeur durant 0.5 seconde
-      bOverAllActionResult := FaisRemonterLeServiceSpeed(-1);
+      bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
       Timeout := GetTickCount + 500;
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
@@ -1407,8 +1399,7 @@ begin
         if sMsgToShow <> '' then
         begin
           WriteStatusLg('Rx - ' + GetDisplayableStuff(sMsgToShow), '', COLORINCOMINGSTREAM);
-          if pos(AnsiChar($83), sMsgToShow) <> 0 then
-            ProcessSpeedPacket(sMsgToShow);
+          if pos(AnsiChar($83), sMsgToShow) <> 0 then ProcessSpeedPacket(sMsgToShow);
         end;
 
         RadarAnswer := AnsiStrings.RightStr(RadarAnswer, length(RadarAnswer) - Pos0D);
@@ -1637,9 +1628,15 @@ begin
     if (PeakSpeedToShow <> '') then
     begin
       if (sSpeedReceived[2] = 'C') then
-        PeakSpeedToShow := '+' + PeakSpeedToShow
+      begin
+        PeakSpeedToShow := '+' + PeakSpeedToShow;
+        ServiceSpeed.CurrentPeekDirection:=1;
+      end
       else
+      begin
         PeakSpeedToShow := '-' + PeakSpeedToShow;
+        ServiceSpeed.CurrentPeekDirection:=2;
+      end;
     end;
 
     LiveSpeedToShow := copy(sSpeedReceived, 8, 4);
@@ -1657,6 +1654,7 @@ begin
   else
   begin
     ServiceSpeed.CurrentPeakSpeed := 0;
+    ServiceSpeed.CurrentPeekDirection := 0;
     ServiceSpeed.CurrentLiveSpeed := 0;
   end;
 
@@ -1665,7 +1663,7 @@ begin
       begin
         if (ServiceSpeed.CurrentPeakSpeed >= ServiceSpeed.LowLimitServiceSpeed) and (ServiceSpeed.CurrentPeakSpeed <= ServiceSpeed.HighLimitServiceSpeed) then
         begin
-          FaisRemonterLeServiceSpeed(ServiceSpeed.CurrentPeakSpeed);
+          FaisRemonterLeServiceSpeed(addr(ServiceSpeed));
           ServiceSpeed.StateMachine := tsmss_WAITINGIDLE;
           ServiceSpeed.TickCountToSwitchBackToWaitingService := FreezeTickCount + ServiceSpeed.TimeInactivitySpeed;
           ServiceSpeed.TickCountToStopShowingService := FreezeTickCount + ServiceSpeed.TimeToShowServiceSpeed;
@@ -1680,7 +1678,7 @@ begin
             ServiceSpeed.TickCountToStopShowingService := $FFFFFFFF;
             if ServiceSpeed.TimeToShowServiceSpeed <> 0 then
             begin
-              FaisRemonterLeServiceSpeed(-1);
+              FaisRemonterLeServiceSpeed(nil);
               sbRadar.Panels[IDX_PANEL_SERVICETIMESHOWN].Text := '';
             end;
           end
@@ -1700,7 +1698,7 @@ begin
           ServiceSpeed.TickCountToStopShowingService := $FFFFFFFF;
           if ServiceSpeed.TimeToShowServiceSpeed <> 0 then
           begin
-            FaisRemonterLeServiceSpeed(-1);
+            FaisRemonterLeServiceSpeed(nil);
             sbRadar.Panels[IDX_PANEL_SERVICETIMESHOWN].Text := '';
           end;
         end
