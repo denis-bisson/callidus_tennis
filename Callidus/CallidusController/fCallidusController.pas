@@ -90,7 +90,6 @@ type
     ToolButton1: TToolButton;
     ToolButton8: TToolButton;
     pnlBackground: TPanel;
-    cbCommenditaireIndex: TComboBox;
     GroupBox3: TGroupBox;
     Label5: TLabel;
     Label6: TLabel;
@@ -109,7 +108,6 @@ type
     edUnitPosY: TLabeledEdit;
     edTailleUnitY: TLabeledEdit;
     cbUnitShadowSize: TComboBox;
-    Label8: TLabel;
     Label4: TLabel;
     edServiceSpeedUnit: TGlobal6LabeledEdit;
     lbDeviceDetected: TListBox;
@@ -133,18 +131,23 @@ type
     pnlCouleurPlayerText2: TPanel;
     edPlayerPosY: TLabeledEdit;
     ToolButton9: TToolButton;
-    cbCommenditairePleinEcran: TComboBox;
-    Label10: TLabel;
     actStartPub: TAction;
     tsPub: TTabSheet;
     ToolButton10: TToolButton;
     Label12: TLabel;
     clCommenditaire: TCheckListGlobal6;
-    Button2: TButton;
+    btnCommandFull: TButton;
     rgPubType: TRadioGroup;
     cbDisplayFullScreenTime: TComboBox;
     Label13: TLabel;
     TimerPublicityFullScreen: TTimer;
+    TabSheet1: TTabSheet;
+    clCommdtBanniere: TCheckListGlobal6;
+    Label8: TLabel;
+    btnBanniere: TButton;
+    RadioGroup1: TRadioGroup;
+    ComboBox1: TComboBox;
+    Label10: TLabel;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -172,14 +175,15 @@ type
     procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
     procedure CleanMonArray(var Params: array of string);
     procedure edServiceSpeedUnitSubCheckboxClick(Sender: TObject);
-    procedure lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer;
-      Rect: TRect; State: TOwnerDrawState);
+    procedure lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure RefreshListTimerTimer(Sender: TObject);
     procedure actSwapPlayersExecute(Sender: TObject);
     procedure actStartPubExecute(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnCommanditClick(Sender: TObject);
     procedure DoLaPub;
     procedure TimerPublicityFullScreenTimer(Sender: TObject);
+    procedure btnStopPubClick(Sender: TObject);
+    function GetPubFileNameForBanniere(var sFilename: string): boolean;
 
   private
     { Private declarations }
@@ -191,12 +195,19 @@ type
     bOverAllActionResult: Boolean;
     CallidusDeviceList: TCallidusDeviceList;
     ListeDesDevicesLastTrenteSecondes: TStringList;
+    bModePublicite: boolean;
+    PanelStop: TPanel;
+    LabelPub: TLabel;
+    BoutonStop: TButton;
   public
     { Public declarations }
   end;
 
 var
   frmCallidusController: TfrmCallidusController;
+
+const
+  STOPPER = 'MyleneStopThemAll!';
 
 implementation
 
@@ -394,6 +405,43 @@ var
 begin
   DisableToute;
   try
+    PanelStop := TPanel.Create(self);
+    PanelStop.Parent := self;
+    PanelStop.Top := 0;
+    PanelStop.Left := 0;
+    PanelStop.Width := width;
+    PanelStop.Height := Height;
+    PanelStop.Constraints.MinWidth := PanelStop.Width;
+    PanelStop.Visible := True;
+    PanelStop.Anchors := [akLeft, akTop, akRight, akBottom];
+
+    LabelPub := TLabel.Create(PanelStop);
+    LabelPub.Parent := PanelStop;
+    LabelPub.Font.Size := 40;
+    LabelPub.Top := (50 * Height) div 100;
+    LabelPub.Font.Style := [fsBold];
+    LabelPub.Font.Color := clRed;
+    LabelPub.Caption := 'MODE PUB';
+    LabelPub.Left := (Width - LabelPub.Width) div 2;
+    LabelPub.Anchors := [akTop];
+    LabelPub.Constraints.MinWidth := LabelPub.Width;
+    LabelPub.Visible := True;
+
+    BoutonStop := TButton.Create(PanelStop);
+    BoutonStop.Parent := PanelStop;
+    BoutonStop.Width := 300;
+    BoutonStop.Height := 60;
+    BoutonStop.Left := ((Width - BoutonStop.Width) div 2);
+    BoutonStop.Top := 100;
+    BoutonStop.Anchors := [akTop];
+    BoutonStop.Font.Size := 20;
+    BoutonStop.Font.Style := [fsBold];
+    BoutonStop.Caption := 'Cessez la pub';
+    BoutonStop.Constraints.MinWidth := BoutonStop.Width;
+    BoutonStop.OnClick := btnStopPubClick;
+    BoutonStop.Visible := True;
+
+    bModePublicite := True;
     DoLaPub;
     TimerPublicityFullScreen.Interval := 1000 * StrToIntDef(cbDisplayFullScreenTime.Items.Strings[cbDisplayFullScreenTime.ItemIndex], 2000);
     TimerPublicityFullScreen.Enabled := True;
@@ -519,8 +567,9 @@ function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(paramInfoSpeed
 var
   Params: array of string;
   iDevice: integer;
-  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio: string;
+  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio, sPubFileName: string;
   icurrentIndexInArray: integer;
+
 begin
   SetLength(Params, 20);
   CleanMonArray(Params);
@@ -582,10 +631,8 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSHDY + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
 
-  if (cbCommenditaireIndex.ItemIndex >= 1) and (cbCommenditaireIndex.ItemIndex < pred(cbCommenditaireIndex.Items.Count)) then
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(cbCommenditaireIndex.ItemIndex))
-  else if cbCommenditaireIndex.ItemIndex = pred(cbCommenditaireIndex.Items.Count) then
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + IntToStr(Random(cbCommenditaireIndex.Items.Count - 2) + 1));
+  if GetPubFileNameForBanniere(sPubFileName) then
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sPubFileName);
 
   result := SendDisplayGenericCommand(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
@@ -637,16 +684,68 @@ begin
   actStartServicingExecute(actStartServicing);
 end;
 
-procedure TfrmCallidusController.Button2Click(Sender: TObject);
+procedure TfrmCallidusController.btnCommanditClick(Sender: TObject);
 var
-  sNomFichierList: string;
+  sNomFichierList, sListFilename: string;
+  slFichierDejacoches: TStringList;
+  Dispatcher, iMaybeIndex, iIndexfile: integer;
+  LocalChecklist: TCheckListGlobal6;
+
 begin
-  sNomFichierList := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + 'PubFullScreen.lst';
-  if FileExists(sNomFichierList) then
-  begin
-    clCommenditaire.Clear;
-    clCommenditaire.Items.LoadFromFile(sNomFichierList);
+  LocalChecklist := nil;
+
+  with Sender as TComponent do Dispatcher := tag;
+  case Dispatcher of
+    1:
+      begin
+        LocalChecklist := clCommenditaire;
+        sListFilename := 'PubFullScreen.lst'
+      end;
+    2:
+      begin
+        LocalChecklist := clCommdtBanniere;
+        sListFilename := 'PubBanniere.lst'
+      end;
   end;
+
+  slFichierDejacoches := TStringList.Create;
+  try
+    // 1. On s'assure que nous avons déjà le fichier sinon on ne fait rien.
+    sNomFichierList := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sListFilename;
+    if FileExists(sNomFichierList) then
+    begin
+      // 2. On gardera en mémoire les fichiers qui sont déjà cochés
+      for iIndexfile := 0 to pred(LocalChecklist.Items.Count) do
+        if LocalChecklist.Checked[iIndexfile] then slFichierDejacoches.Add(LocalChecklist.Items.Strings[iIndexFile]);
+
+      // 3. On flush notre list.
+      LocalChecklist.Clear;
+
+      // 4. On load notre fichier.
+      LocalChecklist.Items.LoadFromFile(sNomFichierList);
+
+      //5. On tente de recocher ceux qu'on avait déjà de cochés.
+      for iIndexfile := 0 to pred(slFichierDejacoches.Count) do
+      begin
+        iMaybeIndex := LocalChecklist.Items.IndexOf(slFichierDejacoches.Strings[iIndexFile]);
+        if iMaybeIndex <> -1 then LocalChecklist.Checked[iMaybeIndex] := True;
+      end;
+    end;
+  finally
+    FreeAndNil(slFichierDejacoches);
+  end;
+end;
+
+procedure TfrmCallidusController.btnStopPubClick(Sender: TObject);
+begin
+  TimerPublicityFullScreen.Enabled := False;
+  Application.ProcessMessages;
+  if LabelPub <> nil then FreeAndNil(LabelPub);
+  if BoutonStop <> nil then FreeAndNil(BoutonStop);
+  if PanelStop <> nil then FreeAndNil(PanelStop);
+  bModePublicite := False;
+  TimerPublicityFullScreen.Enabled := False; //Si t'as pas arrêté le 1er coup, tu vas arrêter ici!
+  Application.ProcessMessages;
 end;
 
 procedure TfrmCallidusController.evMainApplicationEventsException(Sender: TObject; E: Exception);
@@ -667,6 +766,8 @@ begin
   if isFirstActivation then
   begin
     isFirstActivation := FALSE;
+    btnCommanditClick(btnCommandFull);
+    btnCommanditClick(btnBanniere);
     LoadConfiguration;
     ProtocolePROTO_Detection.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Detection.WorkingServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
@@ -700,6 +801,7 @@ begin
   SetLength(RxBuffer, 16000);
   CallidusDeviceList := TCallidusDeviceList.Create;
   ListeDesDevicesLastTrenteSecondes := TStringList.Create;
+  bModePublicite := False;
 end;
 
 procedure TfrmCallidusController.FormDestroy(Sender: TObject);
@@ -712,8 +814,30 @@ procedure TfrmCallidusController.LoadConfiguration;
 var
   ConfigFile: TIniFile;
   bDebugWasVisible: Boolean;
-  sMaybeRatio: string;
+  sMaybeRatio, sMaybeFilename: string;
   iRatio: integer;
+
+  procedure LoadThisCheckList(paramCheckList: TCheckListGlobal6; sPrefix: string);
+  var
+    iRendu, iMaybePos: integer;
+  begin
+    iRendu := 0;
+    repeat
+      sMaybeFilename := ConfigFile.ReadString(CALLIDUSCONTROLLERCONFIGSECTION, sPrefix + IntToStr(iRendu), STOPPER);
+      iMaybePos := paramCheckList.Items.IndexOf(sMaybeFilename);
+      if iMaybePos <> -1 then
+        paramCheckList.Checked[iMaybePos] := True;
+      inc(iRendu);
+    until sMaybeFilename = STOPPER;
+
+    sMaybeFilename := ConfigFile.ReadString(CALLIDUSCONTROLLERCONFIGSECTION, sPrefix + 'Selected', STOPPER);
+    iMaybePos := paramCheckList.Items.IndexOf(sMaybeFilename);
+    if iMaybePos <> -1 then
+      paramCheckList.ItemIndex := iMaybePos
+    else
+      paramCheckList.ItemIndex := -1;
+  end;
+
 begin
   ConfigFile := TIniFile.Create(NomFichierConfiguration);
   try
@@ -744,7 +868,6 @@ begin
       edTailleSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', '600');
       edUnitPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', '380');
       edTailleUnitY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
-      cbCommenditaireIndex.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditaireIndex', pred(cbCommenditaireIndex.Items.Count));
       edServiceSpeedUnitSubCheckboxClick(edServiceSpeedUnit.Checkbox);
       EditJoueur1.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', 'Joueur #1');
       EditJoueur2.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', 'Joueur #2');
@@ -755,8 +878,10 @@ begin
       pnlCouleurPlayerText2.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', clYellow);
       edPlayerSizeText.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', '70');
       edPlayerPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', '120');
-      cbCommenditairePleinEcran.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditairePleinEcran', 0);
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
+
+      LoadThisCheckList(clCommenditaire, 'fsPub');
+      LoadThisCheckList(clCommdtBanniere, 'bnPub');
       // ..LoadConfiguration
     end;
   finally
@@ -804,6 +929,23 @@ procedure TfrmCallidusController.SaveConfiguration;
 var
   ConfigFile: TIniFile;
 
+  procedure SaveThisCheckList(paramCheckList: TCheckListGlobal6; sPrefix: string);
+  var
+    iIndexfile, iRendu: integer;
+  begin
+    iRendu := 0;
+    for iIndexFile := 0 to pred(paramCheckList.Items.Count) do
+      if paramCheckList.Checked[iIndexfile] then
+      begin
+        ConfigFile.WriteString(CALLIDUSCONTROLLERCONFIGSECTION, sPrefix + IntToStr(iRendu), paramCheckList.Items.Strings[iIndexFile]);
+        inc(iRendu);
+      end;
+    ConfigFile.WriteString(CALLIDUSCONTROLLERCONFIGSECTION, sPrefix + IntToStr(iRendu), STOPPER);
+
+    if paramCheckList.ItemIndex <> -1 then
+      ConfigFile.WriteString(CALLIDUSCONTROLLERCONFIGSECTION, sPrefix + 'Selected', paramCheckList.Items.Strings[paramCheckList.ItemIndex]);
+  end;
+
 begin
   ConfigFile := TIniFile.Create(NomFichierConfiguration);
   try
@@ -829,7 +971,6 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', edTailleSpeedY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', edUnitPosY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', edTailleUnitY.Text);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditaireIndex', cbCommenditaireIndex.ItemIndex);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', EditJoueur1.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', EditJoueur2.Text);
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShowPlayerName', cbShowPlayerName.Checked);
@@ -839,8 +980,10 @@ begin
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', pnlCouleurPlayerText2.Color);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', edPlayerSizeText.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', edPlayerPosY.Text);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbCommenditairePleinEcran', cbCommenditairePleinEcran.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
+
+      SaveThisCheckList(clCommenditaire, 'fsPub');
+      SaveThisCheckList(clCommdtBanniere, 'bnPub');
       // ..SaveConfiguration
     end;
   finally
@@ -895,12 +1038,16 @@ begin
           ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
           Application.ProcessMessages;
 
-          ServiceSpeedInfo.CurrentPeakSpeed := -2;
-          iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
-          if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
-          iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
-          if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
-          if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
+          //Si nous ne sommes pas en mode publicité, on pitche au Display le service qu'on vient d'avoir. Sinon, on avait juste dit okay au Radar et c'est tout.
+          if bModePublicite = FALSE then
+          begin
+            ServiceSpeedInfo.CurrentPeakSpeed := -2;
+            iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
+            if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
+            iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
+            if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
+            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
+          end;
         end;
     end;
 
@@ -971,6 +1118,12 @@ begin
   WriteStatusLg('Log will be saved under this name: ' + sNomFichierLog, 'Le journal sera sauvegarder sous le nom: ' + sNomFichierLog, COLORSTATUS);
   frmDebugWindow.StatusWindow.PlainText := True;
   frmDebugWindow.StatusWindow.Lines.SaveToFile(sNomFichierLog, TEncoding.ANSI);
+end;
+
+function TfrmCallidusController.GetPubFileNameForBanniere(var sFilename: string): boolean;
+begin
+  sFilename := '';
+  result := False;
 end;
 
 end.
