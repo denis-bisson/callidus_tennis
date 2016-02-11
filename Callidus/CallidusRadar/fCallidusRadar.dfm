@@ -162,7 +162,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Top = 78
     Width = 584
     Height = 226
-    ActivePage = tsOptionsAutoDetection
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 0
     object tsConfiguration: TTabSheet
@@ -420,6 +420,7 @@ object frmCallidusRadar: TfrmCallidusRadar
           'HAUT '#192' DROITE!')
         ParentFont = False
         TabOrder = 2
+        Visible = False
       end
     end
   end
@@ -741,8 +742,8 @@ object frmCallidusRadar: TfrmCallidusRadar
     end
   end
   object ActionManagerRadarConfig: TActionManager
-    Left = 268
-    Top = 158
+    Left = 412
+    Top = 206
     StyleName = 'Platform Default'
     object actRefreshComboComm: TAction
       Caption = 'Refresh COM port list'
@@ -827,31 +828,33 @@ object frmCallidusRadar: TfrmCallidusRadar
     Active = False
     ClientType = ctNonBlocking
     Port = 0
-    Left = 228
-    Top = 142
+    Left = 524
+    Top = 150
   end
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
     OnIdle = aeMainApplicationEventsIdle
-    Left = 299
-    Top = 144
+    Left = 411
+    Top = 168
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
     WorkingClientUDP = IdUDPClientRadar
     WorkingClientSocket = csSocketRadar
+    WorkingServerSocket = ServerSocketForRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     DeviceName = 'Callidus-Radar'
-    Left = 196
-    Top = 102
+    OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
+    Left = 36
+    Top = 230
   end
   object ImageListRadar: TImageList
     Height = 32
     Width = 32
-    Left = 164
-    Top = 86
+    Left = 36
+    Top = 198
     Bitmap = {
-      494C0101020008006C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800740020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1389,18 +1392,25 @@ object frmCallidusRadar: TfrmCallidusRadar
   object odMainApp: TOpenDialog
     Filter = 'Stalker config file|*.cfg'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 260
-    Top = 142
+    Left = 404
+    Top = 126
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 60
-    Top = 94
+    Left = 148
+    Top = 198
   end
   object tmrControllerVerification: TTimer
     Enabled = False
     OnTimer = tmrControllerVerificationTimer
-    Left = 264
-    Top = 192
+    Left = 472
+    Top = 168
+  end
+  object ServerSocketForRadar: TServerSocket
+    Active = False
+    Port = 2194
+    ServerType = stNonBlocking
+    Left = 472
+    Top = 103
   end
 end

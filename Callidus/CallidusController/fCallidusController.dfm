@@ -2,7 +2,7 @@ object frmCallidusController: TfrmCallidusController
   Left = 0
   Top = 0
   Caption = 'frmCallidusController'
-  ClientHeight = 401
+  ClientHeight = 402
   ClientWidth = 584
   Color = clBtnFace
   Constraints.MinHeight = 460
@@ -156,7 +156,7 @@ object frmCallidusController: TfrmCallidusController
   TextHeight = 13
   object MyStatusBar: TStatusBar
     Left = 0
-    Top = 382
+    Top = 383
     Width = 584
     Height = 19
     Panels = <
@@ -170,24 +170,20 @@ object frmCallidusController: TfrmCallidusController
       item
         Width = 50
       end>
-    ExplicitTop = 427
-    ExplicitWidth = 595
   end
   object pgMainPagecontrol: TPageControl
     Left = 0
     Top = 40
     Width = 584
-    Height = 342
-    ActivePage = TabSheet1
+    Height = 343
+    ActivePage = tsPlayer
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
       Caption = 'Application-satellite'
-      ExplicitWidth = 587
-      ExplicitHeight = 359
       DesignSize = (
         576
-        314)
+        315)
       object Label1: TLabel
         Left = 16
         Top = 16
@@ -199,7 +195,7 @@ object frmCallidusController: TfrmCallidusController
         Left = 16
         Top = 35
         Width = 454
-        Height = 257
+        Height = 258
         Style = lbOwnerDrawFixed
         Anchors = [akLeft, akTop, akRight, akBottom]
         Font.Charset = ANSI_CHARSET
@@ -210,15 +206,11 @@ object frmCallidusController: TfrmCallidusController
         ParentFont = False
         TabOrder = 0
         OnDrawItem = lbDeviceDetectedDrawItem
-        ExplicitWidth = 465
-        ExplicitHeight = 302
       end
     end
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Options pour Callidus-Display'
       ImageIndex = 1
-      ExplicitWidth = 587
-      ExplicitHeight = 359
       object Label4: TLabel
         Left = 19
         Top = 16
@@ -529,8 +521,6 @@ object frmCallidusController: TfrmCallidusController
     object tsPlayer: TTabSheet
       Caption = 'Joueurs'
       ImageIndex = 2
-      ExplicitWidth = 587
-      ExplicitHeight = 359
       object EditJoueur1: TLabeledEdit
         Left = 68
         Top = 15
@@ -669,10 +659,11 @@ object frmCallidusController: TfrmCallidusController
       end
     end
     object tsPub: TTabSheet
-      Caption = 'Commenditaires(fs)'
+      Caption = 'Pub (fs)'
       ImageIndex = 3
-      ExplicitWidth = 587
-      ExplicitHeight = 359
+      DesignSize = (
+        576
+        315)
       object Label12: TLabel
         Left = 3
         Top = 53
@@ -681,17 +672,32 @@ object frmCallidusController: TfrmCallidusController
         Caption = 'Liste des fichiers des commenditaires:'
       end
       object Label13: TLabel
-        Left = 240
-        Top = 200
+        Left = 230
+        Top = 205
         Width = 167
         Height = 13
         Caption = 'P'#233'riode d'#39'affichage (en secondes):'
+      end
+      object lblHelpFullScreen: TLabel
+        Left = 3
+        Top = 251
+        Width = 88
+        Height = 13
+        Anchors = [akLeft, akBottom]
+        Caption = 'Help pour Fr'#233'd'#233'ric'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsItalic]
+        ParentFont = False
       end
       object clCommenditaire: TCheckListGlobal6
         Left = 3
         Top = 72
         Width = 214
-        Height = 233
+        Height = 173
+        Anchors = [akLeft, akTop, akBottom]
         ItemHeight = 13
         TabOrder = 0
         CheckWhenMove = True
@@ -707,7 +713,7 @@ object frmCallidusController: TfrmCallidusController
         OnClick = btnCommanditClick
       end
       object rgPubType: TRadioGroup
-        Left = 240
+        Left = 230
         Top = 72
         Width = 185
         Height = 105
@@ -720,83 +726,7 @@ object frmCallidusController: TfrmCallidusController
         TabOrder = 2
       end
       object cbDisplayFullScreenTime: TComboBox
-        Left = 240
-        Top = 216
-        Width = 175
-        Height = 21
-        Style = csDropDownList
-        TabOrder = 3
-        Items.Strings = (
-          '1'
-          '2'
-          '3'
-          '4'
-          '5'
-          '6'
-          '7'
-          '8'
-          '9'
-          '10'
-          '15'
-          '20'
-          '30'
-          '45'
-          '60'
-          '90'
-          '120')
-      end
-    end
-    object TabSheet1: TTabSheet
-      Caption = 'Commenditaires(bn)'
-      ImageIndex = 4
-      object Label8: TLabel
-        Left = 3
-        Top = 53
-        Width = 180
-        Height = 13
-        Caption = 'Liste des fichiers des commenditaires:'
-      end
-      object Label10: TLabel
-        Left = 248
-        Top = 208
-        Width = 167
-        Height = 13
-        Caption = 'P'#233'riode d'#39'affichage (en secondes):'
-      end
-      object clCommdtBanniere: TCheckListGlobal6
-        Left = 3
-        Top = 72
-        Width = 214
-        Height = 233
-        ItemHeight = 13
-        TabOrder = 0
-        CheckWhenMove = True
-      end
-      object btnBanniere: TButton
-        Tag = 2
-        Left = 3
-        Top = 22
-        Width = 209
-        Height = 25
-        Caption = 'Rafraichis la liste:'
-        TabOrder = 1
-        OnClick = btnCommanditClick
-      end
-      object RadioGroup1: TRadioGroup
-        Left = 248
-        Top = 80
-        Width = 185
-        Height = 105
-        Caption = 'Mode pour la publicit'#233
-        ItemIndex = 1
-        Items.Strings = (
-          'Juste celui s'#233'lectionn'#233
-          'S'#233'quentiel parmis ceux coch'#233's'
-          'Al'#233'atoire parmis ceux coch'#233's')
-        TabOrder = 2
-      end
-      object ComboBox1: TComboBox
-        Left = 248
+        Left = 230
         Top = 224
         Width = 175
         Height = 21
@@ -822,6 +752,146 @@ object frmCallidusController: TfrmCallidusController
           '120')
       end
     end
+    object TabSheet1: TTabSheet
+      Caption = 'Pub (bn)'
+      ImageIndex = 4
+      DesignSize = (
+        576
+        315)
+      object Label8: TLabel
+        Left = 3
+        Top = 53
+        Width = 180
+        Height = 13
+        Caption = 'Liste des fichiers des commenditaires:'
+      end
+      object lblHelpBanniere: TLabel
+        Left = 3
+        Top = 251
+        Width = 88
+        Height = 13
+        Anchors = [akLeft, akBottom]
+        Caption = 'Help pour Fr'#233'd'#233'ric'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsItalic]
+        ParentFont = False
+      end
+      object clCommdtBanniere: TCheckListGlobal6
+        Left = 3
+        Top = 72
+        Width = 214
+        Height = 173
+        Anchors = [akLeft, akTop, akBottom]
+        ItemHeight = 13
+        TabOrder = 0
+        CheckWhenMove = True
+      end
+      object btnBanniere: TButton
+        Tag = 2
+        Left = 3
+        Top = 22
+        Width = 209
+        Height = 25
+        Caption = 'Rafraichis la liste:'
+        TabOrder = 1
+        OnClick = btnCommanditClick
+      end
+      object rgModePubBanniere: TRadioGroup
+        Left = 230
+        Top = 72
+        Width = 185
+        Height = 105
+        Caption = 'Mode pour la publicit'#233
+        ItemIndex = 1
+        Items.Strings = (
+          'Juste celui s'#233'lectionn'#233
+          'S'#233'quentiel parmis ceux coch'#233's'
+          'Al'#233'atoire parmis ceux coch'#233's')
+        TabOrder = 2
+      end
+    end
+    object tsRadar: TTabSheet
+      Caption = 'Radar'
+      ImageIndex = 5
+      object edLowServiceSpeed: TLabeledEdit
+        Left = 204
+        Top = 16
+        Width = 121
+        Height = 21
+        EditLabel.Width = 157
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Low limit for serve speed (km/h):'
+        LabelPosition = lpLeft
+        TabOrder = 0
+      end
+      object edHighServiceSpeed: TLabeledEdit
+        Left = 204
+        Top = 43
+        Width = 121
+        Height = 21
+        EditLabel.Width = 159
+        EditLabel.Height = 13
+        EditLabel.Caption = 'High limit for serve speed (km/h):'
+        LabelPosition = lpLeft
+        TabOrder = 1
+      end
+      object edShowTimeServiceSpeed: TLabeledEdit
+        Left = 204
+        Top = 70
+        Width = 121
+        Height = 21
+        EditLabel.Width = 153
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Time to show serve speed (ms):'
+        LabelPosition = lpLeft
+        TabOrder = 2
+      end
+      object edLowInactivitySpeed: TLabeledEdit
+        Left = 204
+        Top = 96
+        Width = 121
+        Height = 21
+        EditLabel.Width = 134
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Inactivity low speed (km/h):'
+        LabelPosition = lpLeft
+        TabOrder = 3
+      end
+      object edHighInactivitySpeed: TLabeledEdit
+        Left = 204
+        Top = 123
+        Width = 121
+        Height = 21
+        EditLabel.Width = 138
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Inactivity high speed (km/h):'
+        LabelPosition = lpLeft
+        TabOrder = 4
+      end
+      object edInactivityTime: TLabeledEdit
+        Left = 204
+        Top = 150
+        Width = 121
+        Height = 21
+        EditLabel.Width = 106
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Inactivity timout (ms):'
+        LabelPosition = lpLeft
+        TabOrder = 5
+      end
+      object Button2: TButton
+        Left = 72
+        Top = 192
+        Width = 220
+        Height = 25
+        Caption = 'Envoie aux RADAR!'
+        TabOrder = 6
+        OnClick = Button2Click
+      end
+    end
   end
   object ToolBar1: TToolBar
     Left = 0
@@ -835,7 +905,6 @@ object frmCallidusController: TfrmCallidusController
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    ExplicitWidth = 595
     object ToolButton5: TToolButton
       Left = 0
       Top = 0
@@ -1019,32 +1088,33 @@ object frmCallidusController: TfrmCallidusController
     Top = 352
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
+    WorkingClientSocket = ClientSocketRadar
     WorkingServerSocket = ServerSocketForRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
-    Left = 484
-    Top = 214
+    Left = 364
+    Top = 190
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
     WorkingClientSocket = csSocketDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 484
-    Top = 302
+    Left = 340
+    Top = 310
   end
   object csSocketDisplay: TClientSocket
     Active = False
     ClientType = ctNonBlocking
     Port = 0
-    Left = 480
-    Top = 344
+    Left = 424
+    Top = 312
   end
   object AutoStartTimer: TTimer
     Enabled = False
     OnTimer = AutoStartTimerTimer
-    Left = 488
-    Top = 176
+    Left = 456
+    Top = 152
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
@@ -1056,8 +1126,8 @@ object frmCallidusController: TfrmCallidusController
     WorkingServerUDP = IdUDPServerController
     WriteDebug = True
     FriendlyNameForLog = 'DETECTION'
-    Left = 484
-    Top = 254
+    Left = 356
+    Top = 246
   end
   object ColorDialog1: TColorDialog
     Left = 532
@@ -1068,7 +1138,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010800C800800020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010800C8008C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2672,5 +2742,12 @@ object frmCallidusController: TfrmCallidusController
     OnTimer = TimerPublicityFullScreenTimer
     Left = 508
     Top = 112
+  end
+  object ClientSocketRadar: TClientSocket
+    Active = False
+    ClientType = ctNonBlocking
+    Port = 0
+    Left = 448
+    Top = 224
   end
 end

@@ -31,7 +31,7 @@ type
     colorSpeedShadow: tColor;
     colorUnit: tColor;
     colorUnitShadow: tColor;
-    iCommenditaire: integer;
+    sBanderoleCommenditaireFilename: string;
     PlayerName: string;
     PlayerNameTextY: integer; //Position du text à partir du bas
     PlayerNameTextC: tColor; //Couleur du texte
@@ -289,9 +289,9 @@ begin
   Canvas.FillRect(rWindowRect);
 
   // 01. Si nous sommes en Full Screen ET QUE nous avons une commenditaire, on l'affiche!
-  if FullScreen and (ServiceSpeedInfo.iCommenditaire > 0) then
+  if (ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '') then
   begin
-    sNomfichierCommenditaire := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + 'commanditaire' + IntToStr(ServiceSpeedInfo.iCommenditaire) + '.jpg';
+    sNomfichierCommenditaire := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + ServiceSpeedInfo.sBanderoleCommenditaireFilename;
     if FileExists(sNomfichierCommenditaire) then
     begin
       ImageEnJpeg := TJpegImage.Create;
@@ -565,7 +565,7 @@ begin
           ServiceSpeedInfo.colorSpeedShadow := clBlack;
           ServiceSpeedInfo.colorUnit := clYellow;
           ServiceSpeedInfo.colorUnitShadow := clBlack;
-          ServiceSpeedInfo.iCommenditaire := 0;
+          ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
           ServiceSpeedInfo.PlayerName := '';
           ServiceSpeedInfo.PlayerNameTextY := 30; //Position du text à partir du bas
           ServiceSpeedInfo.PlayerNameTextC := clWhite; //Couleur du texte
@@ -602,21 +602,24 @@ begin
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
           if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
-          if iColorIndex <> -1 then ServiceSpeedInfo.iCommenditaire := StrToIntDef(slVariablesValues.Strings[iColorIndex], 0);
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
+          if iAnyValue <> -1 then ServiceSpeedInfo.sBanderoleCommenditaireFilename := slVariablesValues.Strings[iAnyValue];
 
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERNAME);
           if iAnyValue <> -1 then ServiceSpeedInfo.PlayerName := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTEXTY);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextY := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextY);
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTCOLOR);
           if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextC);
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTSIZE);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextS := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextS);
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTCOLOR);
           if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectC);
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTHEIGHT);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectH := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectH);
+          if FullScreen then
+          begin
+            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTEXTY);
+            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextY := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextY);
+            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTSIZE);
+            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextS := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextS);
+            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTHEIGHT);
+            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectH := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectH);
+          end;
 
           ShowServiceSpeed(ServiceSpeedInfo);
         end;
@@ -669,7 +672,7 @@ begin
       ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
 
       // 2. On ajuste rempli le fond de l'écran de la couleur du pixel de l'image en haut à gauche
-      if ImageCommenditaire.Picture.Width < ClientWidth then
+      if (ImageCommenditaire.Picture.Width < ClientWidth) or (ImageCommenditaire.Picture.Height < ClientHeight) then
       begin
         Canvas.Brush.Color := ImageCommenditaire.Picture.Bitmap.Canvas.Pixels[0, 0];
         Canvas.Brush.Style := bsSolid;
