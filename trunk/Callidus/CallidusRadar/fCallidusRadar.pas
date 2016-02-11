@@ -149,6 +149,7 @@ type
     cbLanceMonitoring: TCheckBox;
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
+    ServerSocketForRadar: TServerSocket;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
@@ -192,6 +193,9 @@ type
     procedure cbDetectRadarClick(Sender: TObject);
     procedure cbDetectNetworkClick(Sender: TObject);
     procedure btnStopAutoDetectClick(Sender: TObject);
+    procedure ProtocolePROTO_RadarServerSocketValidPacketReceived(
+      Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString;
+      PayloadData: TStringList);
 
   private
     { Private declarations }
@@ -553,8 +557,9 @@ begin
     bFlagAbort := FALSE;
     while not bFlagAbort do
     begin
-      // 1. On affiche la valeur durant 1 seconde
+      // 1. On affiche la valeur durant 2 seconde
       ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
+      ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
       bOverAllActionResult := FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
       Timeout := GetTickCount + 500;
       while (GetTickCount < Timeout) and (not bFlagAbort) do
@@ -671,6 +676,20 @@ begin
     ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
     ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
     sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
+
+    try
+      ServerSocketForRadar.Port := PORT_FOR_SENDING_RADAR;
+      WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+      ServerSocketForRadar.Open;
+      Application.ProcessMessages;
+      if ServerSocketForRadar.Active then
+        WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
+      else
+        WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+    except
+      WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+    end;
+
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Radar.Init;
     bFirstNetworkDetection := TRUE;
@@ -1630,12 +1649,12 @@ begin
       if (sSpeedReceived[2] = 'C') then
       begin
         PeakSpeedToShow := '+' + PeakSpeedToShow;
-        ServiceSpeed.CurrentPeekDirection:=1;
+        ServiceSpeed.CurrentPeekDirection := 1;
       end
       else
       begin
         PeakSpeedToShow := '-' + PeakSpeedToShow;
-        ServiceSpeed.CurrentPeekDirection:=2;
+        ServiceSpeed.CurrentPeekDirection := 2;
       end;
     end;
 
@@ -1976,6 +1995,45 @@ begin
     bOverAllActionResult := AutoDetectRadar;
   finally
     EnableToute;
+  end;
+end;
+
+{ TfrmCallidusRadar.ProtocolePROTO_RadarServerSocketValidPacketReceived }
+procedure TfrmCallidusRadar.ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
+var
+  slVariablesNames, slVariablesValues: TStringList;
+  iIndexCommand: integer;
+  iAnyValue: integer;
+begin
+  slVariablesNames := TStringList.Create;
+  slVariablesValues := TStringList.Create;
+  try
+    iIndexCommand := ProtocolePROTO_Radar.CommandList.IndexOf(Answer7);
+
+    case iIndexCommand of
+      PROTO_CMD_DISCRTC:
+        begin
+          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+          ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
+
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOW_LIMIT);
+          if iAnyValue <> -1 then edLowServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIG_LIMIT);
+          if iAnyValue <> -1 then edHighServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_SHOW_TIME);
+          if iAnyValue <> -1 then edShowTimeServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOWINACSP);
+          if iAnyValue <> -1 then edLowInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIGINACSP);
+          if iAnyValue <> -1 then edHighInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_INAC_TIME);
+          if iAnyValue <> -1 then edInactivityTime.Text := slVariablesValues.Strings[iAnyValue];
+          SetVariableFromVisibleServiceSpeedParam;
+        end;
+    end;
+  finally
+    FreeAndNil(slVariablesNames);
+    FreeAndNil(slVariablesValues);
   end;
 end;
 

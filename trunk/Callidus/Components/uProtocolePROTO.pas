@@ -36,6 +36,7 @@ const
   PORT_FOR_IDENTIFICATION = 2191;
   PORT_FOR_SENDING_CONTROLLER = 2192;
   PORT_FOR_SENDING_DISPLAY = 2193;
+  PORT_FOR_SENDING_RADAR = 2194;
 
   IP_ADDRESS_NULL: string = '0.0.0.0';
 
@@ -243,6 +244,7 @@ var
 begin
   result := FALSE;
   ControllerAddress := '0.0.0.0';
+
   SetLength(TxBuffer, 100);
   iNbBytesToSend := PreparePacket(PROTO_CMD_WHOSERV, nil, TxBuffer, length(TxBuffer));
   SetLength(TxBuffer, iNbBytesToSend);
@@ -283,6 +285,7 @@ begin
               for iChar := 0 to pred(4) do
                 FServerIpAddress[iChar] := RxBuffer[IDX_PROTO_PAYLOAD_DATA + iChar];
               ControllerAddress := Format('%d.%d.%d.%d', [FServerIpAddress[0], FServerIpAddress[1], FServerIpAddress[2], FServerIpAddress[3]]);
+
               WriteStatusLg('Controller has been detected at: ' + ControllerAddress, 'Le contrôleur a été détecté à: ' + ControllerAddress, COLORSUCCESS);
               result := TRUE;
             end;
@@ -861,7 +864,7 @@ procedure TProtocole_PROTO.WriteStatusLg(MsgInEnglish, MsgInFrench: string; Colo
 begin
   if FMessageWindow <> nil then
   begin
-    if FWriteDebugFlag OR (ColorToUse=ColorError) then
+    if FWriteDebugFlag or (ColorToUse = ColorError) then
     begin
       FMessageWindow.WriteStatusLg(FFriendlyNameForLog + ':' + MsgInEnglish, FFriendlyNameForLog + ':' + MsgInFrench, ColorToUse);
     end;

@@ -145,9 +145,18 @@ type
     clCommdtBanniere: TCheckListGlobal6;
     Label8: TLabel;
     btnBanniere: TButton;
-    RadioGroup1: TRadioGroup;
-    ComboBox1: TComboBox;
-    Label10: TLabel;
+    rgModePubBanniere: TRadioGroup;
+    lblHelpBanniere: TLabel;
+    lblHelpFullScreen: TLabel;
+    tsRadar: TTabSheet;
+    edLowServiceSpeed: TLabeledEdit;
+    edHighServiceSpeed: TLabeledEdit;
+    edShowTimeServiceSpeed: TLabeledEdit;
+    edLowInactivitySpeed: TLabeledEdit;
+    edHighInactivitySpeed: TLabeledEdit;
+    edInactivityTime: TLabeledEdit;
+    Button2: TButton;
+    ClientSocketRadar: TClientSocket;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -161,6 +170,7 @@ type
     procedure actTestCommWithDisplayExecute(Sender: TObject);
     function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
     function SendDisplayGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+    function SendRadarGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
     procedure EnableToute;
     procedure actCloseAllCallidusApplicationsExecute(Sender: TObject);
@@ -180,10 +190,11 @@ type
     procedure actSwapPlayersExecute(Sender: TObject);
     procedure actStartPubExecute(Sender: TObject);
     procedure btnCommanditClick(Sender: TObject);
-    procedure DoLaPub;
+    function DoLaPub: boolean;
     procedure TimerPublicityFullScreenTimer(Sender: TObject);
     procedure btnStopPubClick(Sender: TObject);
-    function GetPubFileNameForBanniere(var sFilename: string): boolean;
+    function GetPubFileName(iDispatcher: integer; var sFilename: string): boolean;
+    procedure Button2Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -325,76 +336,115 @@ begin
   try
     DoLaPub;
   finally
-    TimerPublicityFullScreen.Enabled := True;
+    if bModePublicite then TimerPublicityFullScreen.Enabled := True;
   end;
 end;
 
-procedure TfrmCallidusController.DoLaPub;
+function TfrmCallidusController.DoLaPub: boolean;
+var
+  sLocalFilename: string;
+begin
+  result := False;
+  if GetPubFileName(1, sLocalFilename) then
+    result := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
+end;
+
+{ TfrmCallidusController.GetPubFileName }
+// Routine pour aller chercher le nom du fichier de publicité à prendre.
+// Elle sert autant pour la bande de pub lors de l'affichage de vitesse de service QUE pour la grosse publicité en mode pub.
+// On fait juste lui spécifié le bon dispatcher et elle travaillera selon les paramètres indiqué pour la checklist et le mode.
+function TfrmCallidusController.GetPubFileName(iDispatcher: integer; var sFilename: string): boolean;
 var
   iMaybeIndex: integer;
   sNomFichier: string;
   iPreviousIndex: integer;
-  iLastChecked, iNbChecked, iIndex: integer;
+  iNbChecked, iIndex, iFirstCheck: integer;
+  chklst: TCheckListGlobal6;
+  rgMode: TRadioGroup;
 begin
-  if clCommenditaire.Items.Count > 0 then
-  begin
-    iMaybeIndex := 0;
-    iNbChecked := 0;
-    iLastChecked := 0;
+  result := False;
 
-    if clCommenditaire.ItemIndex = -1 then
-      clCommenditaire.ItemIndex := 0;
+  chklst := nil;
+  rgMode := nil;
+  iNbChecked := 0;
 
-    for iIndex := 0 to pred(clCommenditaire.Items.Count) do
-      if clCommenditaire.Checked[iIndex] then
+  case iDispatcher of
+    1:
       begin
-        inc(iNbChecked);
-        iLastChecked := iIndex;
+        chklst := clCommenditaire;
+        rgMode := rgPubType;
+      end;
+    2:
+      begin
+        chklst := clCommdtBanniere;
+        rgMode := rgModePubBanniere;
+      end;
+  end;
+
+  if (chklst <> nil) and (rgMode <> nil) then
+  begin
+    if chklst.Items.Count > 0 then
+    begin
+      iFirstCheck := -1;
+      if chklst.ItemIndex = -1 then chklst.ItemIndex := 0;
+
+      for iIndex := 0 to pred(chklst.Items.Count) do
+      begin
+        if chklst.Checked[iIndex] then
+        begin
+          if iFirstCheck = -1 then iFirstCheck := iIndex;
+          inc(iNbChecked);
+        end;
       end;
 
-    if iNbChecked = 0 then
-      clCommenditaire.Checked[0] := True;
+      if iNbChecked = 0 then
+      begin
+        chklst.Checked[0] := True;
+        iFirstCheck := 0;
+        iNbChecked := 1;
+      end;
 
-    iPreviousIndex := clCommenditaire.ItemIndex;
-
-    case rgPubType.ItemIndex of
-      0:
-        begin
-          iMaybeIndex := clCommenditaire.ItemIndex;
-        end;
-
-      1, 2:
-        begin
-          if iNbChecked = 1 then
+      case rgMode.ItemIndex of
+        1, 2:
           begin
-            iMaybeIndex := iLastchecked
-          end
-          else
-          begin
-            case rgPubType.ItemIndex of
-              1:
-                begin
-                  repeat
-                    clCommenditaire.ItemIndex := ((clCommenditaire.ItemIndex + 1) mod clCommenditaire.Items.Count);
-                    iMaybeIndex := clCommenditaire.ItemIndex;
-                  until clCommenditaire.Checked[iMaybeIndex]
-                end;
+            if chklst.Checked[chklst.ItemIndex] = FALSE then chklst.ItemIndex := iFirstCheck;
+          end;
+      end;
 
-              2:
-                begin
-                  repeat
-                    iMaybeIndex := random(clCommenditaire.Items.Count);
-                  until (clCommenditaire.Checked[iMaybeIndex]) and (iMaybeIndex <> iPreviousIndex);
-                end;
+      iMaybeIndex := chklst.ItemIndex;
+
+      case rgMode.ItemIndex of
+        1:
+          begin
+            if iNbChecked = 1 then
+              chklst.ItemIndex := iFirstCheck
+            else
+            begin
+              repeat
+                chklst.ItemIndex := ((chklst.ItemIndex + 1) mod chklst.Items.Count);
+              until chklst.Checked[chklst.ItemIndex];
             end;
           end;
-        end;
-    end;
 
-    if clCommenditaire.ItemIndex <> -1 then
-    begin
-      sNomFichier := clCommenditaire.Items.Strings[iMaybeIndex];
-      bOverAllActionResult := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sNomFichier]);
+        2:
+          begin
+            if iNbChecked = 1 then
+              chklst.ItemIndex := iFirstCheck
+            else
+            begin
+              iPreviousIndex := chklst.ItemIndex;
+              repeat
+                chklst.ItemIndex := random(chklst.Items.Count);
+              until (chklst.Checked[chklst.ItemIndex]) and (chklst.ItemIndex <> iPreviousIndex);
+            end;
+          end;
+      end;
+
+      if chklst.ItemIndex <> -1 then
+      begin
+        sFilename := chklst.Items.Strings[iMaybeIndex];
+        result := True;
+      end;
     end;
   end;
 end;
@@ -442,7 +492,7 @@ begin
     BoutonStop.Visible := True;
 
     bModePublicite := True;
-    DoLaPub;
+    bOverAllActionResult := DoLaPub;
     TimerPublicityFullScreen.Interval := 1000 * StrToIntDef(cbDisplayFullScreenTime.Items.Strings[cbDisplayFullScreenTime.ItemIndex], 2000);
     TimerPublicityFullScreen.Enabled := True;
   finally
@@ -567,9 +617,8 @@ function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(paramInfoSpeed
 var
   Params: array of string;
   iDevice: integer;
-  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio, sPubFileName: string;
+  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio, sLocalPubFilename: string;
   icurrentIndexInArray: integer;
-
 begin
   SetLength(Params, 20);
   CleanMonArray(Params);
@@ -631,8 +680,8 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSHDY + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
 
-  if GetPubFileNameForBanniere(sPubFileName) then
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sPubFileName);
+  if GetPubFileName(2, sLocalPubFilename) then
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
 
   result := SendDisplayGenericCommand(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
@@ -738,14 +787,39 @@ end;
 
 procedure TfrmCallidusController.btnStopPubClick(Sender: TObject);
 begin
+  bModePublicite := False;
+  Application.ProcessMessages;
   TimerPublicityFullScreen.Enabled := False;
   Application.ProcessMessages;
   if LabelPub <> nil then FreeAndNil(LabelPub);
   if BoutonStop <> nil then FreeAndNil(BoutonStop);
   if PanelStop <> nil then FreeAndNil(PanelStop);
-  bModePublicite := False;
   TimerPublicityFullScreen.Enabled := False; //Si t'as pas arrêté le 1er coup, tu vas arrêter ici!
   Application.ProcessMessages;
+end;
+
+procedure TfrmCallidusController.Button2Click(Sender: TObject);
+var
+  Params: array of string;
+  icurrentIndexInArray:integer;
+begin
+  DisableToute;
+  try
+    SetLength(Params, 20);
+    CleanMonArray(Params);
+    icurrentIndexInArray := 0;
+
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOW_LIMIT + '=' + edLowServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIG_LIMIT + '=' + edHighServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_SHOW_TIME + '=' + edShowTimeServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOWINACSP + '=' + edLowInactivitySpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
+
+    bOverAllActionResult := SendRadarGenericCommand(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
+  finally
+    EnableToute;
+  end;
 end;
 
 procedure TfrmCallidusController.evMainApplicationEventsException(Sender: TObject; E: Exception);
@@ -794,6 +868,16 @@ end;
 procedure TfrmCallidusController.FormCreate(Sender: TObject);
 begin
   NomFichierConfiguration := GetConfigFilename('CallidusController');
+  lblHelpBanniere.Caption := 'Les noms des fichiers de publicité pour les bannières au-dessus de la vitesse doivent être dans un fichier texte';
+  lblHelpBanniere.Caption := lblHelpBanniere.Caption + #$0A + 'appelé "PubBanniere.lst". Le path complet NE DOIT pas être inclus, juste le nom du fichier et son extension.';
+  lblHelpBanniere.Caption := lblHelpBanniere.Caption + #$0A + 'On assume que les mêmes fichiers avec les mêmes noms se trouvent dans le même répertoire que l''exécutable';
+  lblHelpBanniere.Caption := lblHelpBanniere.Caption + #$0A + 'des CALLIDUS-DISPLAY';
+
+  lblHelpFullScreen.Caption := 'Les noms des fichiers de publicité pour les bannières au-dessus de la vitesse doivent être dans un fichier texte';
+  lblHelpFullScreen.Caption := lblHelpFullScreen.Caption + #$0A + 'appelé "PubFullScreen.lst". Le path complet NE DOIT pas être inclus, juste le nom du fichier et son extension.';
+  lblHelpFullScreen.Caption := lblHelpFullScreen.Caption + #$0A + 'On assume que les mêmes fichiers avec les mêmes noms se trouvent dans le même répertoire que l''exécutable';
+  lblHelpFullScreen.Caption := lblHelpFullScreen.Caption + #$0A + 'des CALLIDUS-DISPLAY';
+
   isFirstActivation := True;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
   Caption := Application.Title;
@@ -879,9 +963,16 @@ begin
       edPlayerSizeText.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', '70');
       edPlayerPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', '120');
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
-
+      rgPubType.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', 1);
+      rgModePubBanniere.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', 1);
       LoadThisCheckList(clCommenditaire, 'fsPub');
       LoadThisCheckList(clCommdtBanniere, 'bnPub');
+      edLowServiceSpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitServiceSpeed', '50');
+      edHighServiceSpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitServiceSpeed', '200');
+      edShowTimeServiceSpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeToShowServiceSpeed', '2000');
+      edLowInactivitySpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitInactivitySpeed', '40');
+      edHighInactivitySpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitInactivitySpeed', '200');
+      edInactivityTime.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', '5000');
       // ..LoadConfiguration
     end;
   finally
@@ -981,9 +1072,16 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', edPlayerSizeText.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', edPlayerPosY.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
-
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', rgPubType.ItemIndex);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', rgModePubBanniere.ItemIndex);
       SaveThisCheckList(clCommenditaire, 'fsPub');
       SaveThisCheckList(clCommdtBanniere, 'bnPub');
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitServiceSpeed', edLowServiceSpeed.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitServiceSpeed', edHighServiceSpeed.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeToShowServiceSpeed', edShowTimeServiceSpeed.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitInactivitySpeed', edLowInactivitySpeed.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitInactivitySpeed', edHighInactivitySpeed.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', edInactivityTime.Text);
       // ..SaveConfiguration
     end;
   finally
@@ -1120,11 +1218,40 @@ begin
   frmDebugWindow.StatusWindow.Lines.SaveToFile(sNomFichierLog, TEncoding.ANSI);
 end;
 
-function TfrmCallidusController.GetPubFileNameForBanniere(var sFilename: string): boolean;
+function TfrmCallidusController.SendRadarGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+var
+  PayloadDataRequest, PayloadDataAnswer: TStringList;
+  Answer: AnsiString;
+  iDevice, iParam: integer;
 begin
-  sFilename := '';
-  result := False;
+  PayloadDataRequest := TStringList.Create;
+  PayloadDataAnswer := TStringList.Create;
+  try
+    result := TRUE;
+
+    for iParam := 0 to pred(length(params)) do
+      if params[iParam] <> '' then
+        PayloadDataRequest.Add(params[iParam]);
+
+    for iDevice := 0 to pred(CallidusDeviceList.Count) do
+    begin
+      if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
+      begin
+        ProtocolePROTO_Radar.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
+        ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_RADAR;
+        if not ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer) > 0 then
+          result := FALSE;
+        Application.ProcessMessages;
+      end;
+    end;
+
+  finally
+    FreeAndNil(PayloadDataAnswer);
+    FreeAndNil(PayloadDataRequest);
+  end;
 end;
+
+
 
 end.
 
