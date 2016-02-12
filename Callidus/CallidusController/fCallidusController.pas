@@ -27,8 +27,9 @@ type
     sComputerName: string;
     sName: string;
     sComplementName: string;
+    sVersionNo: string;
     dwLastTimeItWasSeen: dword;
-    constructor Create(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string);
+    constructor Create(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string; paramVersionName: string);
     function GetDisplayName: string;
     function GetFullName: string;
   end;
@@ -39,7 +40,7 @@ type
   public
     constructor Create;
     procedure Clear; override;
-    function Add(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string): integer;
+    function Add(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string; const paramRemoteVersion: string): integer;
     property Device[Index: integer]: TCallidusDevice read GetDevice;
   end;
 
@@ -195,6 +196,7 @@ type
     procedure btnStopPubClick(Sender: TObject);
     function GetPubFileName(iDispatcher: integer; var sFilename: string): boolean;
     procedure Button2Click(Sender: TObject);
+    function GenericValidResponse(slPayloadDataAnswer: TStringList): boolean;
 
   private
     { Private declarations }
@@ -234,14 +236,16 @@ uses
   fDebugWindow;
 
 const
-  IDX_PANEL_LOCALIP = 0;
+  IDX_PANEL_VERSION = 0;
+  IDX_PANEL_LOCALIP = 1;
 
   { TCallidusDevice.Create }
-constructor TCallidusDevice.Create(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string);
+constructor TCallidusDevice.Create(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string; paramVersionName: string);
 begin
   Self.DeviceType := paramDeviceType;
   Self.sIPAddress := paramIPAddress;
   Self.sComputerName := paramComputerName;
+  Self.sVersionNo := paramVersionName;
   Self.sName := paramName;
   Self.sComplementName := paramComplementName;
   Self.dwLastTimeItWasSeen := GetTickCount;
@@ -250,7 +254,7 @@ end;
 { TCallidusDevice.GetDisplayName }
 function TCallidusDevice.GetDisplayName: string;
 begin
-  result := Self.sName + ' - ' + Self.sComputerName + ' - ' + Self.sComplementName;
+  result := Self.sName + ' - ' + Self.sComputerName + ' - ' + Self.sComplementName + ' - ' + Self.sVersionNo;
 end;
 
 { TCallidusDevice.GetFullName }
@@ -276,7 +280,7 @@ begin
 end;
 
 { TCallidusDeviceList.Add }
-function TCallidusDeviceList.Add(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string): integer;
+function TCallidusDeviceList.Add(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string; const paramRemoteVersion: string): integer;
 var
   WorkingCallidusDevice: TCallidusDevice;
   iPromeneur: integer;
@@ -293,14 +297,15 @@ begin
       (TCallidusDevice(Items[iPromeneur]).sIPAddress = paramIPAddress) and
       (TCallidusDevice(Items[iPromeneur]).sComputerName = paramComputerName) and
       (TCallidusDevice(Items[iPromeneur]).sName = paramName) and
-      (TCallidusDevice(Items[iPromeneur]).sComplementName = paramComplementName));
+      (TCallidusDevice(Items[iPromeneur]).sComplementName = paramComplementName) and
+      (TCallidusDevice(Items[iPromeneur]).sVersionNo = paramRemoteVersion));
 
     inc(iPromeneur);
   end;
 
   if not bAlreadyPresent then
   begin
-    WorkingCallidusDevice := TCallidusDevice.Create(paramDeviceType, paramIPAddress, paramComputerName, paramName, paramComplementName);
+    WorkingCallidusDevice := TCallidusDevice.Create(paramDeviceType, paramIPAddress, paramComputerName, paramName, paramComplementName, paramRemoteVersion);
     result := inherited Add(WorkingCallidusDevice);
   end
   else
@@ -573,11 +578,10 @@ var
   Answer: AnsiString;
   iDevice, iParam: integer;
 begin
+  result := False;
   PayloadDataRequest := TStringList.Create;
   PayloadDataAnswer := TStringList.Create;
   try
-    result := TRUE;
-
     for iParam := 0 to pred(length(params)) do
       if params[iParam] <> '' then
         PayloadDataRequest.Add(params[iParam]);
@@ -588,8 +592,10 @@ begin
       begin
         ProtocolePROTO_Display.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
         ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_DISPLAY;
-        if not ProtocolePROTO_Display.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer) > 0 then
-          result := FALSE;
+        if ProtocolePROTO_Display.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer, PayloadDataAnswer) > 0 then
+        begin
+          result := GenericValidResponse(PayloadDataAnswer);
+        end;
         Application.ProcessMessages;
       end;
     end;
@@ -597,6 +603,34 @@ begin
   finally
     FreeAndNil(PayloadDataAnswer);
     FreeAndNil(PayloadDataRequest);
+  end;
+end;
+
+function TfrmCallidusController.GenericValidResponse(slPayloadDataAnswer: TStringList): boolean;
+var
+  slVariablesNames: TStringList;
+  slVariablesValues: TStringList;
+  iIndexParam: integer;
+  sVariableValue: string;
+begin
+  result := True;
+  slVariablesNames := TStringList.Create;
+  slVariablesValues := TStringList.Create;
+  try
+    CallidusSplitVariablesNamesAndValues(slPayloadDataAnswer, slVariablesNames, slVariablesValues);
+
+    iIndexParam := slVariablesNames.IndexOf(CALLIDUS_RSP_FILENOTFOUNT);
+    if iIndexParam <> -1 then
+    begin
+      result := False;
+      frmDebugWindow.StatusWindow.WriteStatus('ERREUR: IL MANQUE UN FICHIER SUR UN DISPLAY!', COLORERROR);
+      frmDebugWindow.StatusWindow.WriteStatus('Version du dispositif remote: ' + slVariablesValues.Strings[iIndexParam], COLORERROR);
+      if not frmDebugWindow.Visible then frmDebugWindow.Visible := True;
+    end
+
+  finally
+    FreeAndNil(slVariablesNames);
+    FreeAndNil(slVariablesValues);
   end;
 end;
 
@@ -801,7 +835,7 @@ end;
 procedure TfrmCallidusController.Button2Click(Sender: TObject);
 var
   Params: array of string;
-  icurrentIndexInArray:integer;
+  icurrentIndexInArray: integer;
 begin
   DisableToute;
   try
@@ -879,8 +913,9 @@ begin
   lblHelpFullScreen.Caption := lblHelpFullScreen.Caption + #$0A + 'des CALLIDUS-DISPLAY';
 
   isFirstActivation := True;
+  MyStatusBar.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-  Caption := Application.Title;
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
   RxIndex := 0;
   SetLength(RxBuffer, 16000);
   CallidusDeviceList := TCallidusDeviceList.Create;
@@ -1094,8 +1129,8 @@ end;
 procedure TfrmCallidusController.ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
 var
   PayloadDataRequest, slVariablesNames, slVariablesValues: TStringList;
-  iNewPos, iIndexDevice, iIndexComputerName, iIndexComplementName, iIndexCommand, iIndexGeneric: Integer;
-  sRemoteDevice: string;
+  iNewPos, iIndexDevice, iIndexComputerName, iIndexComplementName, iIndexCommand, iIndexGeneric, iIndexVersionName: Integer;
+  sRemoteDevice, sRemoteVersion: string;
   sPerte: AnsiString;
   localDeviceType: tDeviceType;
   ServiceSpeedInfo: TServiceSpeed;
@@ -1113,18 +1148,31 @@ begin
           iIndexDevice := slVariablesNames.IndexOf(CALLIDUS_INFO_DEVICETYPE);
           iIndexComputerName := slVariablesNames.IndexOf(CALLIDUS_INFO_COMPUTERNAME);
           iIndexComplementName := slVariablesNames.IndexOf(CALLIDUS_INFO_COMPLEMENTNAME);
+          iIndexVersionName := slVariablesNames.IndexOf(CALLIDUS_INFO_VERSION);
+          if iIndexVersionName = -1 then
+            sRemoteVersion := 'Inconnue!'
+          else
+            sRemoteVersion := slVariablesValues.Strings[iIndexVersionName];
+
           if (iIndexDevice <> -1) and (iIndexComputerName <> -1) and (iIndexComplementName <> -1) then
           begin
             localDeviceType := dtUnknown;
             if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Radar' then localDeviceType := dtCallidusRadar;
             if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Display' then localDeviceType := dtCallidusDisplay;
 
-            iNewPos := CallidusDeviceList.Add(localDeviceType, Socket.RemoteAddress, slVariablesValues.Strings[iIndexComputerName], slVariablesValues.Strings[iIndexDevice], slVariablesValues.Strings[iIndexComplementName]);
+            iNewPos := CallidusDeviceList.Add(localDeviceType, Socket.RemoteAddress, slVariablesValues.Strings[iIndexComputerName], slVariablesValues.Strings[iIndexDevice], slVariablesValues.Strings[iIndexComplementName], sRemoteVersion);
             if iNewPos <> -1 then
             begin
               sRemoteDevice := TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetDisplayName;
               lbDeviceDetected.Items.Add(sRemoteDevice);
               WriteStatusLg('New device detected: ' + TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetFullName, 'Nouvel appareil détecté: ' + TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetFullName, COLORSUCCESS);
+              if sRemoteVersion <> sCALLIDUS_SYSTEM_VERSION then
+              begin
+                frmDebugWindow.StatusWindow.WriteStatus('ERREUR: ICOMPATIBILITÉ DE VERSION POUR CE DEVICE!', COLORERROR);
+                frmDebugWindow.StatusWindow.WriteStatus('Version du CALLIDUS-CONTROLLER: ' + sCALLIDUS_SYSTEM_VERSION, COLORERROR);
+                frmDebugWindow.StatusWindow.WriteStatus(' Version application-satellite: ' + sRemoteVersion, COLORERROR);
+                if not frmDebugWindow.Visible then frmDebugWindow.Show;
+              end;
             end;
           end;
 
@@ -1239,7 +1287,7 @@ begin
       begin
         ProtocolePROTO_Radar.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
         ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_RADAR;
-        if not ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer) > 0 then
+        if not ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer, nil) > 0 then
           result := FALSE;
         Application.ProcessMessages;
       end;
@@ -1250,8 +1298,6 @@ begin
     FreeAndNil(PayloadDataRequest);
   end;
 end;
-
-
 
 end.
 

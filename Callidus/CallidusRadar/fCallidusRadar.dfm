@@ -643,7 +643,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Panels = <
       item
         Alignment = taCenter
-        Width = 30
+        Width = 80
       end
       item
         Alignment = taCenter
@@ -655,6 +655,9 @@ object frmCallidusRadar: TfrmCallidusRadar
       end
       item
         Alignment = taCenter
+        Width = 130
+      end
+      item
         Width = 120
       end>
   end
@@ -854,7 +857,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 36
     Top = 198
     Bitmap = {
-      494C010102000800740020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800780020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000

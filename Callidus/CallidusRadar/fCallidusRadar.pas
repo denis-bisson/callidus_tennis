@@ -254,9 +254,10 @@ const
   NBCOLMAX = 6;
 
   //sbNetwork
-  IDX_PANEL_APPLICATIONO = 0;
-  IDX_PANEL_LOCALIP = 1;
-  IDX_PANEL_CONTROLLERIP = 2;
+  IDX_PANEL_VERSION = 0;
+  IDX_PANEL_APPLICATIONO = 1;
+  IDX_PANEL_LOCALIP = 2;
+  IDX_PANEL_CONTROLLERIP = 3;
 
   //sbRadar
   IDX_PANEL_SERVICESPEEDSTATEMACHINE = 0;
@@ -541,7 +542,7 @@ begin
       PayloadDataRequest.Add(CALLIDUS_CMD_SERVICEDIRECTION + '=');
     end;
 
-    result := (ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(PROTO_CMD_SNDINFO, PayloadDataRequest, Answer) > 0);
+    result := (ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(PROTO_CMD_SNDINFO, PayloadDataRequest, Answer, nil) > 0);
   finally
     FreeAndNil(PayloadDataRequest);
   end;
@@ -785,8 +786,9 @@ procedure TfrmCallidusRadar.FormCreate(Sender: TObject);
 begin
   iIndexApplication := GetApplicationNbOfThisClass(Self.ClassName);
   ProtocolePROTO_Radar.ComplementDeviceName := Format('Instance%.2d', [iIndexApplication]);
+  sbNetwork.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   sbNetwork.Panels[IDX_PANEL_APPLICATIONO].Text := IntToStr(iIndexApplication);
-  Caption := Application.Title;
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
   isFirstActivation := True;
   NomFichierConfiguration := GetConfigFilename('CallidusRadar');
   bMonitorSpeed := FALSE;
