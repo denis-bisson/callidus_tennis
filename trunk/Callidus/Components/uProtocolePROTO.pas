@@ -74,7 +74,7 @@ type
     function Init: boolean;
     function PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
     function isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
-    function PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString): integer;
+    function PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString; PayloadDataReceived: TStringList): integer;
     function ServerSocketReplyAnswer(Socket: TCustomWinSocket; AnswerIndex: integer; PayloadDataOut: TStringList): boolean;
     procedure AnyClientSocketConnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure AnyClientSocketConnecting(Sender: TObject; Socket: TCustomWinSocket);
@@ -324,7 +324,7 @@ begin
   end;
 end;
 
-function TProtocole_PROTO.PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString): integer;
+function TProtocole_PROTO.PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString; PayloadDataReceived: TStringList): integer;
 var
   FreezeStartMoment: dword;
   TxBuffer: TIdBytes;
@@ -334,6 +334,7 @@ var
   ComputedCRC16, ExpectedCRC16: word;
 begin
   result := -1;
+  if PayloadDataReceived <> nil then PayloadDataReceived.Clear;
 
   if FClientSocket <> nil then
   begin
@@ -510,7 +511,7 @@ begin
       if bKeepGoing then
       begin
         WriteStatusLg('Success! Command was sent and we got a response!', 'Succès! Notre commande a été envoyé et nous avons eu notre réponse!', COLORSUCCESS);
-        Answer7 := sAnswerReceived;
+        FromReceivedStuffLoadPacketInfo(FRxClientBuffer, Answer7, PayloadDataReceived);
         result := iExpectedAnswerPacketLength;
       end;
 
@@ -823,7 +824,7 @@ var
   sBuildingString: string;
 begin
   Answer7 := '';
-  PayloadDataReceived.Clear;
+  if PayloadDataReceived <> nil then PayloadDataReceived.Clear;
 
   for iChar := 0 to 6 do
     Answer7 := Answer7 + AnsiChar(paramBuffer[IDX_PROTO_COMMAND + iChar]);
@@ -844,7 +845,8 @@ begin
               if (paramBuffer[IDX_PROTO_PAYLOAD_DATA + iPromeneur + 1] = $0A) then
               begin
                 if pos('=', sBuildingString) <> 0 then
-                  PayloadDataReceived.Add(sBuildingString);
+                  if PayloadDataReceived <> nil then
+                    PayloadDataReceived.Add(sBuildingString);
               end;
               sBuildingString := '';
             end;
@@ -995,6 +997,7 @@ begin
   paramSl.Add(CALLIDUS_INFO_COMPUTERNAME + '=' + Callidus_GetComputerName);
   paramSl.Add(CALLIDUS_INFO_DEVICETYPE + '=' + FDeviceName);
   paramSl.Add(CALLIDUS_INFO_COMPLEMENTNAME + '=' + FComplementDeviceName);
+  paramSl.Add(CALLIDUS_INFO_VERSION + '=' + sCALLIDUS_SYSTEM_VERSION);
 end;
 
 function TProtocole_PROTO.SendIamAliveMessage: boolean;
@@ -1006,7 +1009,7 @@ begin
     PayloadDataRequest := TStringList.Create;
     try
       LoadStringListWithIdentificationInfo(PayloadDataRequest);
-      result := (PitchUnMessageAndGetResponsePROTO(PROTO_CMD_IMALIVE, PayloadDataRequest, Answer) > 0);
+      result := (PitchUnMessageAndGetResponsePROTO(PROTO_CMD_IMALIVE, PayloadDataRequest, Answer, nil) > 0);
     finally
       FreeAndNil(PayloadDataRequest);
     end;

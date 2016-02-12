@@ -127,7 +127,8 @@ begin
   Rect.Right := 0;
   Rect.Bottom := 0;
   FullScreen := False;
-  Caption := Application.Title;
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
+  ;
 end;
 
 // 2015-12-03:DB-Provient de Peter Below from TeamB
@@ -242,7 +243,6 @@ var
   ImageCommenditaire: TImage;
   SourceRect, DestRect: TRect;
   ImageEnJpeg: TJpegImage;
-  sNomfichierCommenditaire: string;
 
   procedure SetRequiredWithAccordingToSpecifiedTextSize;
   begin
@@ -291,14 +291,13 @@ begin
   // 01. Si nous sommes en Full Screen ET QUE nous avons une commenditaire, on l'affiche!
   if (ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '') then
   begin
-    sNomfichierCommenditaire := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + ServiceSpeedInfo.sBanderoleCommenditaireFilename;
-    if FileExists(sNomfichierCommenditaire) then
+    if FileExists(ServiceSpeedInfo.sBanderoleCommenditaireFilename) then
     begin
       ImageEnJpeg := TJpegImage.Create;
       ImageCommenditaire := TImage.Create(Self);
       try
         ImageEnJpeg.CompressionQuality := 100;
-        ImageEnJpeg.LoadFromFile(sNomfichierCommenditaire);
+        ImageEnJpeg.LoadFromFile(ServiceSpeedInfo.sBanderoleCommenditaireFilename);
         ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
         DestRect.Left := ((Self.Width - ImageCommenditaire.Picture.Width) div 2);
         DestRect.Right := (DestRect.Left + ImageCommenditaire.Picture.Width);
@@ -510,7 +509,7 @@ end;
 procedure TfrmCallidusDisplay.ProtocolePROTO_DisplayServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
 var
   ServiceSpeedInfo: TInformationForShowingServiceSpeed;
-  slVariablesNames, slVariablesValues: TStringList;
+  slAnswer, slVariablesNames, slVariablesValues: TStringList;
   iIndexCommand: integer;
   iAnyValue: integer;
   iSpeedValueIndex: integer;
@@ -518,9 +517,9 @@ var
   iShadowIndex: integer;
   iColorIndex: integer;
 begin
-
   slVariablesNames := TStringList.Create;
   slVariablesValues := TStringList.Create;
+  slAnswer := TStringList.Create;
   try
     iIndexCommand := ProtocolePROTO_Display.CommandList.IndexOf(Answer7);
 
@@ -528,7 +527,22 @@ begin
       PROTO_CMD_DISCRTC:
         begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
+
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
+          if iAnyValue <> -1 then
+          begin
+            sAnyValue := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+            if sAnyValue <> '' then
+            begin
+              if not FileExists(sAnyValue) then
+              begin
+                slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + sAnyValue);
+              end;
+              ShowThisFileFullScreen(sAnyValue);
+            end;
+          end;
+
+          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
 
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_ADJUSTSCREEN);
           if iAnyValue <> -1 then
@@ -538,19 +552,11 @@ begin
             if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
           end;
 
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
-          if iAnyValue <> -1 then
-          begin
-            sAnyValue := slVariablesValues.Strings[iAnyValue];
-            if sAnyValue <> '' then ShowThisFileFullScreen(sAnyValue);
-          end;
-
         end;
 
       PROTO_CMD_SNDINFO:
         begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
 
           ServiceSpeedInfo.PosY := 0;
           ServiceSpeedInfo.SizY := 0;
@@ -572,6 +578,18 @@ begin
           ServiceSpeedInfo.PlayerNameTextS := 20; //Grosseur du texte
           ServiceSpeedInfo.PlayerNameRectC := clBlack; //Couleur du fond du rectangle
           ServiceSpeedInfo.PlayerNameRectH := 30; //Hauteur du rectangle à partir du bas
+
+          // On valide que le fichier du commenditaire existe avant de répondre!
+          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
+          if iAnyValue <> -1 then
+          begin
+            ServiceSpeedInfo.sBanderoleCommenditaireFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+            if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then
+              if not FileExists(ServiceSpeedInfo.sBanderoleCommenditaireFilename) then
+                slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
+          end;
+
+          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
 
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
           if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
@@ -602,9 +620,6 @@ begin
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
           if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
-          if iAnyValue <> -1 then ServiceSpeedInfo.sBanderoleCommenditaireFilename := slVariablesValues.Strings[iAnyValue];
-
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERNAME);
           if iAnyValue <> -1 then ServiceSpeedInfo.PlayerName := slVariablesValues.Strings[iAnyValue];
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTCOLOR);
@@ -625,6 +640,7 @@ begin
         end;
     end;
   finally
+    FreeAndNil(slAnswer);
     FreeAndNil(slVariablesNames);
     FreeAndNil(slVariablesValues);
   end;
@@ -655,20 +671,18 @@ end;
 
 procedure TfrmCallidusDisplay.ShowThisFileFullScreen(sNomDuFichier: string);
 var
-  sMaybeFilename: string;
   ImageEnJpeg: TJpegImage;
   ImageCommenditaire: TImage;
   SourceRect, DestRect: TRect;
 begin
-  sMaybeFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sNomDuFichier;
-  if FileExists(sMaybeFilename) then
+  if FileExists(sNomDuFichier) then
   begin
     ImageEnJpeg := TJpegImage.Create;
     ImageCommenditaire := TImage.Create(Self);
     try
       // 1. On load notre image
       ImageEnJpeg.CompressionQuality := 100;
-      ImageEnJpeg.LoadFromFile(sMaybeFilename);
+      ImageEnJpeg.LoadFromFile(sNomDuFichier);
       ImageCommenditaire.Picture.Bitmap.Assign(ImageEnJpeg);
 
       // 2. On ajuste rempli le fond de l'écran de la couleur du pixel de l'image en haut à gauche

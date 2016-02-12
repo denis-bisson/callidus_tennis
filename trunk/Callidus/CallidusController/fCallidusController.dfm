@@ -162,6 +162,9 @@ object frmCallidusController: TfrmCallidusController
     Panels = <
       item
         Alignment = taCenter
+        Width = 80
+      end
+      item
         Width = 130
       end
       item
@@ -176,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = tsPlayer
+    ActivePage = Devices
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
@@ -194,7 +197,7 @@ object frmCallidusController: TfrmCallidusController
       object lbDeviceDetected: TListBox
         Left = 16
         Top = 35
-        Width = 454
+        Width = 521
         Height = 258
         Style = lbOwnerDrawFixed
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -211,6 +214,10 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Options pour Callidus-Display'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label4: TLabel
         Left = 19
         Top = 16
@@ -521,6 +528,10 @@ object frmCallidusController: TfrmCallidusController
     object tsPlayer: TTabSheet
       Caption = 'Joueurs'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object EditJoueur1: TLabeledEdit
         Left = 68
         Top = 15
@@ -661,6 +672,10 @@ object frmCallidusController: TfrmCallidusController
     object tsPub: TTabSheet
       Caption = 'Pub (fs)'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -755,6 +770,10 @@ object frmCallidusController: TfrmCallidusController
     object TabSheet1: TTabSheet
       Caption = 'Pub (bn)'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -816,6 +835,10 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Radar'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -1100,7 +1123,7 @@ object frmCallidusController: TfrmCallidusController
     WorkingClientSocket = csSocketDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 340
+    Left = 268
     Top = 310
   end
   object csSocketDisplay: TClientSocket
@@ -1138,7 +1161,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010800C8008C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010800C800940020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -42,7 +42,8 @@ uses
   uCommonStuff;
 
 const
-  IDX_PANEL_LOCALIP = 0;
+  IDX_PANEL_VERSION = 0;
+  IDX_PANEL_LOCALIP = 1;
 
 procedure TfrmDebugWindow.actCloseDebugWindowExecute(Sender: TObject);
 begin
@@ -53,6 +54,7 @@ procedure TfrmDebugWindow.FormCreate(Sender: TObject);
 begin
   Icon := Application.MainForm.Icon;
   Caption := Application.MainForm.Caption + ' [debug]';
+  MyStatusBar.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
 end;
 

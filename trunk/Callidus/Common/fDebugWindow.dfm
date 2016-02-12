@@ -26,6 +26,9 @@ object frmDebugWindow: TfrmDebugWindow
     Panels = <
       item
         Alignment = taCenter
+        Width = 80
+      end
+      item
         Width = 130
       end
       item

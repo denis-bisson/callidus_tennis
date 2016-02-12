@@ -47,6 +47,8 @@ function GetApplicationNbOfThisClass(sClassName: string): integer;
 function GetElapsedTime(A: int64): string;
 
 const
+  sCALLIDUS_SYSTEM_VERSION = 'v1.04';
+
   COLORTX = clGreen;
   COLORRX = clNavy;
   COLORINFO = clGray;
@@ -101,9 +103,13 @@ const
   CALLIDUS_CMD_PLAYERRECTCOLOR = 'PlyB';
   CALLIDUS_CMD_PLAYERRECTHEIGHT = 'PlyRH';
 
+  CALLIDUS_RSP_FILENOTFOUNT = 'MisFil';
+
   CALLIDUS_INFO_COMPUTERNAME = 'ComputerName';
   CALLIDUS_INFO_DEVICETYPE = 'DeviceType';
   CALLIDUS_INFO_COMPLEMENTNAME = 'ComplementName';
+  CALLIDUS_INFO_VERSION = 'SysVer';
+
 
   sDISPLAY_PARAM_FULLSCREEN = 'FullScreen';
   sDISPLAY_PARAM_NORMALSCREEN = 'NormalScreen';
