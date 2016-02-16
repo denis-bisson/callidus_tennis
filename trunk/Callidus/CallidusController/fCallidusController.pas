@@ -113,25 +113,6 @@ type
     edServiceSpeedUnit: TGlobal6LabeledEdit;
     lbDeviceDetected: TListBox;
     RefreshListTimer: TTimer;
-    pnlSpeedCote2: TPanel;
-    Label3: TLabel;
-    tsPlayer: TTabSheet;
-    EditJoueur1: TLabeledEdit;
-    EditJoueur2: TLabeledEdit;
-    Button1: TButton;
-    actSwapPlayers: TAction;
-    cbShowPlayerName: TCheckBox;
-    GroupBox1: TGroupBox;
-    Label7: TLabel;
-    Label11: TLabel;
-    pnlCouleurPlayerRectangle: TPanel;
-    edRectangleHeight: TLabeledEdit;
-    edPlayerSizeText: TLabeledEdit;
-    pnlCouleurPlayerText1: TPanel;
-    Label9: TLabel;
-    pnlCouleurPlayerText2: TPanel;
-    edPlayerPosY: TLabeledEdit;
-    ToolButton9: TToolButton;
     actStartPub: TAction;
     tsPub: TTabSheet;
     ToolButton10: TToolButton;
@@ -188,7 +169,6 @@ type
     procedure edServiceSpeedUnitSubCheckboxClick(Sender: TObject);
     procedure lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure RefreshListTimerTimer(Sender: TObject);
-    procedure actSwapPlayersExecute(Sender: TObject);
     procedure actStartPubExecute(Sender: TObject);
     procedure btnCommanditClick(Sender: TObject);
     function DoLaPub: boolean;
@@ -529,15 +509,6 @@ begin
   end;
 end;
 
-procedure TfrmCallidusController.actSwapPlayersExecute(Sender: TObject);
-var
-  sTempo: string;
-begin
-  sTempo := EditJoueur1.Text;
-  EditJoueur1.Text := EditJoueur2.Text;
-  EditJoueur2.Text := sTempo;
-end;
-
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
 begin
   DisableToute;
@@ -667,42 +638,8 @@ begin
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESPEED + '=' + IntToStr(paramInfoSpeed.CurrentPeakSpeed));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESHADOWSIZE + '=' + IntToStr(cbShadowSize.ItemIndex));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORBACK + '=' + IntToStr(pnlBackground.Color));
-
-  case paramInfoSpeed.CurrentPeekDirection of
-    1:
-      begin
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
-        if cbShowPlayerName.Checked then
-        begin
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERNAME + '=' + EditJoueur1.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTCOLOR + '=' + IntToStr(pnlCouleurPlayerText1.Color));
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTSIZE + '=' + edPlayerSizeText.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTEXTY + '=' + edPlayerPosY.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTHEIGHT + '=' + edRectangleHeight.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTCOLOR + '=' + IntToStr(pnlCouleurPlayerRectangle.Color));
-        end;
-      end;
-    2:
-      begin
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote2.Color));
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
-        if cbShowPlayerName.Checked then
-        begin
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERNAME + '=' + EditJoueur2.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTCOLOR + '=' + IntToStr(pnlCouleurPlayerText2.Color));
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTXTSIZE + '=' + edPlayerSizeText.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERTEXTY + '=' + edPlayerPosY.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTHEIGHT + '=' + edRectangleHeight.Text);
-          AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_PLAYERRECTCOLOR + '=' + IntToStr(pnlCouleurPlayerRectangle.Color));
-        end;
-      end;
-    else
-      begin
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
-        AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
-      end;
-  end;
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
 
   if edServiceSpeedUnit.Checkbox.Checked then
   begin
@@ -978,7 +915,6 @@ begin
       cbUnitShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', 5);
       pnlBackground.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', clGreen);
       pnlSpeedCote1.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', clWhite);
-      pnlSpeedCote2.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed2', clYellow);
       pnlSpeedShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', clBlack);
       pnlUnit.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', clYellow);
       pnlUnitShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', clBlack);
@@ -988,15 +924,6 @@ begin
       edUnitPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', '380');
       edTailleUnitY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
       edServiceSpeedUnitSubCheckboxClick(edServiceSpeedUnit.Checkbox);
-      EditJoueur1.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', 'Joueur #1');
-      EditJoueur2.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', 'Joueur #2');
-      cbShowPlayerName.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShowPlayerName', False);
-      edRectangleHeight.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edRectangleHeight', '120');
-      pnlCouleurPlayerRectangle.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerRectangle', clBlack);
-      pnlCouleurPlayerText1.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText1', clWhite);
-      pnlCouleurPlayerText2.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', clYellow);
-      edPlayerSizeText.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', '70');
-      edPlayerPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', '120');
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
       rgPubType.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', 1);
       rgModePubBanniere.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', 1);
@@ -1036,10 +963,6 @@ begin
     3: pnlWorking := pnlSpeedShadow;
     4: pnlWorking := pnlUnit;
     5: pnlWorking := pnlUnitShadow;
-    6: pnlWorking := pnlSpeedCote2;
-    7: pnlWorking := pnlCouleurPlayerRectangle;
-    8: pnlWorking := pnlCouleurPlayerText1;
-    9: pnlWorking := pnlCouleurPlayerText2;
   end;
 
   if pnlWorking <> nil then
@@ -1088,7 +1011,6 @@ begin
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', cbUnitShadowSize.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', pnlBackground.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', pnlSpeedCote1.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed2', pnlSpeedCote2.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', pnlSpeedShadow.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', pnlUnit.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', pnlUnitShadow.Color);
@@ -1097,15 +1019,6 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', edTailleSpeedY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', edUnitPosY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', edTailleUnitY.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur1', EditJoueur1.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'EditJoueur2', EditJoueur2.Text);
-      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShowPlayerName', cbShowPlayerName.Checked);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edRectangleHeight', edRectangleHeight.Text);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerRectangle', pnlCouleurPlayerRectangle.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText1', pnlCouleurPlayerText1.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlCouleurPlayerText2', pnlCouleurPlayerText2.Color);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSizeText', edPlayerSizeText.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPlayerPosY', edPlayerPosY.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', rgPubType.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', rgModePubBanniere.ItemIndex);
