@@ -32,12 +32,6 @@ type
     colorUnit: tColor;
     colorUnitShadow: tColor;
     sBanderoleCommenditaireFilename: string;
-    PlayerName: string;
-    PlayerNameTextY: integer; //Position du text à partir du bas
-    PlayerNameTextC: tColor; //Couleur du texte
-    PlayerNameTextS: integer; //Grosseur du texte
-    PlayerNameRectC: tColor; //Couleur du fond du rectangle
-    PlayerNameRectH: integer; //Hauteur du rectangle à partir du bas
   end;
 
   TfrmCallidusDisplay = class(TForm)
@@ -407,28 +401,6 @@ begin
         Canvas.TextOut(iThisPosXChar, iThisPosYChar, ServiceSpeedInfo.sSpeedUnit[iChar]);
       end;
     end;
-
-    // 08. Si on le demande, on affiche le nom du joueur dans le bas
-    if ServiceSpeedInfo.PlayerName <> '' then
-    begin
-      // 08.1. On dessine la bande.
-      rWindowRect.Top := ClientHeight - ServiceSpeedInfo.PlayerNameRectH;
-      rWindowRect.Left := 0;
-      rWindowRect.Height := ServiceSpeedInfo.PlayerNameRectH;
-      rWindowRect.Width := ClientWidth;
-      Canvas.Brush.Color := ServiceSpeedInfo.PlayerNameRectC;
-      Canvas.Brush.Style := bsSolid;
-      Canvas.FillRect(rWindowRect);
-
-      // 08.2. On écrite le nom du joueur.
-      Canvas.Font.Color := ServiceSpeedInfo.PlayerNameTextC;
-      Canvas.Font.Size := ServiceSpeedInfo.PlayerNameTextS;
-      iTotalWidthRequired := Canvas.TextWidth(ServiceSpeedInfo.PlayerName);
-      iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
-      iPosY := ClientHeight - ServiceSpeedInfo.PlayerNameTextY;
-      Canvas.TextOut(iPosX, iPosY, ServiceSpeedInfo.PlayerName);
-    end;
-
   end;
 end;
 
@@ -572,12 +544,6 @@ begin
           ServiceSpeedInfo.colorUnit := clYellow;
           ServiceSpeedInfo.colorUnitShadow := clBlack;
           ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
-          ServiceSpeedInfo.PlayerName := '';
-          ServiceSpeedInfo.PlayerNameTextY := 30; //Position du text à partir du bas
-          ServiceSpeedInfo.PlayerNameTextC := clWhite; //Couleur du texte
-          ServiceSpeedInfo.PlayerNameTextS := 20; //Grosseur du texte
-          ServiceSpeedInfo.PlayerNameRectC := clBlack; //Couleur du fond du rectangle
-          ServiceSpeedInfo.PlayerNameRectH := 30; //Hauteur du rectangle à partir du bas
 
           // On valide que le fichier du commenditaire existe avant de répondre!
           iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
@@ -619,22 +585,6 @@ begin
           if iColorIndex <> -1 then ServiceSpeedInfo.colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
           iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
           if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERNAME);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerName := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTCOLOR);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextC);
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTCOLOR);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectC := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectC);
-          if FullScreen then
-          begin
-            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTEXTY);
-            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextY := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextY);
-            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERTXTSIZE);
-            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameTextS := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameTextS);
-            iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_PLAYERRECTHEIGHT);
-            if iAnyValue <> -1 then ServiceSpeedInfo.PlayerNameRectH := StrToIntDef(slVariablesValues.Strings[iAnyValue], ServiceSpeedInfo.PlayerNameRectH);
-          end;
 
           ShowServiceSpeed(ServiceSpeedInfo);
         end;
