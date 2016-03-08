@@ -125,7 +125,7 @@ type
     TimerPublicityFullScreen: TTimer;
     TabSheet1: TTabSheet;
     clCommdtBanniere: TCheckListGlobal6;
-    Label8: TLabel;
+    lblBanniereFileList: TLabel;
     btnBanniere: TButton;
     rgModePubBanniere: TRadioGroup;
     lblHelpBanniere: TLabel;
@@ -139,6 +139,7 @@ type
     edInactivityTime: TLabeledEdit;
     Button2: TButton;
     ClientSocketRadar: TClientSocket;
+    ckbPubBanniere: TCheckBox;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -177,6 +178,7 @@ type
     function GetPubFileName(iDispatcher: integer; var sFilename: string): boolean;
     procedure Button2Click(Sender: TObject);
     function GenericValidResponse(slPayloadDataAnswer: TStringList): boolean;
+    procedure ckbPubBanniereClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -651,8 +653,9 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSHDY + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
 
-  if GetPubFileName(2, sLocalPubFilename) then
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
+  if ckbPubBanniere.Checked then
+    if GetPubFileName(2, sLocalPubFilename) then
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
 
   result := SendDisplayGenericCommand(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
@@ -793,6 +796,18 @@ begin
   end;
 end;
 
+procedure TfrmCallidusController.ckbPubBanniereClick(Sender: TObject);
+begin
+  with Sender as TCheckbox do
+  begin
+    rgModePubBanniere.Enabled := Checked;
+    btnBanniere.Enabled := Checked;
+    lblBanniereFileList.Enabled := Checked;
+    clCommdtBanniere.Enabled := Checked;
+    lblHelpBanniere.Enabled := Checked;
+  end;
+end;
+
 procedure TfrmCallidusController.evMainApplicationEventsException(Sender: TObject; E: Exception);
 var
   Msg: string;
@@ -926,7 +941,7 @@ begin
       edServiceSpeedUnitSubCheckboxClick(edServiceSpeedUnit.Checkbox);
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
       rgPubType.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', 1);
-      rgModePubBanniere.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', 1);
+      rgModePubBanniere.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', 0);
       LoadThisCheckList(clCommenditaire, 'fsPub');
       LoadThisCheckList(clCommdtBanniere, 'bnPub');
       edLowServiceSpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitServiceSpeed', '50');
@@ -935,6 +950,8 @@ begin
       edLowInactivitySpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitInactivitySpeed', '40');
       edHighInactivitySpeed.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitInactivitySpeed', '200');
       edInactivityTime.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', '5000');
+      ckbPubBanniere.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbPubBanniere', True);
+      ckbPubBanniereClick(ckbPubBanniere);
       // ..LoadConfiguration
     end;
   finally
@@ -1030,6 +1047,7 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'LowLimitInactivitySpeed', edLowInactivitySpeed.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitInactivitySpeed', edHighInactivitySpeed.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', edInactivityTime.Text);
+      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbPubBanniere', ckbPubBanniere.Checked);
       // ..SaveConfiguration
     end;
   finally

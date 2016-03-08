@@ -47,7 +47,7 @@ function GetApplicationNbOfThisClass(sClassName: string): integer;
 function GetElapsedTime(A: int64): string;
 
 const
-  sCALLIDUS_SYSTEM_VERSION = 'v1.05';
+  sCALLIDUS_SYSTEM_VERSION = 'v1.06';
 
   COLORTX = clGreen;
   COLORRX = clNavy;

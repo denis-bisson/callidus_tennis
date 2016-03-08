@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = tsPub
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
@@ -601,7 +601,7 @@ object frmCallidusController: TfrmCallidusController
       DesignSize = (
         576
         315)
-      object Label8: TLabel
+      object lblBanniereFileList: TLabel
         Left = 3
         Top = 53
         Width = 180
@@ -654,6 +654,15 @@ object frmCallidusController: TfrmCallidusController
           'S'#233'quentiel parmis ceux coch'#233's'
           'Al'#233'atoire parmis ceux coch'#233's')
         TabOrder = 2
+      end
+      object ckbPubBanniere: TCheckBox
+        Left = 230
+        Top = 49
+        Width = 291
+        Height = 17
+        Caption = 'Ajoute une banni'#232're de pub en haut de la vitesse'
+        TabOrder = 3
+        OnClick = ckbPubBanniereClick
       end
     end
     object tsRadar: TTabSheet
@@ -970,7 +979,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010700C800A40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010700C800A80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
