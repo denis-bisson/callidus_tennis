@@ -320,6 +320,20 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet2: TTabSheet
       Caption = 'Network'
       ImageIndex = 5
+      object lblTempsOn: TLabel
+        Left = 216
+        Top = 19
+        Width = 53
+        Height = 13
+        Caption = 'Temps ON:'
+      end
+      object lblTempsOff: TLabel
+        Left = 216
+        Top = 83
+        Width = 58
+        Height = 13
+        Caption = 'Temps OFF:'
+      end
       object Button6: TButton
         Left = 12
         Top = 14
@@ -336,6 +350,30 @@ object frmCallidusRadar: TfrmCallidusRadar
         Caption = 'Stop!'
         TabOrder = 1
         OnClick = Button2Click
+      end
+      object tbTempsOn: TTrackBar
+        Left = 216
+        Top = 38
+        Width = 357
+        Height = 45
+        Max = 10000
+        Min = 200
+        Frequency = 200
+        Position = 200
+        TabOrder = 2
+        OnChange = tbTempsOnChange
+      end
+      object tbTempsOff: TTrackBar
+        Left = 216
+        Top = 102
+        Width = 357
+        Height = 45
+        Max = 10000
+        Min = 200
+        Frequency = 200
+        Position = 200
+        TabOrder = 3
+        OnChange = tbTempsOffChange
       end
     end
     object tsOptionsAutoDetection: TTabSheet
@@ -684,8 +722,8 @@ object frmCallidusRadar: TfrmCallidusRadar
       end>
   end
   object pmRadarConfig: TPopupMenu
-    Left = 92
-    Top = 110
+    Left = 76
+    Top = 222
     object RefreshCOMportlist1: TMenuItem
       Action = actRefreshComboComm
     end
@@ -697,8 +735,8 @@ object frmCallidusRadar: TfrmCallidusRadar
     end
   end
   object MainMenu1: TMainMenu
-    Left = 92
-    Top = 102
+    Left = 180
+    Top = 254
     object Action1: TMenuItem
       Caption = 'Action'
       object Ref1: TMenuItem
@@ -824,8 +862,8 @@ object frmCallidusRadar: TfrmCallidusRadar
     UserBaudrate = 9600
     OnClose = VaCommRadarClose
     Version = '1.8.0.0'
-    Left = 212
-    Top = 110
+    Left = 116
+    Top = 166
   end
   object csSocketRadar: TClientSocket
     Active = False
@@ -857,7 +895,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 36
     Top = 198
     Bitmap = {
-      494C010102000800780020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101020008007C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1400,8 +1438,8 @@ object frmCallidusRadar: TfrmCallidusRadar
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 148
-    Top = 198
+    Left = 124
+    Top = 214
   end
   object tmrControllerVerification: TTimer
     Enabled = False

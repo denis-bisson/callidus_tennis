@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = TabSheet1
+    ActivePage = Devices
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
@@ -934,8 +934,8 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
-    Left = 396
-    Top = 134
+    Left = 388
+    Top = 86
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
     WorkingClientSocket = csSocketDisplay
@@ -979,7 +979,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010700C800A80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010700C800AC0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -194,6 +194,7 @@ type
     PanelStop: TPanel;
     LabelPub: TLabel;
     BoutonStop: TButton;
+    bDoingAnAction: boolean;
   public
     { Public declarations }
   end;
@@ -551,31 +552,50 @@ var
   Answer: AnsiString;
   iDevice, iParam: integer;
 begin
-  result := False;
-  PayloadDataRequest := TStringList.Create;
-  PayloadDataAnswer := TStringList.Create;
-  try
-    for iParam := 0 to pred(length(params)) do
-      if params[iParam] <> '' then
-        PayloadDataRequest.Add(params[iParam]);
+  if not bDoingAnAction then
+  begin
+    bDoingAnAction := True;
+    try
+      result := False;
+      PayloadDataRequest := TStringList.Create;
+      PayloadDataAnswer := TStringList.Create;
+      try
+        for iParam := 0 to pred(length(params)) do
+          if params[iParam] <> '' then
+            PayloadDataRequest.Add(params[iParam]);
 
-    for iDevice := 0 to pred(CallidusDeviceList.Count) do
-    begin
-      if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
-      begin
-        ProtocolePROTO_Display.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
-        ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_DISPLAY;
-        if ProtocolePROTO_Display.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer, PayloadDataAnswer) > 0 then
+        for iDevice := pred(CallidusDeviceList.Count) downto 0 do
         begin
-          result := GenericValidResponse(PayloadDataAnswer);
-        end;
-        Application.ProcessMessages;
-      end;
-    end;
+          if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
+          begin
+            if ProtocolePROTO_Display.WorkingClientSocket.Active then
+            begin
+              ProtocolePROTO_Display.WorkingClientSocket.Close;
+              ProtocolePROTO_Display.WorkingClientSocket.Active := False;
+            end;
 
-  finally
-    FreeAndNil(PayloadDataAnswer);
-    FreeAndNil(PayloadDataRequest);
+            ProtocolePROTO_Display.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
+            ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_DISPLAY;
+            if ProtocolePROTO_Display.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer, PayloadDataAnswer) > 0 then
+            begin
+              result := GenericValidResponse(PayloadDataAnswer);
+            end
+            else
+            begin
+              CallidusDeviceList.Delete(iDevice);
+              lbDeviceDetected.Items.Delete(iDevice);
+            end;
+            Application.ProcessMessages;
+          end;
+        end;
+
+      finally
+        FreeAndNil(PayloadDataAnswer);
+        FreeAndNil(PayloadDataRequest);
+      end;
+    finally
+      bDoingAnAction := False;
+    end;
   end;
 end;
 
@@ -867,12 +887,13 @@ begin
   isFirstActivation := True;
   MyStatusBar.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION+' (2016-03-13)';
   RxIndex := 0;
   SetLength(RxBuffer, 16000);
   CallidusDeviceList := TCallidusDeviceList.Create;
   ListeDesDevicesLastTrenteSecondes := TStringList.Create;
   bModePublicite := False;
+  bDoingAnAction := False;
 end;
 
 procedure TfrmCallidusController.FormDestroy(Sender: TObject);
@@ -1212,7 +1233,7 @@ begin
       if params[iParam] <> '' then
         PayloadDataRequest.Add(params[iParam]);
 
-    for iDevice := 0 to pred(CallidusDeviceList.Count) do
+    for iDevice := pred(CallidusDeviceList.Count) downto 0 do
     begin
       if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
       begin
