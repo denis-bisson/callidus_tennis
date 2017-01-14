@@ -35,7 +35,7 @@ object frmDebugWindow: TfrmDebugWindow
         Width = 50
       end>
   end
-  object StatusWindow: TRichEditGlobal6
+  object StatusWindow: tRichEditCallidus
     Left = 0
     Top = 0
     Width = 384

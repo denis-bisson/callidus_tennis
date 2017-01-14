@@ -678,9 +678,9 @@ begin
     LoadConfiguration;
     btnMonitoring.Glyph.Assign(nil);
     ImageListRadar.GetBitmap(0, btnMonitoring.Glyph);
-    ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
-    ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-    sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
+//    ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
+//    ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
+//    sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
 
 //    try
 //      ServerSocketForRadar.Port := PORT_FOR_SENDING_RADAR;
@@ -800,7 +800,7 @@ begin
   cbComPort.Hint := 'Detected COM port are in green' + #$0A + 'Not detected are in red' + #$0A + 'Right click on drop box to refresh list';
   VaCommRadar.OnRxChar := VaCommRadarRxChar;
   sbNetwork.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-  sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
+//sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
 end;
 
 procedure TfrmCallidusRadar.RefreshDisplayedParameterTable(paramShowReadBackValues: boolean);
@@ -1628,13 +1628,13 @@ begin
       end
       else
       begin
-        ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-        sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
+//        ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
+//        sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
       end;
 
-      if ProtocolePROTO_Radar.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
-        tmrControllerVerification.Interval := 10000
-      else
+//      if ProtocolePROTO_Radar.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
+//        tmrControllerVerification.Interval := 10000
+//      else
         tmrControllerVerification.Interval := 2000;
     end;
   finally

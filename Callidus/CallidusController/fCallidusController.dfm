@@ -214,10 +214,6 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Options pour Callidus-Display'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label4: TLabel
         Left = 19
         Top = 16
@@ -508,10 +504,6 @@ object frmCallidusController: TfrmCallidusController
     object tsPub: TTabSheet
       Caption = 'Pub (fs)'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -606,10 +598,6 @@ object frmCallidusController: TfrmCallidusController
     object TabSheet1: TTabSheet
       Caption = 'Pub (bn)'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -680,10 +668,6 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Radar'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -953,20 +937,20 @@ object frmCallidusController: TfrmCallidusController
   object AutoStartTimer: TTimer
     Enabled = False
     OnTimer = AutoStartTimerTimer
-    Left = 456
-    Top = 152
+    Left = 168
+    Top = 144
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
-    Left = 532
-    Top = 302
+    Left = 84
+    Top = 294
   end
   object ProtocolePROTO_Detection: TProtocole_PROTO
     WorkingServerUDP = IdUDPServerController
     WriteDebug = True
     FriendlyNameForLog = 'DETECTION'
-    Left = 428
+    Left = 364
     Top = 190
   end
   object ColorDialog1: TColorDialog
@@ -978,7 +962,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010700C800B40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010700C800B80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
