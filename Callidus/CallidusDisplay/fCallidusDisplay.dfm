@@ -188,13 +188,6 @@ object frmCallidusDisplay: TfrmCallidusDisplay
       GroupIndex = 102
     end
   end
-  object ServerSocketForDisplay: TServerSocket
-    Active = False
-    Port = 2194
-    ServerType = stNonBlocking
-    Left = 64
-    Top = 151
-  end
   object ActionManagerRadarConfig: TActionManager
     Left = 228
     Top = 26
@@ -232,8 +225,6 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
     WorkingClientUDP = IdUDPClientDisplay
-    WorkingClientSocket = csSocketDisplay
-    WorkingServerSocket = ServerSocketForDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
     DeviceName = 'Callidus-Display'
@@ -257,12 +248,5 @@ object frmCallidusDisplay: TfrmCallidusDisplay
     OnTimer = tmrControllerVerificationTimer
     Left = 80
     Top = 259
-  end
-  object csSocketDisplay: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    Left = 60
-    Top = 94
   end
 end

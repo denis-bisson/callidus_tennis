@@ -32,11 +32,16 @@ requires
   vcl,
   IndyCore,
   IndySystem,
-  BluberiCompCollection,
-  IndyProtocols;
+  IndyProtocols,
+  vclx;
 
 contains
   uProtocolePROTO in 'uProtocolePROTO.pas',
-  uCommonStuff in '..\Common\uCommonStuff.pas';
+  uCommonStuff in '..\Common\uCommonStuff.pas',
+  uColorCallidus in 'uColorCallidus.pas',
+  uRichEditCallidus in 'uRichEditCallidus.pas',
+  uLabeledEditCallidus in 'uLabeledEditCallidus.pas',
+  uCheckListCallidus in 'uCheckListCallidus.pas';
 
 end.
+

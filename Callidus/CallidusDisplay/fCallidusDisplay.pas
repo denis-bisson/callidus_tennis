@@ -10,7 +10,7 @@ uses
 
   // Third party
 
-  // My stuff
+  // Callidus
   uCommonStuff, Vcl.AppEvnts, System.Actions, Vcl.ActnList,
   Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, uProtocolePROTO, Vcl.ExtCtrls,
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient;
@@ -37,7 +37,6 @@ type
   TfrmCallidusDisplay = class(TForm)
     pmMainPopUpMenu: TPopupMenu;
     ogglefullscreenornot1: TMenuItem;
-    ServerSocketForDisplay: TServerSocket;
     Showdebugwindow1: TMenuItem;
     ActionManagerRadarConfig: TActionManager;
     actCloseApplication: TAction;
@@ -54,7 +53,6 @@ type
     AutoStartTimer: TTimer;
     IdUDPClientDisplay: TIdUDPClient;
     tmrControllerVerification: TTimer;
-    csSocketDisplay: TClientSocket;
     miFullCommunicationLog: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure actCloseApplicationExecute(Sender: TObject);
@@ -71,6 +69,7 @@ type
     procedure miFullCommunicationLogClick(Sender: TObject);
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
     procedure ShowThisFileFullScreen(sNomDuFichier: string);
+    procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
   private
     { Private declarations }
     isFirstActivation: Boolean;
@@ -80,7 +79,6 @@ type
     iIndexApplication: integer;
     LastSpeedInformationReceived: TInformationForShowingServiceSpeed;
     procedure WMGetMinMaxInfo(var msg: TWMGetMinMaxInfo); message WM_GETMINMAXINFO;
-    procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
     procedure LoadConfiguration;
     procedure SaveConfiguration;
   public
@@ -102,7 +100,7 @@ uses
   // Third party
 
   // My stuff
-  fDebugWindow, MyEnhancedRichedit;
+  fDebugWindow, uRichEditCallidus;
 
 procedure TfrmCallidusDisplay.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -148,18 +146,18 @@ end;
 
 procedure TfrmCallidusDisplay.actStartServicingExecute(Sender: TObject);
 begin
-  try
-    ServerSocketForDisplay.Port := PORT_FOR_SENDING_DISPLAY;
-    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-    ServerSocketForDisplay.Open;
-    Application.ProcessMessages;
-    if ServerSocketForDisplay.Active then
-      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
-    else
-      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-  except
-    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-  end;
+//  try
+//    ServerSocketForDisplay.Port := PORT_FOR_SENDING_DISPLAY;
+//    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+//    ServerSocketForDisplay.Open;
+//    Application.ProcessMessages;
+//    if ServerSocketForDisplay.Active then
+//      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
+//    else
+//      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+//  except
+//    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+//  end;
 end;
 
 procedure TfrmCallidusDisplay.actToggleDebugWindowExecute(Sender: TObject);

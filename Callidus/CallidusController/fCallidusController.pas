@@ -14,8 +14,9 @@ uses
 
   // My Stuff
   uCommonStuff, Vcl.ExtCtrls, IdUDPServer, IdSocketHandle, IdBaseComponent,
-  IdComponent, IdUDPBase, uProtocolePROTO, EnhancedLabeledEdit, Vcl.CheckLst,
-  MyEnhancedCheckList, Vcl.ToolWin, System.ImageList, Vcl.ImgList;
+  IdComponent, IdUDPBase, uProtocolePROTO, Vcl.CheckLst,
+  Vcl.ToolWin, System.ImageList, Vcl.ImgList,
+  uCheckListCallidus, uLabeledEditCallidus;
 
 type
   tDeviceType = (dtUnknown, dtCallidusRadar, dtCallidusDisplay);
@@ -51,7 +52,6 @@ type
     amMainActionManager: TActionManager;
     actCloseApplication: TAction;
     Closeapplication1: TMenuItem;
-    ServerSocketForRadar: TServerSocket;
     evMainApplicationEvents: TApplicationEvents;
     actToggleDebugWindow: TAction;
     View1: TMenuItem;
@@ -62,7 +62,6 @@ type
     ProtocolePROTO_Radar: TProtocole_PROTO;
     miSaveLogEachTime: TMenuItem;
     ProtocolePROTO_Display: TProtocole_PROTO;
-    csSocketDisplay: TClientSocket;
     actTestCommWithDisplay: TAction;
     estcommunicationwithCallidusDisplay1: TMenuItem;
     actCloseAllCallidusApplications: TAction;
@@ -110,21 +109,21 @@ type
     edTailleUnitY: TLabeledEdit;
     cbUnitShadowSize: TComboBox;
     Label4: TLabel;
-    edServiceSpeedUnit: TGlobal6LabeledEdit;
+    edServiceSpeedUnit: tLabeledEditCallidus;
     lbDeviceDetected: TListBox;
     RefreshListTimer: TTimer;
     actStartPub: TAction;
     tsPub: TTabSheet;
     ToolButton10: TToolButton;
     Label12: TLabel;
-    clCommenditaire: TCheckListGlobal6;
+    clCommenditaire: tCheckListCallidus;
     btnCommandFull: TButton;
     rgPubType: TRadioGroup;
     cbDisplayFullScreenTime: TComboBox;
     Label13: TLabel;
     TimerPublicityFullScreen: TTimer;
     TabSheet1: TTabSheet;
-    clCommdtBanniere: TCheckListGlobal6;
+    clCommdtBanniere: tCheckListCallidus;
     lblBanniereFileList: TLabel;
     btnBanniere: TButton;
     rgModePubBanniere: TRadioGroup;
@@ -138,7 +137,6 @@ type
     edHighInactivitySpeed: TLabeledEdit;
     edInactivityTime: TLabeledEdit;
     Button2: TButton;
-    ClientSocketRadar: TClientSocket;
     ckbPubBanniere: TCheckBox;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -324,7 +322,8 @@ begin
   try
     DoLaPub;
   finally
-    if bModePublicite then TimerPublicityFullScreen.Enabled := True;
+    if bModePublicite then
+      TimerPublicityFullScreen.Enabled := True;
   end;
 end;
 
@@ -347,7 +346,7 @@ var
   sNomFichier: string;
   iPreviousIndex: integer;
   iNbChecked, iIndex, iFirstCheck: integer;
-  chklst: TCheckListGlobal6;
+  chklst: tCheckListCallidus;
   rgMode: TRadioGroup;
 begin
   result := False;
@@ -374,13 +373,15 @@ begin
     if chklst.Items.Count > 0 then
     begin
       iFirstCheck := -1;
-      if chklst.ItemIndex = -1 then chklst.ItemIndex := 0;
+      if chklst.ItemIndex = -1 then
+        chklst.ItemIndex := 0;
 
       for iIndex := 0 to pred(chklst.Items.Count) do
       begin
         if chklst.Checked[iIndex] then
         begin
-          if iFirstCheck = -1 then iFirstCheck := iIndex;
+          if iFirstCheck = -1 then
+            iFirstCheck := iIndex;
           inc(iNbChecked);
         end;
       end;
@@ -395,7 +396,8 @@ begin
       case rgMode.ItemIndex of
         1, 2:
           begin
-            if chklst.Checked[chklst.ItemIndex] = FALSE then chklst.ItemIndex := iFirstCheck;
+            if chklst.Checked[chklst.ItemIndex] = FALSE then
+              chklst.ItemIndex := iFirstCheck;
           end;
       end;
 
@@ -490,26 +492,26 @@ end;
 
 procedure TfrmCallidusController.actStartServicingExecute(Sender: TObject);
 begin
-  try
-    ServerSocketForRadar.Port := PORT_FOR_SENDING_CONTROLLER;
-    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-    ServerSocketForRadar.Open;
-    Application.ProcessMessages;
-    if ServerSocketForRadar.Active then
-    begin
-      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS);
-
-      IdUDPServerController.DefaultPort := PORT_FOR_IDENTIFICATION;
-      if not IdUDPServerController.Active then
-        IdUDPServerController.Active := TRUE;
-    end
-    else
-    begin
-      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-    end;
-  except
-    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-  end;
+  //  try
+  //    ServerSocketForRadar.Port := PORT_FOR_SENDING_CONTROLLER;
+  //    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+  //    ServerSocketForRadar.Open;
+  //    Application.ProcessMessages;
+  //    if ServerSocketForRadar.Active then
+  //    begin
+  //      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS);
+  //
+  //      IdUDPServerController.DefaultPort := PORT_FOR_IDENTIFICATION;
+  //      if not IdUDPServerController.Active then
+  //        IdUDPServerController.Active := TRUE;
+  //    end
+  //    else
+  //    begin
+  //      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+  //    end;
+  //  except
+  //    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+  //  end;
 end;
 
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
@@ -552,11 +554,11 @@ var
   Answer: AnsiString;
   iDevice, iParam: integer;
 begin
+  result := False;
   if not bDoingAnAction then
   begin
     bDoingAnAction := True;
     try
-      result := False;
       PayloadDataRequest := TStringList.Create;
       PayloadDataAnswer := TStringList.Create;
       try
@@ -618,7 +620,8 @@ begin
       result := False;
       frmDebugWindow.StatusWindow.WriteStatus('ERREUR: IL MANQUE UN FICHIER SUR UN DISPLAY!', COLORERROR);
       frmDebugWindow.StatusWindow.WriteStatus('Version du dispositif remote: ' + slVariablesValues.Strings[iIndexParam], COLORERROR);
-      if not frmDebugWindow.Visible then frmDebugWindow.Visible := True;
+      if not frmDebugWindow.Visible then
+        frmDebugWindow.Visible := True;
     end
 
   finally
@@ -637,7 +640,8 @@ procedure TfrmCallidusController.CleanMonArray(var Params: array of string);
 var
   iElement: integer;
 begin
-  for iElement := 0 to pred(length(Params)) do Params[iElement] := '';
+  for iElement := 0 to pred(length(Params)) do
+    Params[iElement] := '';
 end;
 
 function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
@@ -695,8 +699,8 @@ begin
       case SinceWhenItWasSeen of
         0..31000: PertinentColor := clGreen;
         31001..120000: PertinentColor := clOlive;
-        else
-          PertinentColor := clRed;
+      else
+        PertinentColor := clRed;
       end;
     end
     else
@@ -732,12 +736,13 @@ var
   sNomFichierList, sListFilename: string;
   slFichierDejacoches: TStringList;
   Dispatcher, iMaybeIndex, iIndexfile: integer;
-  LocalChecklist: TCheckListGlobal6;
+  LocalChecklist: tCheckListCallidus;
 
 begin
   LocalChecklist := nil;
 
-  with Sender as TComponent do Dispatcher := tag;
+  with Sender as TComponent do
+    Dispatcher := tag;
   case Dispatcher of
     1:
       begin
@@ -759,7 +764,8 @@ begin
     begin
       // 2. On gardera en mémoire les fichiers qui sont déjà cochés
       for iIndexfile := 0 to pred(LocalChecklist.Items.Count) do
-        if LocalChecklist.Checked[iIndexfile] then slFichierDejacoches.Add(LocalChecklist.Items.Strings[iIndexFile]);
+        if LocalChecklist.Checked[iIndexfile] then
+          slFichierDejacoches.Add(LocalChecklist.Items.Strings[iIndexFile]);
 
       // 3. On flush notre list.
       LocalChecklist.Clear;
@@ -771,7 +777,8 @@ begin
       for iIndexfile := 0 to pred(slFichierDejacoches.Count) do
       begin
         iMaybeIndex := LocalChecklist.Items.IndexOf(slFichierDejacoches.Strings[iIndexFile]);
-        if iMaybeIndex <> -1 then LocalChecklist.Checked[iMaybeIndex] := True;
+        if iMaybeIndex <> -1 then
+          LocalChecklist.Checked[iMaybeIndex] := True;
       end;
     end;
   finally
@@ -785,9 +792,12 @@ begin
   Application.ProcessMessages;
   TimerPublicityFullScreen.Enabled := False;
   Application.ProcessMessages;
-  if LabelPub <> nil then FreeAndNil(LabelPub);
-  if BoutonStop <> nil then FreeAndNil(BoutonStop);
-  if PanelStop <> nil then FreeAndNil(PanelStop);
+  if LabelPub <> nil then
+    FreeAndNil(LabelPub);
+  if BoutonStop <> nil then
+    FreeAndNil(BoutonStop);
+  if PanelStop <> nil then
+    FreeAndNil(PanelStop);
   TimerPublicityFullScreen.Enabled := False; //Si t'as pas arrêté le 1er coup, tu vas arrêter ici!
   Application.ProcessMessages;
 end;
@@ -887,7 +897,7 @@ begin
   isFirstActivation := True;
   MyStatusBar.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION+' (2016-03-13)';
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION + ' (2016-03-13)';
   RxIndex := 0;
   SetLength(RxBuffer, 16000);
   CallidusDeviceList := TCallidusDeviceList.Create;
@@ -909,7 +919,7 @@ var
   sMaybeRatio, sMaybeFilename: string;
   iRatio: integer;
 
-  procedure LoadThisCheckList(paramCheckList: TCheckListGlobal6; sPrefix: string);
+  procedure LoadThisCheckList(paramCheckList: tCheckListCallidus; sPrefix: string);
   var
     iRendu, iMaybePos: integer;
   begin
@@ -994,7 +1004,8 @@ var
 begin
   pnlWorking := nil;
 
-  with sender as TComponent do Dispatcher := tag;
+  with sender as TComponent do
+    Dispatcher := tag;
   case Dispatcher of
     1: pnlWorking := pnlBackground;
     2: pnlWorking := pnlSpeedCote1;
@@ -1016,7 +1027,7 @@ procedure TfrmCallidusController.SaveConfiguration;
 var
   ConfigFile: TIniFile;
 
-  procedure SaveThisCheckList(paramCheckList: TCheckListGlobal6; sPrefix: string);
+  procedure SaveThisCheckList(paramCheckList: tCheckListCallidus; sPrefix: string);
   var
     iIndexfile, iRendu: integer;
   begin
@@ -1109,8 +1120,10 @@ begin
           if (iIndexDevice <> -1) and (iIndexComputerName <> -1) and (iIndexComplementName <> -1) then
           begin
             localDeviceType := dtUnknown;
-            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Radar' then localDeviceType := dtCallidusRadar;
-            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Display' then localDeviceType := dtCallidusDisplay;
+            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Radar' then
+              localDeviceType := dtCallidusRadar;
+            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Display' then
+              localDeviceType := dtCallidusDisplay;
 
             iNewPos := CallidusDeviceList.Add(localDeviceType, Socket.RemoteAddress, slVariablesValues.Strings[iIndexComputerName], slVariablesValues.Strings[iIndexDevice], slVariablesValues.Strings[iIndexComplementName], sRemoteVersion);
             if iNewPos <> -1 then
@@ -1123,7 +1136,8 @@ begin
                 frmDebugWindow.StatusWindow.WriteStatus('ERREUR: ICOMPATIBILITÉ DE VERSION POUR CE DEVICE!', COLORERROR);
                 frmDebugWindow.StatusWindow.WriteStatus('Version du CALLIDUS-CONTROLLER: ' + sCALLIDUS_SYSTEM_VERSION, COLORERROR);
                 frmDebugWindow.StatusWindow.WriteStatus(' Version application-satellite: ' + sRemoteVersion, COLORERROR);
-                if not frmDebugWindow.Visible then frmDebugWindow.Show;
+                if not frmDebugWindow.Visible then
+                  frmDebugWindow.Show;
               end;
             end;
           end;
@@ -1141,10 +1155,13 @@ begin
           begin
             ServiceSpeedInfo.CurrentPeakSpeed := -2;
             iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
-            if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
+            if iIndexGeneric <> -1 then
+              ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
             iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
-            if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
-            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
+            if iIndexGeneric <> -1 then
+              ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
+            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then
+              InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
           end;
         end;
     end;
