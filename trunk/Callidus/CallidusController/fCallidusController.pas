@@ -492,26 +492,25 @@ end;
 
 procedure TfrmCallidusController.actStartServicingExecute(Sender: TObject);
 begin
-  //  try
-  //    ServerSocketForRadar.Port := PORT_FOR_SENDING_CONTROLLER;
-  //    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-  //    ServerSocketForRadar.Open;
-  //    Application.ProcessMessages;
-  //    if ServerSocketForRadar.Active then
-  //    begin
-  //      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS);
-  //
-  //      IdUDPServerController.DefaultPort := PORT_FOR_IDENTIFICATION;
-  //      if not IdUDPServerController.Active then
-  //        IdUDPServerController.Active := TRUE;
-  //    end
-  //    else
-  //    begin
-  //      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-  //    end;
-  //  except
-  //    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-  //  end;
+  try
+    //    ServerSocketForRadar.Port := PORT_FOR_SENDING_CONTROLLER;
+    //    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+    //    ServerSocketForRadar.Open;
+    //    Application.ProcessMessages;
+    //    if ServerSocketForRadar.Active then
+    //    begin
+    //      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS);
+    //
+    IdUDPServerController.DefaultPort := PORT_FOR_IDENTIFICATION;
+    if not IdUDPServerController.Active then IdUDPServerController.Active := TRUE;
+    //    end
+    //    else
+    //    begin
+    //      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+    //    end;
+  except
+    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+  end;
 end;
 
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
@@ -863,7 +862,7 @@ begin
     ProtocolePROTO_Detection.WorkingServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
     ProtocolePROTO_Detection.Init;
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
-    ProtocolePROTO_Radar.WorkingServerSocket.Port := PORT_FOR_SENDING_CONTROLLER;
+    //    ProtocolePROTO_Radar.WorkingServerSocket.Port := PORT_FOR_SENDING_CONTROLLER;
     ProtocolePROTO_Radar.Init;
     ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Display.Init;

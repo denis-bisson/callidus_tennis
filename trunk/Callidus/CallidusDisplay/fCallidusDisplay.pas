@@ -210,9 +210,9 @@ begin
     isFirstActivation := False;
     LoadConfiguration;
     ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
-    ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
-    ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-    ProtocolePROTO_Display.WorkingServerSocket.Port := PORT_FOR_SENDING_DISPLAY;
+//    ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
+//    ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
+//    ProtocolePROTO_Display.WorkingServerSocket.Port := PORT_FOR_SENDING_DISPLAY;
     ProtocolePROTO_Display.Init;
     tmrControllerVerification.Enabled := TRUE;
     AutoStartTimer.Enabled := TRUE;
@@ -413,7 +413,6 @@ begin
       if ProtocolePROTO_Display.WorkingClientSocket.Address <> sControllerIpAddress then
       begin
         ProtocolePROTO_Display.WorkingClientSocket.Address := sControllerIpAddress;
-        // sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Display.WorkingClientSocket.Address;
         ProtocolePROTO_Display.SendIamAliveMessage;
       end
       else
@@ -423,13 +422,12 @@ begin
     end
     else
     begin
-      ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-      // sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Display.WorkingClientSocket.Address;
+//      ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
     end;
 
-    if ProtocolePROTO_Display.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
-      tmrControllerVerification.Interval := 10000
-    else
+//    if ProtocolePROTO_Display.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
+//      tmrControllerVerification.Interval := 10000
+//    else
       tmrControllerVerification.Interval := 2000;
   finally
     tmrControllerVerification.Enabled := TRUE;

@@ -241,6 +241,7 @@ var
   slPayloadDataReceived: TStringList;
   sAnswer: AnsiString;
   FreezeTime: DWord;
+  sBroadCastAddress: string;
 begin
   result := FALSE;
   ControllerAddress := '0.0.0.0';
@@ -261,9 +262,10 @@ begin
 
   if FClientUDP.Active then
   begin
+    sBroadCastAddress := Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]);
     if FWriteDebugFlag then
-      WriteStatusLg('About to broadcast our request for controller address...', 'Sur le point de diffuser notre requête de recherche du contrôleur...', COLORDANGER);
-    FClientUDP.SendBuffer(Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]), PORT_FOR_IDENTIFICATION, TxBuffer);
+      WriteStatusLg('About to broadcast at ' + sBroadCastAddress + ' our request for controller address...', 'Sur le point de diffuser sur ' + sBroadCastAddress + ' notre requête de recherche du contrôleur...', COLORDANGER);
+    FClientUDP.SendBuffer(sBroadCastAddress, PORT_FOR_IDENTIFICATION, TxBuffer);
     WriteStatusLg('Request to identify controller sent!', 'La requête pour identifier le contrôleur a été envoyée!', COLORSUCCESS);
     //On va attendre ici 2 secondes au pire pire pire
     FreezeTime := GetTickCount;
@@ -980,14 +982,7 @@ begin
             begin
               if FWriteDebugFlag then
                 WriteStatusLg('About to send back IP address of controller to ' + ABinding.PeerIp, 'Sur le point de retourner l''adresse du contrôleur à ' + ABinding.PeerIp, COLORDANGER);
-
-              //              ABinding.Send(ABinding.PeerIP, ABinding.PeerPort, s[1], Length(s));
               ABinding.SendTo(ABinding.PeerIP, ABinding.PeerPort, TxBuffer);
-              //              ABinding.Connect;
-              //              ABinding.Send(TxBuffer);
-                            //              FServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
-                            //              WriteStatusLg('Controller has provided its IP address to ' + ABinding.PeerIp, 'Le contrôleur s''est identifié pour le device à ' + ABinding.IP, COLORSUCCESS);
-                                          //FServerUDP.SendBuffer(ABinding.PeerIp, PORT_FOR_IDENTIFICATION, TxBuffer);
             end;
           end;
       end;
