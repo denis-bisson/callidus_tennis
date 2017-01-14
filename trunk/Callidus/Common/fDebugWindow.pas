@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls, Vcl.ComCtrls,
-  MyEnhancedRichedit, System.Actions, Vcl.ActnList,
+  uRichEditCallidus, System.Actions, Vcl.ActnList,
   Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan;
 
 type
@@ -13,7 +13,7 @@ type
     MainMenu1: TMainMenu;
     miActions: TMenuItem;
     MyStatusBar: TStatusBar;
-    StatusWindow: TRichEditGlobal6;
+    StatusWindow: tRichEditCallidus;
     Closedebugwindow1: TMenuItem;
     ActionManagerDebugWindow: TActionManager;
     actCloseDebugWindow: TAction;

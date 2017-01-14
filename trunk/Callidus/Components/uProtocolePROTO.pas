@@ -6,12 +6,12 @@ uses
   // Delphi
   Classes, Types, System.Win.ScktComp, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics,
 
-  // Component
+  // Third party
   IdUDPClient, IdUDPServer, IdGlobal, IdSocketHandle, IdBaseComponent,
   IdComponent, IdUDPBase,
 
-  // Global6
-  MyEnhancedRichedit;
+  // Callidus
+  uRichEditCallidus;
 
 const
   PROTO_CMD_NULLLLL = $00;
@@ -48,7 +48,7 @@ type
   TProtocole_PROTO = class(TComponent)
   private
     FWriteDebugFlag: boolean;
-    FMessageWindow: TRichEditGlobal6;
+    FMessageWindow: tRichEditCallidus;
     FClientSocket: TClientSocket;
     FServerSocket: TServerSocket;
     FClientUDP: TIdUDPClient;
@@ -112,7 +112,7 @@ type
     property WorkingServerUDP: TIdUDPServer read FServerUDP write FServerUDP;
     property WorkingClientSocket: TClientSocket read FClientSocket write FClientSocket;
     property WorkingServerSocket: TServerSocket read FServerSocket write FServerSocket;
-    property MessageWindow: TRichEditGlobal6 read FMessageWindow write FMessageWindow;
+    property MessageWindow: tRichEditCallidus read FMessageWindow write FMessageWindow;
     property WriteDebug: boolean read FWriteDebugFlag write FWriteDebugFlag;
     property FriendlyNameForLog: string read FFriendlyNameForLog write FFriendlyNameForLog;
     property DeviceName: string read FDeviceName write FDeviceName;
@@ -261,7 +261,8 @@ begin
 
   if FClientUDP.Active then
   begin
-    if FWriteDebugFlag then WriteStatusLg('About to broadcast our request for controller address...', 'Sur le point de diffuser notre requête de recherche du contrôleur...', COLORDANGER);
+    if FWriteDebugFlag then
+      WriteStatusLg('About to broadcast our request for controller address...', 'Sur le point de diffuser notre requête de recherche du contrôleur...', COLORDANGER);
     FClientUDP.SendBuffer(Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]), PORT_FOR_IDENTIFICATION, TxBuffer);
     WriteStatusLg('Request to identify controller sent!', 'La requête pour identifier le contrôleur a été envoyée!', COLORSUCCESS);
     //On va attendre ici 2 secondes au pire pire pire
@@ -269,7 +270,8 @@ begin
     while (FreezeTime + 1980 < FreezeTime) do
     begin
       sleep(10);
-      if FreezeTime + 1980 < FreezeTime then Application.ProcessMessages;
+      if FreezeTime + 1980 < FreezeTime then
+        Application.ProcessMessages;
     end;
     SetLength(RxBuffer, 100);
     iNbBytesReceived := FClientUDP.ReceiveBuffer(RxBuffer, 20);
@@ -289,10 +291,10 @@ begin
               WriteStatusLg('Controller has been detected at: ' + ControllerAddress, 'Le contrôleur a été détecté à: ' + ControllerAddress, COLORSUCCESS);
               result := TRUE;
             end;
-          else
-            begin
-              WriteStatusLg('ERROR: Unable to received valid IP address in answer from controller...', 'ERREUR: Incapable de recevoir une adresse valide dasn la réponse du contrôleur...', COLORERROR);
-            end;
+        else
+          begin
+            WriteStatusLg('ERROR: Unable to received valid IP address in answer from controller...', 'ERREUR: Incapable de recevoir une adresse valide dasn la réponse du contrôleur...', COLORERROR);
+          end;
         end;
       finally
         FreeAndNil(slPayloadDataReceived);
@@ -334,7 +336,8 @@ var
   ComputedCRC16, ExpectedCRC16: word;
 begin
   result := -1;
-  if PayloadDataReceived <> nil then PayloadDataReceived.Clear;
+  if PayloadDataReceived <> nil then
+    PayloadDataReceived.Clear;
 
   if FClientSocket <> nil then
   begin
@@ -832,7 +835,8 @@ var
   sBuildingString: string;
 begin
   Answer7 := '';
-  if PayloadDataReceived <> nil then PayloadDataReceived.Clear;
+  if PayloadDataReceived <> nil then
+    PayloadDataReceived.Clear;
 
   for iChar := 0 to 6 do
     Answer7 := Answer7 + AnsiChar(paramBuffer[IDX_PROTO_COMMAND + iChar]);
@@ -859,10 +863,10 @@ begin
               sBuildingString := '';
             end;
 
-          else
-            begin
-              sBuildingString := sBuildingString + AnsiChar(paramBuffer[IDX_PROTO_PAYLOAD_DATA + iPromeneur]);
-            end;
+        else
+          begin
+            sBuildingString := sBuildingString + AnsiChar(paramBuffer[IDX_PROTO_PAYLOAD_DATA + iPromeneur]);
+          end;
         end;
         inc(iPromeneur);
       end;
@@ -974,7 +978,8 @@ begin
 
             if FServerUDP.Active then
             begin
-              if FWriteDebugFlag then WriteStatusLg('About to send back IP address of controller to ' + ABinding.PeerIp, 'Sur le point de retourner l''adresse du contrôleur à ' + ABinding.PeerIp, COLORDANGER);
+              if FWriteDebugFlag then
+                WriteStatusLg('About to send back IP address of controller to ' + ABinding.PeerIp, 'Sur le point de retourner l''adresse du contrôleur à ' + ABinding.PeerIp, COLORDANGER);
 
               //              ABinding.Send(ABinding.PeerIP, ABinding.PeerPort, s[1], Length(s));
               ABinding.SendTo(ABinding.PeerIP, ABinding.PeerPort, TxBuffer);
@@ -1028,10 +1033,14 @@ end;
 
 procedure TProtocole_PROTO.ShutDownService;
 begin
-  if WorkingClientUDP <> nil then WorkingClientUDP.Active := FALSE;
-  if WorkingServerUDP <> nil then WorkingServerUDP.Active := FALSE;
-  if WorkingClientSocket <> nil then WorkingClientSocket.Active := FALSE;
-  if WorkingServerSocket <> nil then WorkingServerSocket.Active := FALSE;
+  if WorkingClientUDP <> nil then
+    WorkingClientUDP.Active := FALSE;
+  if WorkingServerUDP <> nil then
+    WorkingServerUDP.Active := FALSE;
+  if WorkingClientSocket <> nil then
+    WorkingClientSocket.Active := FALSE;
+  if WorkingServerSocket <> nil then
+    WorkingServerSocket.Active := FALSE;
 end;
 
 procedure Register;

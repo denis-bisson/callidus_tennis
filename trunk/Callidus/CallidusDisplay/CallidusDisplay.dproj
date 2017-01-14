@@ -67,6 +67,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <DCC_DcuOutput>..\DCUs\</DCC_DcuOutput>
         <DCC_ExeOutput>..\Executables\</DCC_ExeOutput>
         <DCC_UnitSearchPath>..\Components;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <Icon_MainIcon>CallidusDisplay.ico</Icon_MainIcon>

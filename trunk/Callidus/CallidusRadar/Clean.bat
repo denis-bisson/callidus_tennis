@@ -7,3 +7,5 @@ del /Q *.dcu
 del /Q *.exe
 rd /Q /S __history
 rd /Q /S __recovery
+del /Q ..\DCUs\*.*
+rd /Q /S ..\DCUs

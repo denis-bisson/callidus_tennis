@@ -167,6 +167,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     TabOrder = 0
     object tsConfiguration: TTabSheet
       Caption = 'Configuration'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnReadStalkerConfigFile: TButton
         Left = 0
         Top = 7
@@ -212,6 +216,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsDebug: TTabSheet
       Caption = 'Debug'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object chkbNoRadarFakeAnswer: TCheckBox
         Left = 16
         Top = 16
@@ -234,6 +242,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet1: TTabSheet
       Caption = 'Settings Service Speed'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -320,6 +332,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet2: TTabSheet
       Caption = 'Network'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblTempsOn: TLabel
         Left = 216
         Top = 19
@@ -379,6 +395,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsOptionsAutoDetection: TTabSheet
       Caption = 'Options'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 3
         Top = 117
@@ -860,17 +880,12 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
+    SettingsStore.RegRoot = rrCURRENTUSER
+    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '1.8.0.0'
+    Version = '2.0.0.0'
     Left = 116
     Top = 166
-  end
-  object csSocketRadar: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    Left = 524
-    Top = 150
   end
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
@@ -880,8 +895,6 @@ object frmCallidusRadar: TfrmCallidusRadar
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
     WorkingClientUDP = IdUDPClientRadar
-    WorkingClientSocket = csSocketRadar
-    WorkingServerSocket = ServerSocketForRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     DeviceName = 'Callidus-Radar'
@@ -895,7 +908,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 36
     Top = 198
     Bitmap = {
-      494C0101020008007C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800840020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1446,12 +1459,5 @@ object frmCallidusRadar: TfrmCallidusRadar
     OnTimer = tmrControllerVerificationTimer
     Left = 472
     Top = 168
-  end
-  object ServerSocketForRadar: TServerSocket
-    Active = False
-    Port = 2194
-    ServerType = stNonBlocking
-    Left = 472
-    Top = 103
   end
 end

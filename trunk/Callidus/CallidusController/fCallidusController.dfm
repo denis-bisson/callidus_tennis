@@ -214,6 +214,10 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Options pour Callidus-Display'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label4: TLabel
         Left = 19
         Top = 16
@@ -483,7 +487,7 @@ object frmCallidusController: TfrmCallidusController
             '39'
             '40')
         end
-        object edServiceSpeedUnit: TGlobal6LabeledEdit
+        object edServiceSpeedUnit: tLabeledEditCallidus
           Left = 55
           Top = 38
           Width = 121
@@ -497,13 +501,17 @@ object frmCallidusController: TfrmCallidusController
           Checkbox.Height = 17
           Checkbox.OnClick = edServiceSpeedUnitSubCheckboxClick
           CheckboxSpacing = 0
-          Global6FilterType = 0
+          CallidusFilterType = 0
         end
       end
     end
     object tsPub: TTabSheet
       Caption = 'Pub (fs)'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -535,7 +543,7 @@ object frmCallidusController: TfrmCallidusController
         Font.Style = [fsItalic]
         ParentFont = False
       end
-      object clCommenditaire: TCheckListGlobal6
+      object clCommenditaire: tCheckListCallidus
         Left = 3
         Top = 72
         Width = 214
@@ -598,6 +606,10 @@ object frmCallidusController: TfrmCallidusController
     object TabSheet1: TTabSheet
       Caption = 'Pub (bn)'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -622,7 +634,7 @@ object frmCallidusController: TfrmCallidusController
         Font.Style = [fsItalic]
         ParentFont = False
       end
-      object clCommdtBanniere: TCheckListGlobal6
+      object clCommdtBanniere: tCheckListCallidus
         Left = 3
         Top = 72
         Width = 214
@@ -668,6 +680,10 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Radar'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -915,13 +931,6 @@ object frmCallidusController: TfrmCallidusController
       OnExecute = actStartPubExecute
     end
   end
-  object ServerSocketForRadar: TServerSocket
-    Active = False
-    Port = 0
-    ServerType = stNonBlocking
-    Left = 528
-    Top = 208
-  end
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
     OnIdle = evMainApplicationEventsIdle
@@ -929,8 +938,6 @@ object frmCallidusController: TfrmCallidusController
     Top = 352
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
-    WorkingClientSocket = ClientSocketRadar
-    WorkingServerSocket = ServerSocketForRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
@@ -938,18 +945,10 @@ object frmCallidusController: TfrmCallidusController
     Top = 86
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
-    WorkingClientSocket = csSocketDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
     Left = 436
     Top = 286
-  end
-  object csSocketDisplay: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    Left = 424
-    Top = 312
   end
   object AutoStartTimer: TTimer
     Enabled = False
@@ -979,7 +978,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010700C800AC0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010700C800B40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2055,12 +2054,5 @@ object frmCallidusController: TfrmCallidusController
     OnTimer = TimerPublicityFullScreenTimer
     Left = 508
     Top = 112
-  end
-  object ClientSocketRadar: TClientSocket
-    Active = False
-    ClientType = ctNonBlocking
-    Port = 0
-    Left = 448
-    Top = 224
   end
 end

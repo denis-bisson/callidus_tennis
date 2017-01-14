@@ -112,7 +112,6 @@ type
     edHighInactivitySpeed: TLabeledEdit;
     edInactivityTime: TLabeledEdit;
     miStartMonitoring: TMenuItem;
-    csSocketRadar: TClientSocket;
     TabSheet2: TTabSheet;
     aeMainApplicationEvents: TApplicationEvents;
     actToggleDebugWindow: TAction;
@@ -149,7 +148,6 @@ type
     cbLanceMonitoring: TCheckBox;
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
-    ServerSocketForRadar: TServerSocket;
     tbTempsOn: TTrackBar;
     lblTempsOn: TLabel;
     tbTempsOff: TTrackBar;
@@ -568,7 +566,7 @@ begin
       ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
       ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
       bOverAllActionResult := FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
-      Timeout := GetTickCount + tbTempsOn.Position;
+      Timeout := GetTickCount + dword(tbTempsOn.Position);
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
         Application.ProcessMessages;
@@ -577,7 +575,7 @@ begin
 
       // 2. On efface la valeur durant 0.5 seconde
       bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
-      Timeout := GetTickCount + tbTempsOff.Position;
+      Timeout := GetTickCount + Dword(tbTempsOff.Position);
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
         Application.ProcessMessages;
@@ -684,18 +682,18 @@ begin
     ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
     sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
 
-    try
-      ServerSocketForRadar.Port := PORT_FOR_SENDING_RADAR;
-      WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-      ServerSocketForRadar.Open;
-      Application.ProcessMessages;
-      if ServerSocketForRadar.Active then
-        WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
-      else
-        WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-    except
-      WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-    end;
+//    try
+//      ServerSocketForRadar.Port := PORT_FOR_SENDING_RADAR;
+//      WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+//      ServerSocketForRadar.Open;
+//      Application.ProcessMessages;
+//      if ServerSocketForRadar.Active then
+//        WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
+//      else
+//        WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+//    except
+//      WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+//    end;
 
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Radar.Init;
