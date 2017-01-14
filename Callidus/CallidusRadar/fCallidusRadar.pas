@@ -150,6 +150,10 @@ type
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
     ServerSocketForRadar: TServerSocket;
+    tbTempsOn: TTrackBar;
+    lblTempsOn: TLabel;
+    tbTempsOff: TTrackBar;
+    lblTempsOff: TLabel;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
@@ -196,6 +200,8 @@ type
     procedure ProtocolePROTO_RadarServerSocketValidPacketReceived(
       Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString;
       PayloadData: TStringList);
+    procedure tbTempsOnChange(Sender: TObject);
+    procedure tbTempsOffChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -562,7 +568,7 @@ begin
       ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
       ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
       bOverAllActionResult := FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
-      Timeout := GetTickCount + 500;
+      Timeout := GetTickCount + tbTempsOn.Position;
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
         Application.ProcessMessages;
@@ -571,7 +577,7 @@ begin
 
       // 2. On efface la valeur durant 0.5 seconde
       bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
-      Timeout := GetTickCount + 500;
+      Timeout := GetTickCount + tbTempsOff.Position;
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
         Application.ProcessMessages;
@@ -1571,6 +1577,11 @@ end;
 { tmrControllerVerificationTimer }
 // When client-socket has no controller to connect to, we attempt each 2 seconds to find it.
 // When client-socket does have a controller to connect to, we attempt each 10 seconds to still validate it's there.
+procedure TfrmCallidusRadar.tbTempsOnChange(Sender: TObject);
+begin
+lblTempsOn.Caption:='Temps ON: '+IntToStr(tbTempsOn.Position)+' ms';
+end;
+
 procedure TfrmCallidusRadar.tmrControllerVerificationTimer(Sender: TObject);
 var
   sControllerIpAddress: string;
@@ -1631,6 +1642,11 @@ begin
   finally
     tmrControllerVerification.Enabled := TRUE;
   end;
+end;
+
+procedure TfrmCallidusRadar.tbTempsOffChange(Sender: TObject);
+begin
+lblTempsOff.Caption:='Temps OFF: '+IntToStr(tbTempsOff.Position)+' ms';
 end;
 
 procedure TfrmCallidusRadar.ProcessSpeedPacket(sSpeedReceived: AnsiString);

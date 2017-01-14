@@ -414,6 +414,7 @@ begin
           if (FreezeStartMoment + TIMEOUT_FOR_SIMPLE_MESSAGE) > GetTickcount then
             Application.ProcessMessages;
         end;
+
         if FRxClientBufferIndex < 3 then
         begin
           bKeepGoing := FALSE;
@@ -500,6 +501,7 @@ begin
           Application.ProcessMessages;
           WriteStatusLg('Connexion is now supposed to be closed', 'La connexion est supposée être fermée maintenant.', COLORSUCCESS);
         end;
+
         if FClientSocket.Active then
         begin
           bKeepGoing := FALSE;
@@ -518,6 +520,12 @@ begin
     except
       WriteStatusLg('ERROR: Exception happened in "PROTO_SendAMessageToServer" ...', 'ERREUR: Une erreur est arrivée pendant "PROTO_SendAMessageToServer"...', COLORERROR);
       result := -1;
+
+      //2016-03-12:DB-Des fois que...
+      if FClientSocket.Active then
+        FClientSocket.Close;
+      if FClientSocket.Active then
+        WriteStatusLg('ERROR: We should not be connected now (2)...', 'ERREUR: Nous ne devrions pas être connecté présentement! (2)', COLORERROR);
     end;
   end
   else
