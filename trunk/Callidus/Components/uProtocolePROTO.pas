@@ -47,6 +47,7 @@ type
 
   TProtocole_PROTO = class(TComponent)
   private
+    FHostControllerAddress:string;
     FWriteDebugFlag: boolean;
     FMessageWindow: tRichEditCallidus;
     FClientSocket: TClientSocket;
@@ -97,17 +98,19 @@ type
     procedure AnyUDPClientConnected(Sender: TObject);
     procedure AnyUDPClientDisconnected(Sender: TObject);
     procedure AnyUDPClientStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
+    procedure AnyUDPClientSendIdentification;
     procedure AnyUDPServerAfterBind(Sender: TObject);
     procedure AnyUDPServerBeforeBind(AHandle: TIdSocketHandle);
     procedure AnyUDPServerStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
     procedure AnyUDPServerException(AThread: TIdUDPListenerThread; ABinding: TIdSocketHandle; const AMessage: string; const AExceptionClass: TClass);
     procedure AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
     procedure WriteStatusLg(MsgInEnglish, MsgInFrench: string; ColorToUse: TColor);
-    function GetControllerAddress(var ControllerAddress: string): boolean;
+    function GetHotControllerAddress: boolean;
     function SendIamAliveMessage: boolean;
     procedure LoadStringListWithIdentificationInfo(paramSl: TStringList);
     procedure ShutDownService;
   published
+    property HostControllerAddress:string read FHostControllerAddress write FHostControllerAddress;
     property WorkingClientUDP: TIdUDPClient read FClientUDP write FClientUDP;
     property WorkingServerUDP: TIdUDPServer read FServerUDP write FServerUDP;
     property WorkingClientSocket: TClientSocket read FClientSocket write FClientSocket;
@@ -217,6 +220,7 @@ begin
       FClientUDP.OnConnected := AnyUDPClientConnected;
       FClientUDP.OnDisconnected := AnyUDPClientDisconnected;
       FClientUDP.OnStatus := AnyUDPClientStatus;
+      FClientUDP.Port := PORT_FOR_IDENTIFICATION;
     end;
 
     if FServerUDP <> nil then
@@ -226,6 +230,8 @@ begin
       FServerUDP.OnUDPRead := AnyUDPServerRead;
       FServerUDP.OnUDPException := AnyUDPServerException;
       FServerUDP.OnStatus := AnyUDPServerStatus;
+      FServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
+      FServerUDP.Active := True;
     end;
 
     result := TRUE;
@@ -234,7 +240,8 @@ begin
   end;
 end;
 
-function TProtocole_PROTO.GetControllerAddress(var ControllerAddress: string): boolean;
+{ TProtocole_PROTO.GetHotControllerAddress}
+function TProtocole_PROTO.GetHotControllerAddress: boolean;
 var
   TxBuffer, RxBuffer: TIdBytes;
   iChar, iNbBytesToSend, iNbBytesReceived: integer;
@@ -244,7 +251,7 @@ var
   sBroadCastAddress: string;
 begin
   result := FALSE;
-  ControllerAddress := '0.0.0.0';
+  FHostControllerAddress := '0.0.0.0';
 
   SetLength(TxBuffer, 100);
   iNbBytesToSend := PreparePacket(PROTO_CMD_WHOSERV, nil, TxBuffer, length(TxBuffer));
@@ -288,9 +295,9 @@ begin
             begin
               for iChar := 0 to pred(4) do
                 FServerIpAddress[iChar] := RxBuffer[IDX_PROTO_PAYLOAD_DATA + iChar];
-              ControllerAddress := Format('%d.%d.%d.%d', [FServerIpAddress[0], FServerIpAddress[1], FServerIpAddress[2], FServerIpAddress[3]]);
+              FHostControllerAddress := Format('%d.%d.%d.%d', [FServerIpAddress[0], FServerIpAddress[1], FServerIpAddress[2], FServerIpAddress[3]]);
 
-              WriteStatusLg('Controller has been detected at: ' + ControllerAddress, 'Le contrôleur a été détecté à: ' + ControllerAddress, COLORSUCCESS);
+              WriteStatusLg('Controller has been detected at: ' + HostControllerAddress, 'Le contrôleur a été détecté à: ' + HostControllerAddress, COLORSUCCESS);
               result := TRUE;
             end;
         else
@@ -950,6 +957,38 @@ begin
     WriteStatusLg('UDP Server Exception: ' + AMessage, 'Exception sur le serveur UDP: ' + AMessage, COLORSTATUS);
 end;
 
+{ TProtocole_PROTO.AnyUDPClientSendIdentification}
+procedure TProtocole_PROTO.AnyUDPClientSendIdentification;
+var
+  TxBuffer, RxBuffer: TIdBytes;
+  iChar, iNbBytesToSend, iNbBytesReceived: integer;
+  slPayloadDataReceived: TStringList;
+  sAnswer: AnsiString;
+  FreezeTime: DWord;
+  sBroadCastAddress: string;
+begin
+  SetLength(TxBuffer, 100);
+  iNbBytesToSend := PreparePacket(PROTO_CMD_SERVRIS, nil, TxBuffer, length(TxBuffer));
+  SetLength(TxBuffer, iNbBytesToSend);
+
+  if FClientUDP.Active then
+  begin
+    FClientUDP.Active := FALSE;
+    FClientUDP.BroadcastEnabled := TRUE;
+  end;
+
+  if not FClientUDP.Active then  FClientUDP.Active := True;
+
+  if FClientUDP.Active then
+  begin
+    sBroadCastAddress := Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]);
+    if FWriteDebugFlag then
+      WriteStatusLg('About to broadcast at ' + sBroadCastAddress + ' CALLIDUS-CONTROLLER address...', 'Le CALLIDUS-SERVER est sur le point son addresse sur ' + sBroadCastAddress, COLORDANGER);
+    FClientUDP.SendBuffer(sBroadCastAddress, PORT_FOR_IDENTIFICATION, TxBuffer);
+    WriteStatusLg('Information has been sent!', 'L''information a été envoyé!', COLORSUCCESS);
+  end;
+end;
+
 procedure TProtocole_PROTO.AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
 var
   sDisplayable: string;
@@ -985,6 +1024,11 @@ begin
               ABinding.SendTo(ABinding.PeerIP, ABinding.PeerPort, TxBuffer);
             end;
           end;
+
+        PROTO_CMD_SERVRIS:
+        begin
+          WriteStatusLg('CALLIDUS-SERVER sent its identification!', 'Le CALLIDUS-SERVER a envoyé sont identification!', COLORSUCCESS);
+        end;
       end;
     finally
       FreeAndNil(slPayloadDataReceived);

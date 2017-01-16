@@ -167,10 +167,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     TabOrder = 0
     object tsConfiguration: TTabSheet
       Caption = 'Configuration'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object btnReadStalkerConfigFile: TButton
         Left = 0
         Top = 7
@@ -216,10 +212,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsDebug: TTabSheet
       Caption = 'Debug'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object chkbNoRadarFakeAnswer: TCheckBox
         Left = 16
         Top = 16
@@ -242,10 +234,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet1: TTabSheet
       Caption = 'Settings Service Speed'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -332,10 +320,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet2: TTabSheet
       Caption = 'Network'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblTempsOn: TLabel
         Left = 216
         Top = 19
@@ -395,10 +379,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsOptionsAutoDetection: TTabSheet
       Caption = 'Options'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 3
         Top = 117
@@ -742,8 +722,8 @@ object frmCallidusRadar: TfrmCallidusRadar
       end>
   end
   object pmRadarConfig: TPopupMenu
-    Left = 76
-    Top = 222
+    Left = 44
+    Top = 254
     object RefreshCOMportlist1: TMenuItem
       Action = actRefreshComboComm
     end
@@ -803,7 +783,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     end
   end
   object ActionManagerRadarConfig: TActionManager
-    Left = 412
+    Left = 332
     Top = 206
     StyleName = 'Platform Default'
     object actRefreshComboComm: TAction
@@ -890,17 +870,18 @@ object frmCallidusRadar: TfrmCallidusRadar
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
     OnIdle = aeMainApplicationEventsIdle
-    Left = 411
-    Top = 168
+    Left = 323
+    Top = 160
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
     WorkingClientUDP = IdUDPClientRadar
+    WorkingServerUDP = IdUDPServerRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     DeviceName = 'Callidus-Radar'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
-    Left = 36
-    Top = 230
+    Left = 284
+    Top = 246
   end
   object ImageListRadar: TImageList
     Height = 32
@@ -908,7 +889,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 36
     Top = 198
     Bitmap = {
-      494C010102000800840020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101020008008C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1446,18 +1427,24 @@ object frmCallidusRadar: TfrmCallidusRadar
   object odMainApp: TOpenDialog
     Filter = 'Stalker config file|*.cfg'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 404
-    Top = 126
+    Left = 316
+    Top = 118
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 124
-    Top = 214
+    Left = 420
+    Top = 254
   end
   object tmrControllerVerification: TTimer
     Enabled = False
     OnTimer = tmrControllerVerificationTimer
-    Left = 472
-    Top = 168
+    Left = 496
+    Top = 128
+  end
+  object IdUDPServerRadar: TIdUDPServer
+    Bindings = <>
+    DefaultPort = 0
+    Left = 524
+    Top = 254
   end
 end

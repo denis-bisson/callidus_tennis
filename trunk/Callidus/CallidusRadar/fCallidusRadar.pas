@@ -131,6 +131,7 @@ type
     actCloseAllApplications: TAction;
     Closeallapplications1: TMenuItem;
     IdUDPClientRadar: TIdUDPClient;
+    IdUDPServerRadar: TIdUDPServer;
     tmrControllerVerification: TTimer;
     sbRadar: TStatusBar;
     Button2: TButton;
@@ -698,7 +699,7 @@ begin
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Radar.Init;
     bFirstNetworkDetection := TRUE;
-    tmrControllerVerification.Enabled := TRUE;
+//    tmrControllerVerification.Enabled := TRUE;
   end;
 end;
 
@@ -1580,19 +1581,18 @@ begin
 lblTempsOn.Caption:='Temps ON: '+IntToStr(tbTempsOn.Position)+' ms';
 end;
 
+{ TfrmCallidusRadar.tmrControllerVerificationTimer}
 procedure TfrmCallidusRadar.tmrControllerVerificationTimer(Sender: TObject);
-var
-  sControllerIpAddress: string;
 begin
   tmrControllerVerification.Enabled := FALSE;
   try
     if cbDetectNetwork.Checked then
     begin
-      if ProtocolePROTO_Radar.GetControllerAddress(sControllerIpAddress) then
+      if ProtocolePROTO_Radar.GetHotControllerAddress then
       begin
-        if ProtocolePROTO_Radar.WorkingClientSocket.Address <> sControllerIpAddress then
+        if ProtocolePROTO_Radar.WorkingClientSocket.Address <> ProtocolePROTO_Radar.HostControllerAddress then
         begin
-          ProtocolePROTO_Radar.WorkingClientSocket.Address := sControllerIpAddress;
+          ProtocolePROTO_Radar.WorkingClientSocket.Address := ProtocolePROTO_Radar.HostControllerAddress;
           sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
           ProtocolePROTO_Radar.SendIamAliveMessage;
           if bFirstNetworkDetection then
@@ -1838,8 +1838,8 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       cbSaveLogEachTimeWhenQuiting.Checked := ReadBool(sConfigSectionName, 'cbSaveLogEachTimeWhenQuiting', True);
-      //  miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', FALSE);
-      miFullCommunicationLog.Checked := False;
+      miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', FALSE);
+      //miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
       cbKeepRetryingAutodetect.Checked := ReadBool(sConfigSectionName, 'cbKeepRetryingAutodetect', TRUE);
       cbTryAllBaudRate.Checked := ReadBool(sConfigSectionName, 'cbTryAllBaudRate', FALSE);
