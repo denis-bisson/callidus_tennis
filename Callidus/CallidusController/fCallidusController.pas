@@ -16,7 +16,7 @@ uses
   uCommonStuff, Vcl.ExtCtrls, IdUDPServer, IdSocketHandle, IdBaseComponent,
   IdComponent, IdUDPBase, uProtocolePROTO, Vcl.CheckLst,
   Vcl.ToolWin, System.ImageList, Vcl.ImgList,
-  uCheckListCallidus, uLabeledEditCallidus;
+  uCheckListCallidus, uLabeledEditCallidus, IdUDPClient;
 
 type
   tDeviceType = (dtUnknown, dtCallidusRadar, dtCallidusDisplay);
@@ -138,6 +138,9 @@ type
     edInactivityTime: TLabeledEdit;
     Button2: TButton;
     ckbPubBanniere: TCheckBox;
+    IdUDPClientController: TIdUDPClient;
+    actMasterSelfIdentification: TAction;
+    ToolButton9: TToolButton;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -177,6 +180,7 @@ type
     procedure Button2Click(Sender: TObject);
     function GenericValidResponse(slPayloadDataAnswer: TStringList): boolean;
     procedure ckbPubBanniereClick(Sender: TObject);
+    procedure actMasterSelfIdentificationExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -314,6 +318,11 @@ end;
 procedure TfrmCallidusController.actFlushCurrentDetectedListExecute(Sender: TObject);
 begin
   lbDeviceDetected.Clear;
+end;
+
+procedure TfrmCallidusController.actMasterSelfIdentificationExecute(Sender: TObject);
+begin
+ProtocolePROTO_Detection.AnyUDPClientSendIdentification;
 end;
 
 procedure TfrmCallidusController.TimerPublicityFullScreenTimer(Sender: TObject);
@@ -849,28 +858,6 @@ begin
   end;
 end;
 
-procedure TfrmCallidusController.evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
-begin
-  Application.ProcessMessages;
-  if isFirstActivation then
-  begin
-    isFirstActivation := FALSE;
-    btnCommanditClick(btnCommandFull);
-    btnCommanditClick(btnBanniere);
-    LoadConfiguration;
-    ProtocolePROTO_Detection.MessageWindow := frmDebugWindow.StatusWindow;
-    ProtocolePROTO_Detection.WorkingServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
-    ProtocolePROTO_Detection.Init;
-    ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
-    //    ProtocolePROTO_Radar.WorkingServerSocket.Port := PORT_FOR_SENDING_CONTROLLER;
-    ProtocolePROTO_Radar.Init;
-    ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
-    ProtocolePROTO_Display.Init;
-    AutoStartTimer.Enabled := TRUE;
-    RefreshListTimer.Enabled := True;
-  end;
-end;
-
 procedure TfrmCallidusController.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   ProtocolePROTO_Radar.ShutDownService;
@@ -950,8 +937,8 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       miSaveLogEachTime.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', True);
-      //    miFullCommunicationLog.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'miFullCommunicationLog', False);
-      miFullCommunicationLog.Checked := False;
+      miFullCommunicationLog.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'miFullCommunicationLog', False);
+//    miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
       edServiceSpeedUnit.Checkbox.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', TRUE);
       edServiceSpeedUnit.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', 'kmh');
@@ -1264,6 +1251,29 @@ begin
   finally
     FreeAndNil(PayloadDataAnswer);
     FreeAndNil(PayloadDataRequest);
+  end;
+end;
+
+{ TfrmCallidusController.evMainApplicationEventsIdle}
+procedure TfrmCallidusController.evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
+begin
+  Application.ProcessMessages;
+  if isFirstActivation then
+  begin
+    isFirstActivation := FALSE;
+    btnCommanditClick(btnCommandFull);
+    btnCommanditClick(btnBanniere);
+    LoadConfiguration;
+    ProtocolePROTO_Detection.MessageWindow := frmDebugWindow.StatusWindow;
+    ProtocolePROTO_Detection.WorkingServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
+    ProtocolePROTO_Detection.Init;
+    //ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
+    //ProtocolePROTO_Radar.WorkingServerSocket.Port := PORT_FOR_SENDING_CONTROLLER;
+    //ProtocolePROTO_Radar.Init;
+    //ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
+    //ProtocolePROTO_Display.Init;
+    //AutoStartTimer.Enabled := TRUE;
+    //RefreshListTimer.Enabled := True;
   end;
 end;
 

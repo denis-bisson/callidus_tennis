@@ -809,6 +809,11 @@ object frmCallidusController: TfrmCallidusController
       Top = 0
       Action = actStartPub
     end
+    object ToolButton9: TToolButton
+      Left = 296
+      Top = 0
+      Action = actMasterSelfIdentification
+    end
   end
   object mmMainMenu: TMainMenu
     Left = 520
@@ -858,8 +863,8 @@ object frmCallidusController: TfrmCallidusController
   end
   object amMainActionManager: TActionManager
     Images = ImageList1
-    Left = 504
-    Top = 56
+    Left = 80
+    Top = 224
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
       Caption = 'Close application'
@@ -914,6 +919,13 @@ object frmCallidusController: TfrmCallidusController
       ImageIndex = 6
       OnExecute = actStartPubExecute
     end
+    object actMasterSelfIdentification: TAction
+      Caption = 'Identification du master'
+      Hint = 
+        'Demande au CALLIDUS-MASTER de s'#39'identifier au-pr'#232's de tous les s' +
+        'tations'
+      OnExecute = actMasterSelfIdentificationExecute
+    end
   end
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
@@ -925,19 +937,19 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
-    Left = 388
-    Top = 86
+    Left = 364
+    Top = 214
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 436
+    Left = 388
     Top = 286
   end
   object AutoStartTimer: TTimer
     Enabled = False
     OnTimer = AutoStartTimerTimer
-    Left = 168
+    Left = 264
     Top = 144
   end
   object IdUDPServerController: TIdUDPServer
@@ -947,11 +959,12 @@ object frmCallidusController: TfrmCallidusController
     Top = 294
   end
   object ProtocolePROTO_Detection: TProtocole_PROTO
+    WorkingClientUDP = IdUDPClientController
     WorkingServerUDP = IdUDPServerController
     WriteDebug = True
     FriendlyNameForLog = 'DETECTION'
-    Left = 364
-    Top = 190
+    Left = 68
+    Top = 126
   end
   object ColorDialog1: TColorDialog
     Left = 532
@@ -962,7 +975,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 436
     Bitmap = {
-      494C01010700C800B80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010700C800BC0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000004000000001002000000000000080
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2038,5 +2051,10 @@ object frmCallidusController: TfrmCallidusController
     OnTimer = TimerPublicityFullScreenTimer
     Left = 508
     Top = 112
+  end
+  object IdUDPClientController: TIdUDPClient
+    Port = 0
+    Left = 212
+    Top = 294
   end
 end
