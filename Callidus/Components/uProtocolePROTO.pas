@@ -38,16 +38,21 @@ const
   PORT_FOR_SENDING_DISPLAY = 2193;
   PORT_FOR_SENDING_RADAR = 2194;
 
+  PORT_CALLIDUS_CONTROLLER = 2192;
+  PORT_CALLIDUS_DISPLAY = 2193;
+  PORT_CALLIDUS_RADAR = 2194;
+
   IP_ADDRESS_NULL: string = '0.0.0.0';
 
   RXBUFFERSIZE = 30000;
 
 type
   TServerSocketValidPacketReceivedEvent = procedure(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList) of object;
+  TServerPacketReceivedEvent = procedure(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList) of object;
 
   TProtocole_PROTO = class(TComponent)
   private
-    FHostControllerAddress:string;
+    FHostControllerAddress: string;
     FWriteDebugFlag: boolean;
     FMessageWindow: tRichEditCallidus;
     FClientSocket: TClientSocket;
@@ -62,6 +67,7 @@ type
     FRxClientBufferIndex: integer;
     FRxServerBufferIndex: integer;
     FOnServerSocketValidPacketReceived: TServerSocketValidPacketReceivedEvent;
+    FOnServerPacketReceived: TServerPacketReceivedEvent;
     FFriendlyNameForLog: string;
     FDeviceName: string;
     FComplementDeviceName: string;
@@ -76,6 +82,7 @@ type
     function PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
     function isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
     function PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString; PayloadDataReceived: TStringList): integer;
+    procedure PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
     function ServerSocketReplyAnswer(Socket: TCustomWinSocket; AnswerIndex: integer; PayloadDataOut: TStringList): boolean;
     procedure AnyClientSocketConnect(Sender: TObject; Socket: TCustomWinSocket);
     procedure AnyClientSocketConnecting(Sender: TObject; Socket: TCustomWinSocket);
@@ -105,12 +112,13 @@ type
     procedure AnyUDPServerException(AThread: TIdUDPListenerThread; ABinding: TIdSocketHandle; const AMessage: string; const AExceptionClass: TClass);
     procedure AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
     procedure WriteStatusLg(MsgInEnglish, MsgInFrench: string; ColorToUse: TColor);
+    procedure WriteStatus(MsgInEnglish: string; ColorToUse: TColor);
     function GetHotControllerAddress: boolean;
-    function SendIamAliveMessage: boolean;
+    procedure SendIamAliveMessage;
     procedure LoadStringListWithIdentificationInfo(paramSl: TStringList);
     procedure ShutDownService;
   published
-    property HostControllerAddress:string read FHostControllerAddress write FHostControllerAddress;
+    property HostControllerAddress: string read FHostControllerAddress write FHostControllerAddress;
     property WorkingClientUDP: TIdUDPClient read FClientUDP write FClientUDP;
     property WorkingServerUDP: TIdUDPServer read FServerUDP write FServerUDP;
     property WorkingClientSocket: TClientSocket read FClientSocket write FClientSocket;
@@ -121,6 +129,7 @@ type
     property DeviceName: string read FDeviceName write FDeviceName;
     property ComplementDeviceName: string read FComplementDeviceName write FComplementDeviceName;
     property OnServerSocketValidPacketReceived: TServerSocketValidPacketReceivedEvent read FOnServerSocketValidPacketReceived write FOnServerSocketValidPacketReceived;
+    property OnServerPacketReceived: TServerPacketReceivedEvent read FOnServerPacketReceived write FOnServerPacketReceived;
   end;
 
 procedure Register;
@@ -142,6 +151,7 @@ constructor TProtocole_PROTO.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FFriendlyNameForLog := 'Unknown';
+  FHostControllerAddress := IP_ADDRESS_NULL;
 end;
 
 { TProtocole_PROTO.init }
@@ -220,7 +230,7 @@ begin
       FClientUDP.OnConnected := AnyUDPClientConnected;
       FClientUDP.OnDisconnected := AnyUDPClientDisconnected;
       FClientUDP.OnStatus := AnyUDPClientStatus;
-      FClientUDP.Port := PORT_FOR_IDENTIFICATION;
+      FClientUDP.Active := True;
     end;
 
     if FServerUDP <> nil then
@@ -230,7 +240,6 @@ begin
       FServerUDP.OnUDPRead := AnyUDPServerRead;
       FServerUDP.OnUDPException := AnyUDPServerException;
       FServerUDP.OnStatus := AnyUDPServerStatus;
-      FServerUDP.DefaultPort := PORT_FOR_IDENTIFICATION;
       FServerUDP.Active := True;
     end;
 
@@ -251,7 +260,7 @@ var
   sBroadCastAddress: string;
 begin
   result := FALSE;
-  FHostControllerAddress := '0.0.0.0';
+  FHostControllerAddress := IP_ADDRESS_NULL;
 
   SetLength(TxBuffer, 100);
   iNbBytesToSend := PreparePacket(PROTO_CMD_WHOSERV, nil, TxBuffer, length(TxBuffer));
@@ -261,7 +270,6 @@ begin
   begin
     FClientUDP.Active := FALSE;
     FClientUDP.BroadcastEnabled := TRUE;
-    FClientUDP.Port := PORT_FOR_IDENTIFICATION;
   end;
 
   if not FClientUDP.Active then
@@ -272,7 +280,7 @@ begin
     sBroadCastAddress := Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]);
     if FWriteDebugFlag then
       WriteStatusLg('About to broadcast at ' + sBroadCastAddress + ' our request for controller address...', 'Sur le point de diffuser sur ' + sBroadCastAddress + ' notre requête de recherche du contrôleur...', COLORDANGER);
-    FClientUDP.SendBuffer(sBroadCastAddress, PORT_FOR_IDENTIFICATION, TxBuffer);
+    FClientUDP.SendBuffer(sBroadCastAddress, FClientUDP.Port, TxBuffer);
     WriteStatusLg('Request to identify controller sent!', 'La requête pour identifier le contrôleur a été envoyée!', COLORSUCCESS);
     //On va attendre ici 2 secondes au pire pire pire
     FreezeTime := GetTickCount;
@@ -332,6 +340,38 @@ begin
     result := TRUE;
   except
     result := FALSE;
+  end;
+end;
+
+{ TProtocole_PROTO.PitchUnMessagePROTONoHandshake }
+procedure TProtocole_PROTO.PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
+var
+  FreezeStartMoment: dword;
+  TxBuffer: TIdBytes;
+  NbBytestoSend, iExpectedAnswerPacketLength, iChar: integer;
+begin
+  if (FClientUDP <> nil) and ((FHostControllerAddress <> IP_ADDRESS_NULL) or (DestinationAddress<>'')) then
+  begin
+    try
+      SetLength(TxBuffer, 2000);
+      // 3. We now attempt to send our message.
+      WriteStatusLg('Will now send our message...', 'On va maintenant envoyer notre message...', COLORDANGER);
+      FRxClientBufferIndex := 0;
+      NbBytestoSend := PreparePacket(CommandIndex, PayloadDataIn, TxBuffer, length(TxBuffer));
+      if NbBytestoSend > 0 then
+      begin
+        if DestinationAddress='' then
+          FClientUDP.SendBuffer(FHostControllerAddress, FClientUDP.Port, TxBuffer)
+        else
+          FClientUDP.SendBuffer(DestinationAddress, FClientUDP.Port, TxBuffer);
+        WriteStatusLg('Message sent!', 'Message envoyé!', COLORSUCCESS);
+      end
+    except
+    end;
+  end
+  else
+  begin
+    WriteStatusLg('We can''t send anything because we don''t know remote address OR our client UDP is not ready...', 'On n''envoie rien car on ne connait pa sl''adresse de destination ou le client UDP n''est pas prêt...', COLORSUCCESS);
   end;
 end;
 
@@ -893,6 +933,16 @@ begin
     end;
   end;
 end;
+procedure TProtocole_PROTO.WriteStatus(MsgInEnglish: string; ColorToUse: TColor);
+begin
+  if FMessageWindow <> nil then
+  begin
+    if FWriteDebugFlag or (ColorToUse = ColorError) then
+    begin
+      FMessageWindow.WriteStatusLg(FFriendlyNameForLog + ':' + MsgInEnglish, FFriendlyNameForLog + ':' + MsgInEnglish, ColorToUse);
+    end;
+  end;
+end;
 
 function TProtocole_PROTO.MyCrc16(Pointer: PByte; NbBytes: integer; InitialCRC: word): word;
 const
@@ -977,18 +1027,18 @@ begin
     FClientUDP.BroadcastEnabled := TRUE;
   end;
 
-  if not FClientUDP.Active then  FClientUDP.Active := True;
+  if not FClientUDP.Active then FClientUDP.Active := True;
 
   if FClientUDP.Active then
   begin
     sBroadCastAddress := Format('%d.%d.%d.255', [FMyIpAddress[0], FMyIpAddress[1], FMyIpAddress[2]]);
-    if FWriteDebugFlag then
-      WriteStatusLg('About to broadcast at ' + sBroadCastAddress + ' CALLIDUS-CONTROLLER address...', 'Le CALLIDUS-SERVER est sur le point son addresse sur ' + sBroadCastAddress, COLORDANGER);
-    FClientUDP.SendBuffer(sBroadCastAddress, PORT_FOR_IDENTIFICATION, TxBuffer);
+    if FWriteDebugFlag then WriteStatusLg('About to broadcast at ' + sBroadCastAddress + ' CALLIDUS-CONTROLLER address...', 'Le CALLIDUS-SERVER est sur le point son addresse sur ' + sBroadCastAddress, COLORDANGER);
+    FClientUDP.SendBuffer(sBroadCastAddress, FClientUDP.Port, TxBuffer);
     WriteStatusLg('Information has been sent!', 'L''information a été envoyé!', COLORSUCCESS);
   end;
 end;
 
+{ TProtocole_PROTO.AnyUDPServerRead}
 procedure TProtocole_PROTO.AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
 var
   sDisplayable: string;
@@ -996,7 +1046,17 @@ var
   IpTarget: array[0..3] of byte;
   TxBuffer: TIdBytes;
   slPayloadDataReceived: TStringList;
-  sAnswer: AnsiString;
+  Answer7: AnsiString;
+
+  procedure ShowDebugInfo;
+  var
+    iIndex: integer;
+  begin
+    WriteStatus('REQ/ANS:' + Answer7, COLORSUCCESS);
+    WriteStatus('Count:' + IntToStr(slPayloadDataReceived.Count), COLORSUCCESS);
+    for iIndex := 0 to pred(slPayloadDataReceived.Count) do WriteStatus('Param' + IntToStr(iIndex) + ':' + slPayloadDataReceived.Strings[iIndex], COLORSUCCESS);
+  end;
+
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Server Received Something', 'Le serveur UDP a reçu de quoi', COLORSTATUS);
@@ -1005,14 +1065,15 @@ begin
   begin
     slPayloadDataReceived := TStringList.Create;
     try
-      FromReceivedStuffLoadPacketInfo(AData, sAnswer, slPayloadDataReceived);
+      FromReceivedStuffLoadPacketInfo(AData, Answer7, slPayloadDataReceived);
 
-      case FCommandList.IndexOf(sAnswer) of
+      if FWriteDebugFlag then ShowDebugInfo;
+
+      case FCommandList.IndexOf(Answer7) of
         PROTO_CMD_WHOSERV:
           begin
             WriteStatusLg('UDP Server request valid!', 'Requête au serveur UDP valide!', COLORSUCCESS);
-            for iChar := 0 to pred(4) do
-              IpTarget[iChar] := AData[IDX_PROTO_PAYLOAD_DATA + iChar];
+            for iChar := 0 to pred(4) do IpTarget[iChar] := AData[IDX_PROTO_PAYLOAD_DATA + iChar];
             SetLength(TxBuffer, 100);
             iNbBytesToSend := PreparePacket(PROTO_CMD_SERVRIS, nil, TxBuffer, length(TxBuffer));
             SetLength(TxBuffer, iNbBytesToSend);
@@ -1026,10 +1087,31 @@ begin
           end;
 
         PROTO_CMD_SERVRIS:
-        begin
-          WriteStatusLg('CALLIDUS-SERVER sent its identification!', 'Le CALLIDUS-SERVER a envoyé sont identification!', COLORSUCCESS);
-        end;
+          begin
+            WriteStatusLg('CALLIDUS-SERVER sent its identification!', 'Le CALLIDUS-SERVER a envoyé sont identification!', COLORSUCCESS);
+            for iChar := 0 to pred(4) do FServerIpAddress[iChar] := AData[IDX_PROTO_PAYLOAD_DATA + iChar];
+            FHostControllerAddress := Format('%d.%d.%d.%d', [FServerIpAddress[0], FServerIpAddress[1], FServerIpAddress[2], FServerIpAddress[3]]);
+            WriteStatusLg('Controller has been detected at: ' + FHostControllerAddress, 'Le contrôleur a été détecté à: ' + FHostControllerAddress, COLORSUCCESS);
+
+            if FClientUDP <> nil then
+            begin
+              WriteStatusLg('We will tell to server that we''re there!', 'Nous allons répondre au serveur que nous sommes là!', COLORSUCCESS);
+              SendIamAliveMessage;
+            end;
+          end;
+
+        PROTO_CMD_IMALIVE:
+          begin
+          end;
+
+        PROTO_CMD_SNDINFO:
+          begin
+          end;
       end;
+
+      if Assigned(OnServerPacketReceived) then
+        OnServerPacketReceived(Self, ABinding, AData, Answer7, slPayloadDataReceived);
+
     finally
       FreeAndNil(slPayloadDataReceived);
     end;
@@ -1052,21 +1134,20 @@ begin
   paramSl.Add(CALLIDUS_INFO_VERSION + '=' + sCALLIDUS_SYSTEM_VERSION);
 end;
 
-function TProtocole_PROTO.SendIamAliveMessage: boolean;
+{ TProtocole_PROTO.SendIamAliveMessage }
+procedure TProtocole_PROTO.SendIamAliveMessage;
 var
   PayloadDataRequest: TStringList;
-  Answer: AnsiString;
 begin
   try
     PayloadDataRequest := TStringList.Create;
     try
       LoadStringListWithIdentificationInfo(PayloadDataRequest);
-      result := (PitchUnMessageAndGetResponsePROTO(PROTO_CMD_IMALIVE, PayloadDataRequest, Answer, nil) > 0);
+      PitchUnMessagePROTONoHandshake('', PROTO_CMD_IMALIVE, PayloadDataRequest);
     finally
       FreeAndNil(PayloadDataRequest);
     end;
   except
-    result := FALSE;
   end;
 end;
 
