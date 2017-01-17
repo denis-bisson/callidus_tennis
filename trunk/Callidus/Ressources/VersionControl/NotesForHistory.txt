@@ -1,0 +1,6 @@
+-ADD: In the CALLIDUS-CONTROLLER, there is now a function to have the controller broadcast its address so others will know its location.
+-ADD: In the CALLIDUS-CONTROLLER, there are now buttons to launch the CALLIDUS-RADAR and the CALLIDUS-DISPLAY application.
+-ADD: From now on, any communication between Callidus-Controller and remote stations is made in UDP.
+-ADD: Callidus-Controller is now able to identify itself to remote station so they know at which address it is.
+-ADD: Callidus-Radar is now able to send message about speed to Callidus-Controller.
+-ADD: Callidus-Controller is now able to send message about speed to display on Callidus-Display.

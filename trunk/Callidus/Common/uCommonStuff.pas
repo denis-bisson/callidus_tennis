@@ -49,6 +49,9 @@ function GetElapsedTime(A: int64): string;
 const
   sCALLIDUS_SYSTEM_VERSION = 'v1.06';
 
+  sCALLIDUS_DEVICE_NAME_RADAR = 'Callidus-Radar';
+  sCALLIDUS_DEVICE_NAME_DISPLAY = 'Callidus-Display';
+
   COLORTX = clGreen;
   COLORRX = clNavy;
   COLORINFO = clGray;

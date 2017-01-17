@@ -13,7 +13,8 @@ uses
   // Callidus
   uCommonStuff, Vcl.AppEvnts, System.Actions, Vcl.ActnList,
   Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, uProtocolePROTO, Vcl.ExtCtrls,
-  IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient;
+  IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient, IdUDPServer,
+  IdSocketHandle, IdGlobal;
 
 type
   TInformationForShowingServiceSpeed = record
@@ -51,9 +52,10 @@ type
     actCloseAllApplications: TAction;
     CloseallCallidusapplications1: TMenuItem;
     AutoStartTimer: TTimer;
-    IdUDPClientDisplay: TIdUDPClient;
     tmrControllerVerification: TTimer;
     miFullCommunicationLog: TMenuItem;
+    IdUDPClientController: TIdUDPClient;
+    IdUDPServerRadar: TIdUDPServer;
     procedure FormCreate(Sender: TObject);
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure aeMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -62,7 +64,6 @@ type
     procedure actToggleScreenModeExecute(Sender: TObject);
     procedure SetInFullScreen(bWantedFullScreen: boolean);
     procedure actStartServicingExecute(Sender: TObject);
-    procedure ProtocolePROTO_DisplayServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
     procedure actCloseAllApplicationsExecute(Sender: TObject);
     procedure AutoStartTimerTimer(Sender: TObject);
     procedure tmrControllerVerificationTimer(Sender: TObject);
@@ -70,6 +71,8 @@ type
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
     procedure ShowThisFileFullScreen(sNomDuFichier: string);
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
+    procedure ProcessInfo(PayloadData: TStringList);
+    procedure ProtocolePROTO_DisplayServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
   private
     { Private declarations }
     isFirstActivation: Boolean;
@@ -146,18 +149,18 @@ end;
 
 procedure TfrmCallidusDisplay.actStartServicingExecute(Sender: TObject);
 begin
-//  try
-//    ServerSocketForDisplay.Port := PORT_FOR_SENDING_DISPLAY;
-//    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-//    ServerSocketForDisplay.Open;
-//    Application.ProcessMessages;
-//    if ServerSocketForDisplay.Active then
-//      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
-//    else
-//      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-//  except
-//    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-//  end;
+  //  try
+  //    ServerSocketForDisplay.Port := PORT_FOR_SENDING_DISPLAY;
+  //    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
+  //    ServerSocketForDisplay.Open;
+  //    Application.ProcessMessages;
+  //    if ServerSocketForDisplay.Active then
+  //      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
+  //    else
+  //      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
+  //  except
+  //    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
+  //  end;
 end;
 
 procedure TfrmCallidusDisplay.actToggleDebugWindowExecute(Sender: TObject);
@@ -210,12 +213,13 @@ begin
     isFirstActivation := False;
     LoadConfiguration;
     ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
-//    ProtocolePROTO_Display.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
-//    ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-//    ProtocolePROTO_Display.WorkingServerSocket.Port := PORT_FOR_SENDING_DISPLAY;
+
+    ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
+    ProtocolePROTO_Display.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
+    ProtocolePROTO_Display.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_DISPLAY;
     ProtocolePROTO_Display.Init;
-    tmrControllerVerification.Enabled := TRUE;
-    AutoStartTimer.Enabled := TRUE;
+    //    tmrControllerVerification.Enabled := TRUE;
+    //    AutoStartTimer.Enabled := TRUE;
   end;
 end;
 
@@ -406,32 +410,32 @@ procedure TfrmCallidusDisplay.tmrControllerVerificationTimer(Sender: TObject);
 var
   sControllerIpAddress: string;
 begin
-  tmrControllerVerification.Enabled := FALSE;
-  try
-    if ProtocolePROTO_Display.GetControllerAddress(sControllerIpAddress) then
-    begin
-      if ProtocolePROTO_Display.WorkingClientSocket.Address <> sControllerIpAddress then
-      begin
-        ProtocolePROTO_Display.WorkingClientSocket.Address := sControllerIpAddress;
-        ProtocolePROTO_Display.SendIamAliveMessage;
-      end
-      else
-      begin
-        ProtocolePROTO_Display.SendIamAliveMessage;
-      end;
-    end
-    else
-    begin
-//      ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-    end;
-
-//    if ProtocolePROTO_Display.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
-//      tmrControllerVerification.Interval := 10000
-//    else
-      tmrControllerVerification.Interval := 2000;
-  finally
-    tmrControllerVerification.Enabled := TRUE;
-  end;
+  //  tmrControllerVerification.Enabled := FALSE;
+  //  try
+  //    if ProtocolePROTO_Display.GetControllerAddress(sControllerIpAddress) then
+  //    begin
+  //      if ProtocolePROTO_Display.WorkingClientSocket.Address <> sControllerIpAddress then
+  //      begin
+  //        ProtocolePROTO_Display.WorkingClientSocket.Address := sControllerIpAddress;
+  //        ProtocolePROTO_Display.SendIamAliveMessage;
+  //      end
+  //      else
+  //      begin
+  //        ProtocolePROTO_Display.SendIamAliveMessage;
+  //      end;
+  //    end
+  //    else
+  //    begin
+  ////      ProtocolePROTO_Display.WorkingClientSocket.Address := IP_ADDRESS_NULL;
+  //    end;
+  //
+  ////    if ProtocolePROTO_Display.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
+  ////      tmrControllerVerification.Interval := 10000
+  ////    else
+  //      tmrControllerVerification.Interval := 2000;
+  //  finally
+  //    tmrControllerVerification.Enabled := TRUE;
+  //  end;
 end;
 
 procedure TfrmCallidusDisplay.WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
@@ -456,8 +460,7 @@ begin
       if bDebugWasVisible then
         frmDebugWindow.Show;
       miSaveLogEachTime.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', True);
-      //      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
-      miFullCommunicationLog.Checked := False;
+      miFullCommunicationLog.Checked := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'miFullCommunicationLog', False);
       miFullCommunicationLogClick(miFullCommunicationLog);
       bWasInFullScreen := ReadBool(CALLIDUSDISPLAYCONFIGSECTION, 'FullScreen', False);
       if bWasInFullScreen then actToggleScreenModeExecute(actToggleScreenMode);
@@ -474,7 +477,22 @@ begin
 end;
 
 { ProtocolePROTO_DisplayServerSocketValidPacketReceived }
-procedure TfrmCallidusDisplay.ProtocolePROTO_DisplayServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
+procedure TfrmCallidusDisplay.ProtocolePROTO_DisplayServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
+begin
+  case TProtocole_PROTO(Sender).CommandList.IndexOf(Answer7) of
+    PROTO_CMD_IMALIVE:
+      begin
+      end;
+
+    PROTO_CMD_SNDINFO:
+      begin
+        ProcessInfo(PayloadData);
+      end;
+  end;
+
+end;
+
+procedure TfrmCallidusDisplay.ProcessInfo(PayloadData: TStringList);
 var
   ServiceSpeedInfo: TInformationForShowingServiceSpeed;
   slAnswer, slVariablesNames, slVariablesValues: TStringList;
@@ -489,102 +507,102 @@ begin
   slVariablesValues := TStringList.Create;
   slAnswer := TStringList.Create;
   try
-    iIndexCommand := ProtocolePROTO_Display.CommandList.IndexOf(Answer7);
+    //    iIndexCommand := ProtocolePROTO_Display.CommandList.IndexOf(Answer7);
+    //
+    //    case iIndexCommand of
+    //      PROTO_CMD_DISCRTC:
+    //        begin
+    //          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+    //
+    //          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
+    //          if iAnyValue <> -1 then
+    //          begin
+    //            sAnyValue := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+    //            if sAnyValue <> '' then
+    //            begin
+    //              if not FileExists(sAnyValue) then
+    //              begin
+    //                slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + sAnyValue);
+    //              end;
+    //              ShowThisFileFullScreen(sAnyValue);
+    //            end;
+    //          end;
+    //
+    //          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
+    //
+    //          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_ADJUSTSCREEN);
+    //          if iAnyValue <> -1 then
+    //          begin
+    //            sAnyValue := slVariablesValues.Strings[iAnyValue];
+    //            if sAnyValue = sDISPLAY_PARAM_FULLSCREEN then SetInFullScreen(TRUE);
+    //            if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
+    //          end;
+    //
+    //        end;
+    //
+    //      PROTO_CMD_SNDINFO:
+    //        begin
+    CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-    case iIndexCommand of
-      PROTO_CMD_DISCRTC:
-        begin
-          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+    ServiceSpeedInfo.PosY := 0;
+    ServiceSpeedInfo.SizY := 0;
+    ServiceSpeedInfo.sSpeedValue := '';
+    ServiceSpeedInfo.sSpeedUnit := '';
+    ServiceSpeedInfo.UnitSizY := 0;
+    ServiceSpeedInfo.iRatioUnitOnValue := 25;
+    ServiceSpeedInfo.iShadowCount := 10;
+    ServiceSpeedInfo.iUnitshadowcount := 2;
+    ServiceSpeedInfo.colorBackground := clGreen;
+    ServiceSpeedInfo.colorSpeed := clWhite;
+    ServiceSpeedInfo.colorSpeedShadow := clBlack;
+    ServiceSpeedInfo.colorUnit := clYellow;
+    ServiceSpeedInfo.colorUnitShadow := clBlack;
+    ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
 
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
-          if iAnyValue <> -1 then
-          begin
-            sAnyValue := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
-            if sAnyValue <> '' then
-            begin
-              if not FileExists(sAnyValue) then
-              begin
-                slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + sAnyValue);
-              end;
-              ShowThisFileFullScreen(sAnyValue);
-            end;
-          end;
-
-          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
-
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_ADJUSTSCREEN);
-          if iAnyValue <> -1 then
-          begin
-            sAnyValue := slVariablesValues.Strings[iAnyValue];
-            if sAnyValue = sDISPLAY_PARAM_FULLSCREEN then SetInFullScreen(TRUE);
-            if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
-          end;
-
-        end;
-
-      PROTO_CMD_SNDINFO:
-        begin
-          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-
-          ServiceSpeedInfo.PosY := 0;
-          ServiceSpeedInfo.SizY := 0;
-          ServiceSpeedInfo.sSpeedValue := '';
-          ServiceSpeedInfo.sSpeedUnit := '';
-          ServiceSpeedInfo.UnitSizY := 0;
-          ServiceSpeedInfo.iRatioUnitOnValue := 25;
-          ServiceSpeedInfo.iShadowCount := 10;
-          ServiceSpeedInfo.iUnitshadowcount := 2;
-          ServiceSpeedInfo.colorBackground := clGreen;
-          ServiceSpeedInfo.colorSpeed := clWhite;
-          ServiceSpeedInfo.colorSpeedShadow := clBlack;
-          ServiceSpeedInfo.colorUnit := clYellow;
-          ServiceSpeedInfo.colorUnitShadow := clBlack;
-          ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
-
-          // On valide que le fichier du commenditaire existe avant de répondre!
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
-          if iAnyValue <> -1 then
-          begin
-            ServiceSpeedInfo.sBanderoleCommenditaireFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
-            if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then
-              if not FileExists(ServiceSpeedInfo.sBanderoleCommenditaireFilename) then
-                slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
-          end;
-
-          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
-
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
-          if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESIZY);
-          if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-          iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESPEED);
-          if iSpeedValueIndex <> -1 then ServiceSpeedInfo.sSpeedValue := slVariablesValues.Strings[iSpeedValueIndex];
-
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNIT);
-          if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITPOSY);
-          if iAnyValue <> -1 then ServiceSpeedInfo.UnitPosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSIZY);
-          if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-          iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESHADOWSIZE);
-          if iShadowIndex <> -1 then ServiceSpeedInfo.iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSHDY);
-          if iColorIndex <> -1 then ServiceSpeedInfo.iUnitshadowcount := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORBACK);
-          if iColorIndex <> -1 then ServiceSpeedInfo.colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEED);
-          if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeed := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEEDSHADOW);
-          if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeedShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNIT);
-          if iColorIndex <> -1 then ServiceSpeedInfo.colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-          iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
-          if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-
-          ShowServiceSpeed(ServiceSpeedInfo);
-        end;
+    // On valide que le fichier du commenditaire existe avant de répondre!
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
+    if iAnyValue <> -1 then
+    begin
+      ServiceSpeedInfo.sBanderoleCommenditaireFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+      if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then
+        if not FileExists(ServiceSpeedInfo.sBanderoleCommenditaireFilename) then
+          slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
     end;
+
+    //          ProtocolePROTO_Display.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, slAnswer);
+
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESIZY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESPEED);
+    if iSpeedValueIndex <> -1 then ServiceSpeedInfo.sSpeedValue := slVariablesValues.Strings[iSpeedValueIndex];
+
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNIT);
+    if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITPOSY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.UnitPosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSIZY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESHADOWSIZE);
+    if iShadowIndex <> -1 then ServiceSpeedInfo.iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSHDY);
+    if iColorIndex <> -1 then ServiceSpeedInfo.iUnitshadowcount := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORBACK);
+    if iColorIndex <> -1 then ServiceSpeedInfo.colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEED);
+    if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeed := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEEDSHADOW);
+    if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeedShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNIT);
+    if iColorIndex <> -1 then ServiceSpeedInfo.colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
+    if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+
+    ShowServiceSpeed(ServiceSpeedInfo);
+    //        end;
+    //    end;
   finally
     FreeAndNil(slAnswer);
     FreeAndNil(slVariablesNames);

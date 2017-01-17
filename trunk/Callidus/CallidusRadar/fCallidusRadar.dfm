@@ -874,14 +874,15 @@ object frmCallidusRadar: TfrmCallidusRadar
     Top = 160
   end
   object ProtocolePROTO_Radar: TProtocole_PROTO
-    WorkingClientUDP = IdUDPClientRadar
+    HostControllerAddress = '0.0.0.0'
+    WorkingClientUDP = IdUDPClientController
     WorkingServerUDP = IdUDPServerRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     DeviceName = 'Callidus-Radar'
     OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
     Left = 284
-    Top = 246
+    Top = 254
   end
   object ImageListRadar: TImageList
     Height = 32
@@ -889,7 +890,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 36
     Top = 198
     Bitmap = {
-      494C0101020008008C0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800980020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1430,7 +1431,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 316
     Top = 118
   end
-  object IdUDPClientRadar: TIdUDPClient
+  object IdUDPClientController: TIdUDPClient
     Port = 0
     Left = 420
     Top = 254

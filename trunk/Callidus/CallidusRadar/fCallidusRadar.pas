@@ -130,7 +130,7 @@ type
     acSelectStalkerConfigFile: TAction;
     actCloseAllApplications: TAction;
     Closeallapplications1: TMenuItem;
-    IdUDPClientRadar: TIdUDPClient;
+    IdUDPClientController: TIdUDPClient;
     IdUDPServerRadar: TIdUDPServer;
     tmrControllerVerification: TTimer;
     sbRadar: TStatusBar;
@@ -547,7 +547,7 @@ begin
       PayloadDataRequest.Add(CALLIDUS_CMD_SERVICEDIRECTION + '=');
     end;
 
-    result := (ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(PROTO_CMD_SNDINFO, PayloadDataRequest, Answer, nil) > 0);
+    ProtocolePROTO_Radar.PitchUnMessagePROTONoHandshake('', PROTO_CMD_SNDINFO, PayloadDataRequest);
   finally
     FreeAndNil(PayloadDataRequest);
   end;
@@ -571,17 +571,17 @@ begin
       while (GetTickCount < Timeout) and (not bFlagAbort) do
       begin
         Application.ProcessMessages;
-        if GetTickCount < Timeout then sleep(10);
+        if GetTickCount < Timeout then sleep(2);
       end;
-
+//
       // 2. On efface la valeur durant 0.5 seconde
-      bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
-      Timeout := GetTickCount + Dword(tbTempsOff.Position);
-      while (GetTickCount < Timeout) and (not bFlagAbort) do
-      begin
-        Application.ProcessMessages;
-        if GetTickCount < Timeout then sleep(10);
-      end;
+//      bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
+//      Timeout := GetTickCount + Dword(tbTempsOff.Position);
+//      while (GetTickCount < Timeout) and (not bFlagAbort) do
+//      begin
+//        Application.ProcessMessages;
+//        if GetTickCount < Timeout then sleep(10);
+//      end;
 
     end;
   finally
@@ -697,6 +697,8 @@ begin
 //    end;
 
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
+    ProtocolePROTO_Radar.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
+    ProtocolePROTO_Radar.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_RADAR;
     ProtocolePROTO_Radar.Init;
     bFirstNetworkDetection := TRUE;
 //    tmrControllerVerification.Enabled := TRUE;

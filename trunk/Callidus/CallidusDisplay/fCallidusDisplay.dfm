@@ -154,8 +154,8 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   PixelsPerInch = 96
   TextHeight = 13
   object pmMainPopUpMenu: TPopupMenu
-    Left = 184
-    Top = 207
+    Left = 224
+    Top = 151
     object ogglefullscreenornot1: TMenuItem
       Action = actToggleScreenMode
       GroupIndex = 102
@@ -224,29 +224,37 @@ object frmCallidusDisplay: TfrmCallidusDisplay
     Top = 90
   end
   object ProtocolePROTO_Display: TProtocole_PROTO
-    WorkingClientUDP = IdUDPClientDisplay
+    HostControllerAddress = '0.0.0.0'
+    WorkingClientUDP = IdUDPClientController
+    WorkingServerUDP = IdUDPServerRadar
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
     DeviceName = 'Callidus-Display'
-    OnServerSocketValidPacketReceived = ProtocolePROTO_DisplayServerSocketValidPacketReceived
-    Left = 68
-    Top = 211
+    OnServerPacketReceived = ProtocolePROTO_DisplayServerPacketReceived
+    Left = 236
+    Top = 283
   end
   object AutoStartTimer: TTimer
     Enabled = False
     OnTimer = AutoStartTimerTimer
-    Left = 184
-    Top = 264
-  end
-  object IdUDPClientDisplay: TIdUDPClient
-    Port = 0
-    Left = 60
-    Top = 22
+    Left = 232
+    Top = 208
   end
   object tmrControllerVerification: TTimer
     Enabled = False
     OnTimer = tmrControllerVerificationTimer
     Left = 80
     Top = 259
+  end
+  object IdUDPClientController: TIdUDPClient
+    Port = 0
+    Left = 76
+    Top = 190
+  end
+  object IdUDPServerRadar: TIdUDPServer
+    Bindings = <>
+    DefaultPort = 0
+    Left = 68
+    Top = 134
   end
 end
