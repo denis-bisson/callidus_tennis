@@ -1,7 +1,5 @@
 unit uProtocoleProto;
 
-{$MESSAGE WARN '2017-01-18:DB-We should do the trick to rename the unit with no upper case!}
-
 interface
 
 uses
@@ -26,7 +24,11 @@ const
   PROTO_CMD_AREUYTR = $07;
   PROTO_CMD_SNDINFO = $08;
   PROTO_CMD_DISCRTC = $09;
-  PROTO_CMD_TOGGTST = $0A;
+  PROTO_CMD_STRTTST = $0A;
+  PROTO_CMD_STOPTST = $0B;
+  PROTO_CMD_GETRDRP = $0C;
+  PROTO_CMD_RDRINFO = $0D;
+
   // ATTENTION! Si t'ajoutes une nouvelle commande, il faut aussi l'ajouter dans "FCommandList"...
 
   IDX_PROTO_LENGTH = 0;
@@ -174,7 +176,12 @@ begin
     FCommandList.Add('AREUYTR'); // $07
     FCommandList.Add('SNDINFO'); // $08
     FCommandList.Add('DISCRTC'); // $09
-    FCommandList.Add('TOGGTST'); // $0A
+    FCommandList.Add('STRTTST'); // $0A
+    FCommandList.Add('STPTTST'); // $0B
+    FCommandList.Add('GETRDRP'); // $0C;
+    FCommandList.Add('RDRINFO'); // $0D;
+
+
 
     if FClientUDP <> nil then
     begin

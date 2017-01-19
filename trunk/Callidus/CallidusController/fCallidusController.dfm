@@ -213,8 +213,156 @@ object frmCallidusController: TfrmCallidusController
         OnDrawItem = lbDeviceDetectedDrawItem
       end
     end
+    object tsRadar: TTabSheet
+      Caption = 'Callidus-Radar'
+      ImageIndex = 5
+      object gbRadarConfiguration: TGroupBox
+        Left = 3
+        Top = 11
+        Width = 570
+        Height = 150
+        Caption = '&Configuration des param'#232'tres de l'#39'algorithme Bazin:'
+        TabOrder = 0
+        object edShowTimeServiceSpeed: TLabeledEdit
+          Left = 180
+          Top = 78
+          Width = 80
+          Height = 21
+          EditLabel.Width = 153
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Ti&me to show serve speed (ms):'
+          LabelPosition = lpLeft
+          TabOrder = 2
+        end
+        object edInactivityTime: TLabeledEdit
+          Left = 433
+          Top = 78
+          Width = 80
+          Height = 21
+          EditLabel.Width = 106
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Inactivity tim&out (ms):'
+          LabelPosition = lpLeft
+          TabOrder = 5
+        end
+        object edHighInactivitySpeed: TLabeledEdit
+          Left = 433
+          Top = 51
+          Width = 80
+          Height = 21
+          EditLabel.Width = 138
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Inactivity high &speed (km/h):'
+          LabelPosition = lpLeft
+          TabOrder = 4
+        end
+        object edHighServiceSpeed: TLabeledEdit
+          Left = 180
+          Top = 51
+          Width = 80
+          Height = 21
+          EditLabel.Width = 159
+          EditLabel.Height = 13
+          EditLabel.Caption = '&High limit for serve speed (km/h):'
+          LabelPosition = lpLeft
+          TabOrder = 1
+        end
+        object edLowServiceSpeed: TLabeledEdit
+          Left = 180
+          Top = 24
+          Width = 80
+          Height = 21
+          EditLabel.Width = 157
+          EditLabel.Height = 13
+          EditLabel.Caption = '&Low limit for serve speed (km/h):'
+          LabelPosition = lpLeft
+          TabOrder = 0
+        end
+        object edLowInactivitySpeed: TLabeledEdit
+          Left = 433
+          Top = 24
+          Width = 80
+          Height = 21
+          EditLabel.Width = 134
+          EditLabel.Height = 13
+          EditLabel.Caption = '&Inactivity low speed (km/h):'
+          LabelPosition = lpLeft
+          TabOrder = 3
+        end
+        object btnSendRadarParameters: TButton
+          Left = 48
+          Top = 113
+          Width = 212
+          Height = 25
+          Action = actSendRadarParams
+          TabOrder = 6
+        end
+        object btnReadRadarParameters: TButton
+          Left = 303
+          Top = 113
+          Width = 212
+          Height = 25
+          Action = actGetRadarParams
+          TabOrder = 7
+        end
+      end
+      object gbNetworkTest: TGroupBox
+        Left = 3
+        Top = 175
+        Width = 570
+        Height = 130
+        Caption = '&Test en boucle de simulation de vitesses de service:'
+        TabOrder = 1
+        object btnStartNetworkTest: TButton
+          Left = 48
+          Top = 86
+          Width = 212
+          Height = 25
+          Action = actStartNetworkTest
+          TabOrder = 3
+        end
+        object ckbTempsOffBetweenTest: TCheckBox
+          Left = 251
+          Top = 42
+          Width = 161
+          Height = 17
+          Caption = 'Temps off entre les vitesses'
+          TabOrder = 1
+        end
+        object edtRadarTestTempsOff: TLabeledEdit
+          Left = 151
+          Top = 51
+          Width = 80
+          Height = 21
+          EditLabel.Width = 54
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Temps Off:'
+          LabelPosition = lpLeft
+          TabOrder = 2
+        end
+        object edtRadarTestTempsOn: TLabeledEdit
+          Left = 151
+          Top = 24
+          Width = 80
+          Height = 21
+          EditLabel.Width = 52
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Temps On:'
+          LabelPosition = lpLeft
+          TabOrder = 0
+        end
+        object btnStopNetworkTest: TButton
+          Left = 303
+          Top = 86
+          Width = 212
+          Height = 25
+          Action = actStopNetworkTest
+          TabOrder = 4
+        end
+      end
+    end
     object cbCommenditaireFullScreen: TTabSheet
-      Caption = 'Options pour Callidus-Display'
+      Caption = 'Callidus-Display'
       ImageIndex = 1
       object Label4: TLabel
         Left = 19
@@ -504,7 +652,7 @@ object frmCallidusController: TfrmCallidusController
       end
     end
     object tsPub: TTabSheet
-      Caption = 'Pub (fs)'
+      Caption = 'Pub plein '#233'cran'
       ImageIndex = 3
       DesignSize = (
         576
@@ -544,7 +692,7 @@ object frmCallidusController: TfrmCallidusController
         Height = 173
         Anchors = [akLeft, akTop, akBottom]
         ItemHeight = 13
-        TabOrder = 0
+        TabOrder = 1
         CheckWhenMove = True
       end
       object btnCommandFull: TButton
@@ -554,7 +702,7 @@ object frmCallidusController: TfrmCallidusController
         Width = 209
         Height = 25
         Caption = 'Rafraichis la liste:'
-        TabOrder = 1
+        TabOrder = 0
         OnClick = btnCommanditClick
       end
       object rgPubType: TRadioGroup
@@ -598,7 +746,7 @@ object frmCallidusController: TfrmCallidusController
       end
     end
     object TabSheet1: TTabSheet
-      Caption = 'Pub (bn)'
+      Caption = 'Pub bandeau'
       ImageIndex = 4
       DesignSize = (
         576
@@ -631,7 +779,7 @@ object frmCallidusController: TfrmCallidusController
         Height = 173
         Anchors = [akLeft, akTop, akBottom]
         ItemHeight = 13
-        TabOrder = 0
+        TabOrder = 2
         CheckWhenMove = True
       end
       object btnBanniere: TButton
@@ -641,7 +789,7 @@ object frmCallidusController: TfrmCallidusController
         Width = 209
         Height = 25
         Caption = 'Rafraichis la liste:'
-        TabOrder = 1
+        TabOrder = 0
         OnClick = btnCommanditClick
       end
       object rgModePubBanniere: TRadioGroup
@@ -655,7 +803,7 @@ object frmCallidusController: TfrmCallidusController
           'Juste celui s'#233'lectionn'#233
           'S'#233'quentiel parmis ceux coch'#233's'
           'Al'#233'atoire parmis ceux coch'#233's')
-        TabOrder = 2
+        TabOrder = 3
       end
       object ckbPubBanniere: TCheckBox
         Left = 230
@@ -663,125 +811,8 @@ object frmCallidusController: TfrmCallidusController
         Width = 291
         Height = 17
         Caption = 'Ajoute une banni'#232're de pub en haut de la vitesse'
-        TabOrder = 3
-        OnClick = ckbPubBanniereClick
-      end
-    end
-    object tsRadar: TTabSheet
-      Caption = 'Options pour Callidus-Radar'
-      ImageIndex = 5
-      object edLowServiceSpeed: TLabeledEdit
-        Left = 204
-        Top = 16
-        Width = 121
-        Height = 21
-        EditLabel.Width = 157
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Low limit for serve speed (km/h):'
-        LabelPosition = lpLeft
-        TabOrder = 0
-      end
-      object edHighServiceSpeed: TLabeledEdit
-        Left = 204
-        Top = 43
-        Width = 121
-        Height = 21
-        EditLabel.Width = 159
-        EditLabel.Height = 13
-        EditLabel.Caption = 'High limit for serve speed (km/h):'
-        LabelPosition = lpLeft
         TabOrder = 1
-      end
-      object edShowTimeServiceSpeed: TLabeledEdit
-        Left = 204
-        Top = 70
-        Width = 121
-        Height = 21
-        EditLabel.Width = 153
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Time to show serve speed (ms):'
-        LabelPosition = lpLeft
-        TabOrder = 2
-      end
-      object edLowInactivitySpeed: TLabeledEdit
-        Left = 204
-        Top = 96
-        Width = 121
-        Height = 21
-        EditLabel.Width = 134
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Inactivity low speed (km/h):'
-        LabelPosition = lpLeft
-        TabOrder = 3
-      end
-      object edHighInactivitySpeed: TLabeledEdit
-        Left = 204
-        Top = 123
-        Width = 121
-        Height = 21
-        EditLabel.Width = 138
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Inactivity high speed (km/h):'
-        LabelPosition = lpLeft
-        TabOrder = 4
-      end
-      object edInactivityTime: TLabeledEdit
-        Left = 204
-        Top = 150
-        Width = 121
-        Height = 21
-        EditLabel.Width = 106
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Inactivity timout (ms):'
-        LabelPosition = lpLeft
-        TabOrder = 5
-      end
-      object Button2: TButton
-        Left = 72
-        Top = 192
-        Width = 377
-        Height = 25
-        Caption = 'Envoie aux RADAR!'
-        TabOrder = 6
-        OnClick = Button2Click
-      end
-      object Button1: TButton
-        Left = 72
-        Top = 280
-        Width = 377
-        Height = 25
-        Action = actToggleRadarSimulTest
-        TabOrder = 7
-      end
-      object edtRadarTestTempsOn: TLabeledEdit
-        Left = 204
-        Top = 226
-        Width = 121
-        Height = 21
-        EditLabel.Width = 52
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Temps On:'
-        LabelPosition = lpLeft
-        TabOrder = 8
-      end
-      object edtRadarTestTempsOff: TLabeledEdit
-        Left = 204
-        Top = 253
-        Width = 121
-        Height = 21
-        EditLabel.Width = 54
-        EditLabel.Height = 13
-        EditLabel.Caption = 'Temps Off:'
-        LabelPosition = lpLeft
-        TabOrder = 9
-      end
-      object ckbTempsOffBetweenTest: TCheckBox
-        Left = 344
-        Top = 228
-        Width = 161
-        Height = 17
-        Caption = 'Temps off entre les vitesses'
-        TabOrder = 10
+        OnClick = ckbPubBanniereClick
       end
     end
   end
@@ -797,84 +828,72 @@ object frmCallidusController: TfrmCallidusController
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    object ToolButton5: TToolButton
+    object ToolButton12: TToolButton
       Left = 0
       Top = 0
-      Action = actToggleDebugWindow
+      Action = actLaunchCallidusRadar
     end
-    object ToolButton6: TToolButton
+    object ToolButton11: TToolButton
       Left = 40
       Top = 0
-      Width = 8
-      Caption = 'ToolButton6'
-      ImageIndex = 1
-      Style = tbsSeparator
+      Action = actLaunchCallidusDisplay
     end
-    object ToolButton3: TToolButton
-      Left = 48
+    object ToolButton9: TToolButton
+      Left = 80
       Top = 0
-      Action = actCloseApplication
-    end
-    object ToolButton4: TToolButton
-      Left = 88
-      Top = 0
-      Action = actCloseAllCallidusApplications
+      Action = actMasterSelfIdentification
     end
     object ToolButton7: TToolButton
-      Left = 128
+      Left = 120
       Top = 0
       Width = 8
       Caption = 'ToolButton7'
       ImageIndex = 2
       Style = tbsSeparator
     end
-    object ToolButton2: TToolButton
-      Left = 136
-      Top = 0
-      Action = actSetInNormalScreen
-    end
     object ToolButton1: TToolButton
       Tag = 1
-      Left = 176
+      Left = 128
       Top = 0
       Action = actSetInFullScreen
     end
-    object ToolButton8: TToolButton
-      Left = 216
+    object ToolButton2: TToolButton
+      Left = 168
       Top = 0
-      Action = actTestCommWithDisplay
+      Action = actSetInNormalScreen
     end
     object ToolButton10: TToolButton
-      Left = 256
+      Left = 208
       Top = 0
       Action = actStartPub
     end
-    object ToolButton9: TToolButton
-      Left = 296
+    object ToolButton6: TToolButton
+      Left = 248
       Top = 0
-      Action = actMasterSelfIdentification
+      Width = 8
+      Caption = 'ToolButton6'
+      ImageIndex = 1
+      Style = tbsSeparator
     end
-    object ToolButton11: TToolButton
-      Left = 336
+    object ToolButton4: TToolButton
+      Left = 256
       Top = 0
-      Action = actLaunchCallidusDisplay
-    end
-    object ToolButton12: TToolButton
-      Left = 376
-      Top = 0
-      Action = actLaunchCallidusRadar
+      Action = actCloseAllCallidusApplications
     end
   end
   object mmMainMenu: TMainMenu
-    Left = 520
+    Left = 448
+    Top = 8
     object Actions1: TMenuItem
       Caption = 'Actions'
       object StartServicing1: TMenuItem
         Action = actStartServicing
       end
       object estcommunicationwithCallidusDisplay1: TMenuItem
-        Action = actTestCommWithDisplay
+        Caption = 'Test communication with Callidus Display'
         GroupIndex = 102
+        Hint = 'Force l'#39'envoie d'#39'une simulation de vitesse de service'
+        ImageIndex = 4
       end
       object Flushcurrentdetectedlist1: TMenuItem
         Action = actFlushCurrentDetectedList
@@ -913,7 +932,7 @@ object frmCallidusController: TfrmCallidusController
   end
   object amMainActionManager: TActionManager
     Images = ImageList1
-    Left = 472
+    Left = 380
     Top = 8
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
@@ -934,12 +953,6 @@ object frmCallidusController: TfrmCallidusController
       ShortCut = 120
       OnExecute = actStartServicingExecute
     end
-    object actTestCommWithDisplay: TAction
-      Caption = 'Test communication with Callidus Display'
-      Hint = 'Force l'#39'envoie d'#39'une simulation de vitesse de service'
-      ImageIndex = 4
-      OnExecute = actTestCommWithDisplayExecute
-    end
     object actCloseAllCallidusApplications: TAction
       Caption = 'Close all Callidus applications'
       Hint = 'Ferme toutes les applications CALLIDUS sur cette machine'
@@ -952,18 +965,21 @@ object frmCallidusController: TfrmCallidusController
       OnExecute = actFlushCurrentDetectedListExecute
     end
     object actSetInFullScreen: TAction
+      Category = 'Callidus-Display'
       Caption = 'Set CALLIDUS-DISPLAY in full screen'
       Hint = 'Ajuste le CALLIDUS-DISPLAY en mode plein-'#233'cran'
       ImageIndex = 1
       OnExecute = actSetInFullScreenExecute
     end
     object actSetInNormalScreen: TAction
+      Category = 'Callidus-Display'
       Caption = 'Set CALLIDUS-DISPLAY in normal screen'
       Hint = 'Ajuste le CALLIDUS-DISPLAY en mode fen'#234'tre Windows standard'
       ImageIndex = 0
       OnExecute = actSetInNormalScreenExecute
     end
     object actStartPub: TAction
+      Category = 'Callidus-Display'
       Caption = 'D'#233'marre mode publicit'#233' plein-'#233'cran'
       Hint = 'D'#233'marre mode publicit'#233' plein-'#233'cran'
       ImageIndex = 6
@@ -979,6 +995,7 @@ object frmCallidusController: TfrmCallidusController
     end
     object actLaunchCallidusRadar: TAction
       Tag = 2
+      Category = 'Callidus-Radar'
       Caption = 'Lancer CALLIDUS-RADAR'
       Hint = 'Lance l'#39'ex'#233'cution de l'#39'application CALLIDUS-RADAR'
       ImageIndex = 9
@@ -986,15 +1003,35 @@ object frmCallidusController: TfrmCallidusController
     end
     object actLaunchCallidusDisplay: TAction
       Tag = 1
+      Category = 'Callidus-Display'
       Caption = 'Lancer CALLIDUS-DISPLAY'
       Hint = 'Lance l'#39'ex'#233'cution de l'#39'application CALLIDUS-DISPLAY'
       ImageIndex = 8
       OnExecute = actLaunchApplicationExecute
     end
-    object actToggleRadarSimulTest: TAction
-      Caption = 'D'#233'marre ou cesse le mode de test de r'#233'seau sur le Callidus-Radar'
-      Hint = 'D'#233'marre ou cesse le mode de test de r'#233'seau sur le Callidus-Radar'
-      OnExecute = actToggleRadarSimulTestExecute
+    object actSendRadarParams: TAction
+      Category = 'Callidus-Radar'
+      Caption = 'Envoie les param'#232'tres (Shift+F9)'
+      ShortCut = 8312
+      OnExecute = actSendRadarParamsExecute
+    end
+    object actGetRadarParams: TAction
+      Category = 'Callidus-Radar'
+      Caption = 'Re'#231'ois les param'#232'tres (Shift+F3)'
+      ShortCut = 8306
+      OnExecute = actGetRadarParamsExecute
+    end
+    object actStartNetworkTest: TAction
+      Category = 'Callidus-Radar'
+      Caption = 'D'#233'marre boucle de test (Ctrl+Shift+F9)'
+      ShortCut = 24696
+      OnExecute = actStartNetworkTestExecute
+    end
+    object actStopNetworkTest: TAction
+      Category = 'Callidus-Radar'
+      Caption = 'Cesse boucle de test (Ctrl+Shift+F8)'
+      ShortCut = 24695
+      OnExecute = actStopNetworkTestExecute
     end
   end
   object evMainApplicationEvents: TApplicationEvents
@@ -1008,28 +1045,28 @@ object frmCallidusController: TfrmCallidusController
     WorkingClientUDP = IdUDPClientRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
-    Left = 92
-    Top = 214
+    Left = 524
+    Top = 262
   end
   object ProtocolePROTO_Display: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 228
-    Top = 214
+    Left = 540
+    Top = 222
   end
   object AutoStartTimer: TTimer
     Enabled = False
     OnTimer = AutoStartTimerTimer
-    Left = 416
-    Top = 168
+    Left = 536
+    Top = 88
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
-    Left = 164
-    Top = 142
+    Left = 508
+    Top = 182
   end
   object ProtocolePROTO_Controller: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
@@ -1037,20 +1074,20 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'CONTROLLER'
     OnServerPacketReceived = ProtocolePROTO_ControllerServerPacketReceived
-    Left = 164
-    Top = 94
+    Left = 328
+    Top = 182
   end
   object ColorDialog1: TColorDialog
-    Left = 532
-    Top = 256
+    Left = 492
+    Top = 312
   end
   object ImageList1: TImageList
     Height = 32
     Width = 32
-    Left = 428
+    Left = 320
     Top = 8
     Bitmap = {
-      494C01010A00C800F80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800000120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2645,24 +2682,24 @@ object frmCallidusController: TfrmCallidusController
     Enabled = False
     Interval = 11000
     OnTimer = RefreshListTimerTimer
-    Left = 532
-    Top = 152
+    Left = 436
+    Top = 272
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 532
-    Top = 208
+    Left = 440
+    Top = 292
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 364
-    Top = 102
+    Left = 540
+    Top = 182
   end
   object IdUDPClientDisplay: TIdUDPClient
     Port = 0
-    Left = 500
-    Top = 86
+    Left = 532
+    Top = 134
   end
 end

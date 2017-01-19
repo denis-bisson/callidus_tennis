@@ -1,3 +1,9 @@
+-UPD: Quelques amélioration concernant l'utilisation possible du clavier dans Callidus-Controller dans l'onglet des options du RADAR.
+-CHG: Le mode de test du network où le Callidus-Radar envoie périodiquement des simulations de services doit maintenant être lancé du Callidus-Controller. Il peut être lancer et arrêter.
+-RMV: Retrait du fichier "uPROTO.pas" qui ne servait plus à rien.
+-ADD: Le Callidus-Controller peut maintenant envoyer un message au Callidus-Radar pour relire les paramètres de configuration de l'algorithme-Bazin.
+
+
 -FIX: Le mode publicité est maintenant de retour fonctionnel.
 -FIX: Le Callidus-Display interprète maintenant correctement les commandes pour se mettre plein-écran ou non.
 -ADD: Le Callidus-Radar se rappelle maintenant d'une session à l'autre des paramètres du test-réseau concernant les temps entre les vitesses de balles simulées.
