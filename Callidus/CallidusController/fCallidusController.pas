@@ -61,7 +61,6 @@ type
     ProtocolePROTO_Radar: TProtocoleProto;
     miSaveLogEachTime: TMenuItem;
     ProtocolePROTO_Display: TProtocoleProto;
-    actTestCommWithDisplay: TAction;
     estcommunicationwithCallidusDisplay1: TMenuItem;
     actCloseAllCallidusApplications: TAction;
     Action11: TMenuItem;
@@ -80,14 +79,11 @@ type
     actSetInNormalScreen: TAction;
     ImageList1: TImageList;
     ToolBar1: TToolBar;
-    ToolButton5: TToolButton;
     ToolButton6: TToolButton;
     ToolButton4: TToolButton;
-    ToolButton3: TToolButton;
     ToolButton7: TToolButton;
     ToolButton2: TToolButton;
     ToolButton1: TToolButton;
-    ToolButton8: TToolButton;
     pnlBackground: TPanel;
     GroupBox3: TGroupBox;
     Label5: TLabel;
@@ -129,13 +125,6 @@ type
     lblHelpBanniere: TLabel;
     lblHelpFullScreen: TLabel;
     tsRadar: TTabSheet;
-    edLowServiceSpeed: TLabeledEdit;
-    edHighServiceSpeed: TLabeledEdit;
-    edShowTimeServiceSpeed: TLabeledEdit;
-    edLowInactivitySpeed: TLabeledEdit;
-    edHighInactivitySpeed: TLabeledEdit;
-    edInactivityTime: TLabeledEdit;
-    Button2: TButton;
     ckbPubBanniere: TCheckBox;
     IdUDPClientRadar: TIdUDPClient;
     actMasterSelfIdentification: TAction;
@@ -145,11 +134,25 @@ type
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
     IdUDPClientDisplay: TIdUDPClient;
-    actToggleRadarSimulTest: TAction;
-    Button1: TButton;
-    edtRadarTestTempsOn: TLabeledEdit;
-    edtRadarTestTempsOff: TLabeledEdit;
+    gbRadarConfiguration: TGroupBox;
+    edShowTimeServiceSpeed: TLabeledEdit;
+    edInactivityTime: TLabeledEdit;
+    edHighInactivitySpeed: TLabeledEdit;
+    edHighServiceSpeed: TLabeledEdit;
+    edLowServiceSpeed: TLabeledEdit;
+    edLowInactivitySpeed: TLabeledEdit;
+    btnSendRadarParameters: TButton;
+    gbNetworkTest: TGroupBox;
+    btnStartNetworkTest: TButton;
     ckbTempsOffBetweenTest: TCheckBox;
+    edtRadarTestTempsOff: TLabeledEdit;
+    edtRadarTestTempsOn: TLabeledEdit;
+    actStartNetworkTest: TAction;
+    actStopNetworkTest: TAction;
+    btnStopNetworkTest: TButton;
+    actSendRadarParams: TAction;
+    actGetRadarParams: TAction;
+    btnReadRadarParameters: TButton;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -159,7 +162,6 @@ type
     procedure actToggleDebugWindowExecute(Sender: TObject);
     procedure actStartServicingExecute(Sender: TObject);
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
-    procedure actTestCommWithDisplayExecute(Sender: TObject);
     function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
     function SendCommandToRemoteStation(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
@@ -173,8 +175,6 @@ type
     procedure pnlBackgroundClick(Sender: TObject);
     procedure actSetInFullScreenExecute(Sender: TObject);
     procedure actSetInNormalScreenExecute(Sender: TObject);
-    procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
-    procedure CleanMonArray(var Params: array of string);
     procedure edServiceSpeedUnitSubCheckboxClick(Sender: TObject);
     procedure lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure RefreshListTimerTimer(Sender: TObject);
@@ -184,14 +184,17 @@ type
     procedure TimerPublicityFullScreenTimer(Sender: TObject);
     procedure btnStopPubClick(Sender: TObject);
     function GetPubFileName(iDispatcher: integer; var sFilename: string): boolean;
-    procedure Button2Click(Sender: TObject);
     function GenericValidResponse(slPayloadDataAnswer: TStringList): boolean;
     procedure ckbPubBanniereClick(Sender: TObject);
     procedure actMasterSelfIdentificationExecute(Sender: TObject);
     procedure actLaunchApplicationExecute(Sender: TObject);
     procedure ProtocolePROTO_ControllerServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
     procedure AjouteOrUpdateOutListWithThisDevice(const sRemoteStationAddress: string; PayloadData: TStringList);
-    procedure actToggleRadarSimulTestExecute(Sender: TObject);
+    procedure actStartNetworkTestExecute(Sender: TObject);
+    procedure actStopNetworkTestExecute(Sender: TObject);
+    procedure actSendRadarParamsExecute(Sender: TObject);
+    procedure actGetRadarParamsExecute(Sender: TObject);
+    procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
 
   private
     { Private declarations }
@@ -329,6 +332,16 @@ end;
 procedure TfrmCallidusController.actFlushCurrentDetectedListExecute(Sender: TObject);
 begin
   lbDeviceDetected.Clear;
+end;
+
+procedure TfrmCallidusController.actGetRadarParamsExecute(Sender: TObject);
+begin
+  DisableToute;
+  try
+    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_GETRDRP, dtCallidusRadar, []);
+  finally
+    EnableToute;
+  end;
 end;
 
 { TfrmCallidusController.actLaunchApplicationExecute }
@@ -540,6 +553,40 @@ begin
   MessageDlg('Pas de cod epour le moment...', mtInformation, [mbOk], 0);
 end;
 
+procedure TfrmCallidusController.actStopNetworkTestExecute(Sender: TObject);
+begin
+  DisableToute;
+  try
+    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_STOPTST, dtCallidusRadar, []);
+  finally
+    EnableToute;
+  end;
+end;
+
+procedure TfrmCallidusController.actSendRadarParamsExecute(Sender: TObject);
+var
+  Params: array of string;
+  icurrentIndexInArray: integer;
+begin
+  DisableToute;
+  try
+    SetLength(Params, 20);
+    CleanMonArray(Params);
+    icurrentIndexInArray := 0;
+
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOW_LIMIT + '=' + edLowServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIG_LIMIT + '=' + edHighServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_SHOW_TIME + '=' + edShowTimeServiceSpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOWINACSP + '=' + edLowInactivitySpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
+
+    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
+  finally
+    EnableToute;
+  end;
+end;
+
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
 begin
   DisableToute;
@@ -555,20 +602,6 @@ begin
   DisableToute;
   try
     bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_NORMALSCREEN]);
-  finally
-    EnableToute;
-  end;
-end;
-
-procedure TfrmCallidusController.actTestCommWithDisplayExecute(Sender: TObject);
-var
-  ServiceSpeedTemporaire: TServiceSpeed;
-begin
-  DisableToute;
-  try
-    ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
-    ServiceSpeedTemporaire.CurrentPeekDirection := (1 + random(2));
-    bOverAllActionResult := InformeDisplayDuneNouvelleVitesse(ServiceSpeedTemporaire);
   finally
     EnableToute;
   end;
@@ -604,6 +637,7 @@ begin
         for iDevice := pred(CallidusDeviceList.Count) downto 0 do
           if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then LocalEnvoieLaCommande;
 
+        result:=True;
       finally
         FreeAndNil(PayloadDataAnswer);
         FreeAndNil(PayloadDataRequest);
@@ -641,20 +675,6 @@ begin
     FreeAndNil(slVariablesNames);
     FreeAndNil(slVariablesValues);
   end;
-end;
-
-procedure TfrmCallidusController.AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
-begin
-  Params[icurrentIndexInArray] := sToAdd;
-  inc(icurrentIndexInArray);
-end;
-
-procedure TfrmCallidusController.CleanMonArray(var Params: array of string);
-var
-  iElement: integer;
-begin
-  for iElement := 0 to pred(length(Params)) do
-    Params[iElement] := '';
 end;
 
 function TfrmCallidusController.InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
@@ -738,7 +758,7 @@ begin
     frmDebugWindow.Show;
 end;
 
-procedure TfrmCallidusController.actToggleRadarSimulTestExecute(Sender: TObject);
+procedure TfrmCallidusController.actStartNetworkTestExecute(Sender: TObject);
 var
   Params: array of string;
   iDevice: integer;
@@ -757,7 +777,7 @@ begin
     else
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USEOFF + '=' + '0');
 
-    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_TOGGTST, dtCallidusRadar, Params);
+    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_STRTTST, dtCallidusRadar, Params);
   finally
     EnableToute;
   end;
@@ -838,30 +858,6 @@ begin
     FreeAndNil(PanelStop);
   TimerPublicityFullScreen.Enabled := False; //Si t'as pas arrêté le 1er coup, tu vas arrêter ici!
   Application.ProcessMessages;
-end;
-
-procedure TfrmCallidusController.Button2Click(Sender: TObject);
-var
-  Params: array of string;
-  icurrentIndexInArray: integer;
-begin
-  DisableToute;
-  try
-    SetLength(Params, 20);
-    CleanMonArray(Params);
-    icurrentIndexInArray := 0;
-
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOW_LIMIT + '=' + edLowServiceSpeed.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIG_LIMIT + '=' + edHighServiceSpeed.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_SHOW_TIME + '=' + edShowTimeServiceSpeed.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_LOWINACSP + '=' + edLowInactivitySpeed.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
-
-    SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
-  finally
-    EnableToute;
-  end;
 end;
 
 procedure TfrmCallidusController.ckbPubBanniereClick(Sender: TObject);
@@ -1139,8 +1135,12 @@ begin
             if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
             if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
           end;
-
         end;
+
+      PROTO_CMD_RDRINFO:
+      begin
+        ProcessInfoForSpeedParam(PayloadData);
+      end;
     end;
 
   finally
@@ -1292,6 +1292,35 @@ begin
     FreeAndNil(slVariablesValues);
   end;
 end;
+
+procedure TfrmCallidusController.ProcessInfoForSpeedParam(PayloadData: TStringList);
+var
+  slVariablesNames, slVariablesValues: TStringList;
+  iAnyValue: integer;
+begin
+  slVariablesNames := TStringList.Create;
+  slVariablesValues := TStringList.Create;
+  try
+    CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOW_LIMIT);
+    if iAnyValue <> -1 then edLowServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIG_LIMIT);
+    if iAnyValue <> -1 then edHighServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_SHOW_TIME);
+    if iAnyValue <> -1 then edShowTimeServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOWINACSP);
+    if iAnyValue <> -1 then edLowInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIGINACSP);
+    if iAnyValue <> -1 then edHighInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_INAC_TIME);
+    if iAnyValue <> -1 then edInactivityTime.Text := slVariablesValues.Strings[iAnyValue];
+  finally
+    FreeAndNil(slVariablesNames);
+    FreeAndNil(slVariablesValues);
+  end;
+end;
+
 
 end.
 

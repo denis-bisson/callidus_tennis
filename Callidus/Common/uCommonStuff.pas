@@ -45,6 +45,8 @@ function Callidus_GetComputerName: string;
 procedure CallidusSplitVariablesNamesAndValues(slPayloadData, slVariablesNames, slVariablesValues: TStringList);
 function GetApplicationNbOfThisClass(sClassName: string): integer;
 function GetElapsedTime(A: int64): string;
+procedure CleanMonArray(var Params: array of string);
+procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
 
 const
   sCALLIDUS_SYSTEM_VERSION = 'v1.06';
@@ -504,6 +506,21 @@ begin
   RegistryConfigFile.WriteInteger(SectionName, 'left', WorkingForm.Left);
   RegistryConfigFile.WriteInteger(SectionName, 'top', WorkingForm.Top);
 end;
+
+procedure CleanMonArray(var Params: array of string);
+var
+  iElement: integer;
+begin
+  for iElement := 0 to pred(length(Params)) do
+    Params[iElement] := '';
+end;
+
+procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
+begin
+  Params[icurrentIndexInArray] := sToAdd;
+  inc(icurrentIndexInArray);
+end;
+
 
 end.
 

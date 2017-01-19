@@ -98,13 +98,10 @@ type
     edHighInactivitySpeed: TLabeledEdit;
     edInactivityTime: TLabeledEdit;
     miStartMonitoring: TMenuItem;
-    TabSheet2: TTabSheet;
     aeMainApplicationEvents: TApplicationEvents;
     actToggleDebugWindow: TAction;
     View1: TMenuItem;
     oggleDebugWindow1: TMenuItem;
-    actTestConnexionWithTarget: TAction;
-    btnStartTestEnBoucle: TButton;
     ProtocolePROTO_Radar: TProtocoleProto;
     cbSaveLogEachTimeWhenQuiting: TCheckBox;
     actStopMonitoring: TAction;
@@ -120,7 +117,6 @@ type
     IdUDPServerRadar: TIdUDPServer;
     tmrControllerVerification: TTimer;
     sbRadar: TStatusBar;
-    btnStopTestEnBoucle: TButton;
     miFullCommunicationLog: TMenuItem;
     btnApply: TButton;
     actAutodetection: TAction;
@@ -135,11 +131,6 @@ type
     cbLanceMonitoring: TCheckBox;
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
-    tbTempsOn: TTrackBar;
-    lblTempsOn: TLabel;
-    tbTempsOff: TTrackBar;
-    lblTempsOff: TLabel;
-    ckbSendAClearScreenBetweenSpeed: TCheckBox;
     tmrTestConnexion: TTimer;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
     procedure FormCreate(Sender: TObject);
@@ -167,14 +158,13 @@ type
     procedure SaveConfiguration;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure actToggleDebugWindowExecute(Sender: TObject);
-    procedure actTestConnexionWithTargetExecute(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure acSelectStalkerConfigFileExecute(Sender: TObject);
     procedure actCloseAllApplicationsExecute(Sender: TObject);
     procedure btnStopTestEnBoucleClick(Sender: TObject);
     procedure miFullCommunicationLogClick(Sender: TObject);
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
-    function FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed): boolean;
+    procedure FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed);
     procedure btnApplyClick(Sender: TObject);
     procedure ChangeServiceSettingClick(Sender: TObject);
     procedure actAutodetectionExecute(Sender: TObject);
@@ -183,12 +173,12 @@ type
     procedure cbDetectRadarClick(Sender: TObject);
     procedure cbDetectNetworkClick(Sender: TObject);
     procedure btnStopAutoDetectClick(Sender: TObject);
-    procedure tbTempsOnChange(Sender: TObject);
-    procedure tbTempsOffChange(Sender: TObject);
     procedure ProtocolePROTO_RadarServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
     procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
-    procedure ProcessInfoForTogguleTestParam(PayloadData: TStringList);
+    procedure StartNetworkTest(PayloadData: TStringList);
+    procedure StopNetworkTest(PayloadData: TStringList);
     procedure tmrTestConnexionTimer(Sender: TObject);
+    procedure SendBackToHostCurrentParameters;
 
   private
     { Private declarations }
@@ -205,6 +195,8 @@ type
     iIndexApplication: integer;
     bFlagAbort, bAbortAutoDetection, bCurrentlyDoingNetworkCycleTest: boolean;
     bFirstNetworkDetection: boolean;
+    itnTempsOn, itnTempsOff: integer;
+    btnIncludeTempsOff: boolean;
   public
     { Public declarations }
     ServiceSpeed: TServiceSpeed;
@@ -516,10 +508,9 @@ begin
 end;
 
 { TfrmCallidusRadar.FaisRemonterLeServiceSpeed }
-function TfrmCallidusRadar.FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed): boolean;
+procedure TfrmCallidusRadar.FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed);
 var
   PayloadDataRequest: TStringList;
-  Answer: AnsiString;
 begin
   PayloadDataRequest := TStringList.Create;
   try
@@ -543,7 +534,6 @@ end;
 
 procedure TfrmCallidusRadar.tmrTestConnexionTimer(Sender: TObject);
 var
-  Timeout: dword;
   ServiceSpeedTemporaire: TServiceSpeed;
 begin
   TTimer(Sender).Enabled := False;
@@ -556,14 +546,14 @@ begin
           ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
           ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
           FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
-          TTimer(Sender).Interval := tbTempsOn.Position;
-          if ckbSendAClearScreenBetweenSpeed.Checked then TTimer(Sender).Tag := 2;
+          TTimer(Sender).Interval := itnTempsOn;
+          if btnIncludeTempsOff then TTimer(Sender).Tag := 2;
         end;
 
       2:
         begin
           FaisRemonterLeServiceSpeed(nil);
-          TTimer(Sender).Interval := tbTempsOff.Position;
+          TTimer(Sender).Interval := itnTempsOff;
           TTimer(Sender).Tag := 1;
         end;
     end;
@@ -572,13 +562,11 @@ begin
   end;
 end;
 
-procedure TfrmCallidusRadar.actTestConnexionWithTargetExecute(Sender: TObject);
+procedure TfrmCallidusRadar.StopNetworkTest(PayloadData: TStringList);
 begin
   bFlagAbort := FALSE;
-  bCurrentlyDoingNetworkCycleTest := True;
-  tmrTestConnexion.Tag := 0;
-  tmrTestConnexion.Interval := 10;
-  tmrTestConnexion.Enabled := True;
+  bCurrentlyDoingNetworkCycleTest := False;
+  Application.ProcessMessages;
 end;
 
 procedure TfrmCallidusRadar.actToggleDebugWindowExecute(Sender: TObject);
@@ -1552,18 +1540,7 @@ begin
   end;
 end;
 
-{ TfrmCallidusRadar.tbTempsOnChange }
-procedure TfrmCallidusRadar.tbTempsOnChange(Sender: TObject);
-begin
-  lblTempsOn.Caption := 'Temps ON: ' + IntToStr(tbTempsOn.Position) + ' ms';
-end;
-
 { TfrmCallidusRadar.tbTempsOffChange }
-procedure TfrmCallidusRadar.tbTempsOffChange(Sender: TObject);
-begin
-  lblTempsOff.Caption := 'Temps OFF: ' + IntToStr(tbTempsOff.Position) + ' ms';
-end;
-
 procedure TfrmCallidusRadar.ProcessSpeedPacket(sSpeedReceived: AnsiString);
 var
   PeakSpeedToShow, LiveSpeedToShow: string;
@@ -1765,9 +1742,9 @@ begin
       cbLanceMonitoring.Checked := ReadBool(sConfigSectionName, 'cbLanceMonitoring', FALSE);
       cbDetectNetworkClick(cbDetectNetwork);
 
-      tbTempsOn.Position := ReadInteger(sConfigSectionName, 'tbTempsOn', 0);
-      tbTempsOff.Position := ReadInteger(sConfigSectionName, 'tbTempsOff', 0);
-      ckbSendAClearScreenBetweenSpeed.Checked := ReadBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', True);
+      itnTempsOn := ReadInteger(sConfigSectionName, 'tbTempsOn', 0);
+      itnTempsOff := ReadInteger(sConfigSectionName, 'tbTempsOff', 0);
+      btnIncludeTempsOff := ReadBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', True);
       // ..LoadConfiguration
     end;
   finally
@@ -1811,9 +1788,9 @@ begin
       WriteBool(sConfigSectionName, 'cbDetectRadar', cbDetectRadar.Checked);
       WriteBool(sConfigSectionName, 'cbLanceMonitoring', cbLanceMonitoring.Checked);
 
-      WriteInteger(sConfigSectionName, 'tbTempsOn', tbTempsOn.Position);
-      WriteInteger(sConfigSectionName, 'tbTempsOff', tbTempsOff.Position);
-      WriteBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', ckbSendAClearScreenBetweenSpeed.Checked);
+      WriteInteger(sConfigSectionName, 'tbTempsOn', itnTempsOn);
+      WriteInteger(sConfigSectionName, 'tbTempsOff', itnTempsOff);
+      WriteBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', btnIncludeTempsOff);
       // ..SaveConfiguration
     end;
   finally
@@ -1948,17 +1925,45 @@ begin
         ProcessInfoForSpeedParam(PayloadData);
       end;
 
-    PROTO_CMD_TOGGTST:
+    PROTO_CMD_STRTTST:
       begin
-        ProcessInfoForTogguleTestParam(PayloadData);
+        StartNetworkTest(PayloadData);
+      end;
+
+    PROTO_CMD_STOPTST:
+      begin
+        StopNetworkTest(PayloadData);
+      end;
+
+    PROTO_CMD_GETRDRP:
+      begin
+        SendBackToHostCurrentParameters;
       end;
   end;
 end;
 
-procedure TfrmCallidusRadar.ProcessInfoForTogguleTestParam(PayloadData: TStringList);
+procedure TfrmCallidusRadar.SendBackToHostCurrentParameters;
+var
+  PayloadDataRequest: TStringList;
+begin
+  PayloadDataRequest := TStringList.Create;
+  try
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_LOW_LIMIT + '=' + edLowServiceSpeed.Text);
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_HIG_LIMIT + '=' + edHighServiceSpeed.Text);
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_SHOW_TIME + '=' + edShowTimeServiceSpeed.Text);
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_LOWINACSP + '=' + edLowInactivitySpeed.Text);
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
+    PayloadDataRequest.Add(CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
+
+    ProtocolePROTO_Radar.PitchUnMessagePROTONoHandshake('', PROTO_CMD_RDRINFO, PayloadDataRequest);
+  finally
+    FreeAndNil(PayloadDataRequest);
+  end;
+end;
+
+procedure TfrmCallidusRadar.StartNetworkTest(PayloadData: TStringList);
 var
   slVariablesNames, slVariablesValues: TStringList;
-  iIndexCommand: integer;
   iAnyValue: integer;
 begin
   slVariablesNames := TStringList.Create;
@@ -1967,20 +1972,21 @@ begin
     CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPON);
-    if iAnyValue <> -1 then tbTempsOn.Position := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    if iAnyValue <> -1 then itnTempsOn := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPOFF);
-    if iAnyValue <> -1 then tbTempsOff.Position := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    if iAnyValue <> -1 then itnTempsOff := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_USEOFF);
-    if iAnyValue <> -1 then ckbSendAClearScreenBetweenSpeed.Checked := (iAnyValue = 1);
-    tbTempsOnChange(tbTempsOn);
-    tbTempsOffChange(tbTempsOff);
+    if iAnyValue <> -1 then btnIncludeTempsOff := (StrToIntDef(slVariablesValues.Strings[iAnyValue], 0) = 1);
 
     if not bCurrentlyDoingNetworkCycleTest then
-      btnStartTestEnBoucle.Click
-    else
-      btnStopTestEnBoucle.Click;
-
-    Application.ProcessMessages;
+    begin
+      bFlagAbort := FALSE;
+      bCurrentlyDoingNetworkCycleTest := True;
+      tmrTestConnexion.Tag := 0;
+      tmrTestConnexion.Interval := 10;
+      tmrTestConnexion.Enabled := True;
+      Application.ProcessMessages;
+    end;
 
   finally
     FreeAndNil(slVariablesNames);
@@ -1991,7 +1997,6 @@ end;
 procedure TfrmCallidusRadar.ProcessInfoForSpeedParam(PayloadData: TStringList);
 var
   slVariablesNames, slVariablesValues: TStringList;
-  iIndexCommand: integer;
   iAnyValue: integer;
 begin
   slVariablesNames := TStringList.Create;

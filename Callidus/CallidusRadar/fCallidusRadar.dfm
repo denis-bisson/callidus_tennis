@@ -162,11 +162,15 @@ object frmCallidusRadar: TfrmCallidusRadar
     Top = 78
     Width = 584
     Height = 226
-    ActivePage = TabSheet2
+    ActivePage = tsOptionsAutoDetection
     Align = alClient
     TabOrder = 0
     object tsConfiguration: TTabSheet
       Caption = 'Configuration'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnReadStalkerConfigFile: TButton
         Left = 0
         Top = 7
@@ -212,6 +216,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsDebug: TTabSheet
       Caption = 'Debug'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object chkbNoRadarFakeAnswer: TCheckBox
         Left = 16
         Top = 16
@@ -234,6 +242,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet1: TTabSheet
       Caption = 'Settings Service Speed'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -315,77 +327,6 @@ object frmCallidusRadar: TfrmCallidusRadar
         Enabled = False
         TabOrder = 6
         OnClick = btnApplyClick
-      end
-    end
-    object TabSheet2: TTabSheet
-      Caption = 'Test r'#233'seau'
-      ImageIndex = 5
-      object lblTempsOn: TLabel
-        Left = 216
-        Top = 19
-        Width = 53
-        Height = 13
-        Caption = 'Temps ON:'
-      end
-      object lblTempsOff: TLabel
-        Left = 216
-        Top = 115
-        Width = 58
-        Height = 13
-        Caption = 'Temps OFF:'
-      end
-      object btnStartTestEnBoucle: TButton
-        Left = 12
-        Top = 19
-        Width = 169
-        Height = 38
-        Hint = 
-          'Le Callidus-Radar va envoyer continuellement en boucle des vites' +
-          'ses de serive au Callidus-Controller'
-        Action = actTestConnexionWithTarget
-        Caption = 'D'#233'marre test en boucle'
-        TabOrder = 0
-      end
-      object btnStopTestEnBoucle: TButton
-        Left = 12
-        Top = 63
-        Width = 169
-        Height = 25
-        Caption = 'Stop!'
-        TabOrder = 1
-        OnClick = btnStopTestEnBoucleClick
-      end
-      object tbTempsOn: TTrackBar
-        Left = 216
-        Top = 38
-        Width = 357
-        Height = 45
-        Max = 10000
-        Min = 200
-        Frequency = 200
-        Position = 200
-        TabOrder = 2
-        OnChange = tbTempsOnChange
-      end
-      object tbTempsOff: TTrackBar
-        Left = 216
-        Top = 134
-        Width = 357
-        Height = 45
-        Max = 10000
-        Min = 200
-        Frequency = 200
-        Position = 200
-        TabOrder = 3
-        OnChange = tbTempsOffChange
-      end
-      object ckbSendAClearScreenBetweenSpeed: TCheckBox
-        Left = 216
-        Top = 89
-        Width = 350
-        Height = 17
-        Caption = 'Fais un vide entre chaque nouveau envoie de vitesse (temps off)'
-        TabOrder = 4
       end
     end
     object tsOptionsAutoDetection: TTabSheet
@@ -734,8 +675,8 @@ object frmCallidusRadar: TfrmCallidusRadar
       end>
   end
   object pmRadarConfig: TPopupMenu
-    Left = 44
-    Top = 254
+    Left = 228
+    Top = 102
     object RefreshCOMportlist1: TMenuItem
       Action = actRefreshComboComm
     end
@@ -839,10 +780,6 @@ object frmCallidusRadar: TfrmCallidusRadar
       ShortCut = 123
       OnExecute = actToggleDebugWindowExecute
     end
-    object actTestConnexionWithTarget: TAction
-      Caption = 'Test connexion with target'
-      OnExecute = actTestConnexionWithTargetExecute
-    end
     object actStopMonitoring: TAction
       Caption = 'Stop monitoring'
     end
@@ -872,8 +809,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
+    SettingsStore.RegRoot = rrCURRENTUSER
+    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '1.8.0.0'
+    Version = '2.0.0.0'
     Left = 100
     Top = 262
   end
@@ -900,7 +839,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 228
     Top = 246
     Bitmap = {
-      494C010102000800AC0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800B40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1460,7 +1399,7 @@ object frmCallidusRadar: TfrmCallidusRadar
   object tmrTestConnexion: TTimer
     Enabled = False
     OnTimer = tmrTestConnexionTimer
-    Left = 80
-    Top = 192
+    Left = 160
+    Top = 65528
   end
 end
