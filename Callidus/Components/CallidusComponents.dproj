@@ -87,7 +87,7 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="vclx.dcp"/>
-        <DCCReference Include="uProtocolePROTO.pas"/>
+        <DCCReference Include="uProtocoleProto.pas"/>
         <DCCReference Include="..\Common\uCommonStuff.pas"/>
         <DCCReference Include="uColorCallidus.pas"/>
         <DCCReference Include="uRichEditCallidus.pas"/>

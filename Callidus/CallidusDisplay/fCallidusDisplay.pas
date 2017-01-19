@@ -14,7 +14,7 @@ uses
   IdSocketHandle, IdGlobal,
 
   // Callidus
-  uCommonStuff, uProtocolePROTO;
+  uCommonStuff, uProtocoleProto;
 
 type
   TInformationForShowingServiceSpeed = record

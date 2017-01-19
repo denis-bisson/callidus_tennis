@@ -16,7 +16,7 @@ uses
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient,
 
   // Callidus
-  uCommonStuff, uProtocolePROTO;
+  uCommonStuff, uProtocoleProto;
 
 type
   TRadarMethod = (rm_GetMethod, rm_ChangeMethod, rm_SetMethod);

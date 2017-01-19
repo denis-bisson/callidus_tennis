@@ -1,4 +1,4 @@
-unit uProtocolePROTO;
+unit uProtocoleProto;
 
 {$MESSAGE WARN '2017-01-18:DB-We should do the trick to rename the unit with no upper case!}
 
@@ -121,7 +121,7 @@ uses
   // My Stuff
   uCommonStuff;
 
-{$R uProtocolePROTO.dcr}
+{$R uProtocoleProto.dcr}
 
 constructor TProtocoleProto.Create(AOwner: TComponent);
 begin
