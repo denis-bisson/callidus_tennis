@@ -4,19 +4,18 @@ interface
 
 uses
   // Delphi
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.Actions, Vcl.ActnList,
-  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.Menus, Vcl.ComCtrls,
-  Vcl.StdCtrls, System.Win.ScktComp, Vcl.AppEvnts,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  System.Actions, Vcl.ActnList, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan,
+  Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.AppEvnts, Vcl.ExtCtrls,
+  Vcl.CheckLst, Vcl.ToolWin, System.ImageList, Vcl.ImgList,
 
   // Third Party
-  IdGlobal,
+  IdGlobal, IdUDPServer, IdSocketHandle, IdBaseComponent, IdComponent,
+  IdUDPBase, IdUDPClient,
 
-  // My Stuff
-  uCommonStuff, Vcl.ExtCtrls, IdUDPServer, IdSocketHandle, IdBaseComponent,
-  IdComponent, IdUDPBase, uProtocolePROTO, Vcl.CheckLst,
-  Vcl.ToolWin, System.ImageList, Vcl.ImgList,
-  uCheckListCallidus, uLabeledEditCallidus, IdUDPClient;
+  // Callidus
+  uCommonStuff, uProtocolePROTO, uCheckListCallidus, uLabeledEditCallidus;
 
 type
   tDeviceType = (dtUnknown, dtCallidusRadar, dtCallidusDisplay);
@@ -59,16 +58,16 @@ type
     actStartServicing: TAction;
     N1: TMenuItem;
     StartServicing1: TMenuItem;
-    ProtocolePROTO_Radar: TProtocole_PROTO;
+    ProtocolePROTO_Radar: TProtocoleProto;
     miSaveLogEachTime: TMenuItem;
-    ProtocolePROTO_Display: TProtocole_PROTO;
+    ProtocolePROTO_Display: TProtocoleProto;
     actTestCommWithDisplay: TAction;
     estcommunicationwithCallidusDisplay1: TMenuItem;
     actCloseAllCallidusApplications: TAction;
     Action11: TMenuItem;
     AutoStartTimer: TTimer;
     IdUDPServerController: TIdUDPServer;
-    ProtocolePROTO_Controller: TProtocole_PROTO;
+    ProtocolePROTO_Controller: TProtocoleProto;
     pgMainPagecontrol: TPageControl;
     Devices: TTabSheet;
     Label1: TLabel;
@@ -146,6 +145,11 @@ type
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
     IdUDPClientDisplay: TIdUDPClient;
+    actToggleRadarSimulTest: TAction;
+    Button1: TButton;
+    edtRadarTestTempsOn: TLabeledEdit;
+    edtRadarTestTempsOff: TLabeledEdit;
+    ckbTempsOffBetweenTest: TCheckBox;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -155,11 +159,9 @@ type
     procedure actToggleDebugWindowExecute(Sender: TObject);
     procedure actStartServicingExecute(Sender: TObject);
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
-    procedure ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
     procedure actTestCommWithDisplayExecute(Sender: TObject);
     function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
-    function SendDisplayGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
-    function SendRadarGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+    function SendCommandToRemoteStation(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
     procedure EnableToute;
     procedure actCloseAllCallidusApplicationsExecute(Sender: TObject);
@@ -189,6 +191,7 @@ type
     procedure actLaunchApplicationExecute(Sender: TObject);
     procedure ProtocolePROTO_ControllerServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
     procedure AjouteOrUpdateOutListWithThisDevice(const sRemoteStationAddress: string; PayloadData: TStringList);
+    procedure actToggleRadarSimulTestExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -225,7 +228,7 @@ uses
 
   // Third party
 
-  // My stuff
+  // Callidus
   fDebugWindow;
 
 const
@@ -375,7 +378,7 @@ var
 begin
   result := False;
   if GetPubFileName(1, sLocalFilename) then
-    result := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
+    result := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
 end;
 
 { TfrmCallidusController.GetPubFileName }
@@ -534,32 +537,14 @@ end;
 
 procedure TfrmCallidusController.actStartServicingExecute(Sender: TObject);
 begin
-  try
-    //    ServerSocketForRadar.Port := PORT_FOR_SENDING_CONTROLLER;
-    //    WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-    //    ServerSocketForRadar.Open;
-    //    Application.ProcessMessages;
-    //    if ServerSocketForRadar.Active then
-    //    begin
-    //      WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS);
-    //
-//    IdUDPServerController.DefaultPort := PORT_FOR_IDENTIFICATION;
-//    if not IdUDPServerController.Active then IdUDPServerController.Active := TRUE;
-    //    end
-    //    else
-    //    begin
-    //      WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-    //    end;
-  except
-    WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-  end;
+  MessageDlg('Pas de cod epour le moment...', mtInformation, [mbOk], 0);
 end;
 
 procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_FULLSCREEN]);
+    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_FULLSCREEN]);
   finally
     EnableToute;
   end;
@@ -569,7 +554,7 @@ procedure TfrmCallidusController.actSetInNormalScreenExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult := SendDisplayGenericCommand(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_NORMALSCREEN]);
+    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_NORMALSCREEN]);
   finally
     EnableToute;
   end;
@@ -589,11 +574,20 @@ begin
   end;
 end;
 
-function TfrmCallidusController.SendDisplayGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+function TfrmCallidusController.SendCommandToRemoteStation(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
 var
   PayloadDataRequest, PayloadDataAnswer: TStringList;
   Answer: AnsiString;
   iDevice, iParam: integer;
+
+  procedure LocalEnvoieLaCommande;
+  begin
+    case deviceType of
+      dtCallidusDisplay: ProtocolePROTO_Display.PitchUnMessagePROTONoHandshake(CallidusDeviceList.Device[iDevice].sIPAddress, ProtoCommand, PayloadDataRequest);
+      dtCallidusRadar: ProtocolePROTO_Radar.PitchUnMessagePROTONoHandshake(CallidusDeviceList.Device[iDevice].sIPAddress, ProtoCommand, PayloadDataRequest);
+    end;
+  end;
+
 begin
   result := False;
   if not bDoingAnAction then
@@ -608,12 +602,7 @@ begin
             PayloadDataRequest.Add(params[iParam]);
 
         for iDevice := pred(CallidusDeviceList.Count) downto 0 do
-        begin
-          if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
-          begin
-            ProtocolePROTO_Display.PitchUnMessagePROTONoHandshake(CallidusDeviceList.Device[iDevice].sIPAddress, ProtoCommand,PayloadDataRequest);
-          end;
-        end;
+          if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then LocalEnvoieLaCommande;
 
       finally
         FreeAndNil(PayloadDataAnswer);
@@ -705,7 +694,7 @@ begin
     if GetPubFileName(2, sLocalPubFilename) then
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
 
-  result := SendDisplayGenericCommand(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
+  result := SendCommandToRemoteStation(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
 
 procedure TfrmCallidusController.lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -747,6 +736,31 @@ begin
     frmDebugWindow.Close
   else
     frmDebugWindow.Show;
+end;
+
+procedure TfrmCallidusController.actToggleRadarSimulTestExecute(Sender: TObject);
+var
+  Params: array of string;
+  iDevice: integer;
+  sSpeedValueToShow, sSpeedUnitToShow, sSpeedRatio, sLocalPubFilename: string;
+  icurrentIndexInArray: integer;
+begin
+  DisableToute;
+  try
+    SetLength(Params, 20);
+    CleanMonArray(Params);
+    icurrentIndexInArray := 0;
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_TEMPON + '=' + edtRadarTestTempsOn.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_TEMPOFF + '=' + edtRadarTestTempsOff.Text);
+    if ckbTempsOffBetweenTest.Checked then
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USEOFF + '=' + '1')
+    else
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USEOFF + '=' + '0');
+
+    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_TOGGTST, dtCallidusRadar, Params);
+  finally
+    EnableToute;
+  end;
 end;
 
 procedure TfrmCallidusController.AutoStartTimerTimer(Sender: TObject);
@@ -844,7 +858,7 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
 
-    bOverAllActionResult := SendRadarGenericCommand(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
+    SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
   finally
     EnableToute;
   end;
@@ -985,6 +999,9 @@ begin
       edInactivityTime.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', '5000');
       ckbPubBanniere.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbPubBanniere', True);
       ckbPubBanniereClick(ckbPubBanniere);
+      edtRadarTestTempsOn.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOn', '250');
+      edtRadarTestTempsOff.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOff', '100');
+      ckbTempsOffBetweenTest.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', TRUE);
       // ..LoadConfiguration
     end;
   finally
@@ -1082,14 +1099,15 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'HighLimitInactivitySpeed', edHighInactivitySpeed.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'TimeInactivitySpeed', edInactivityTime.Text);
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbPubBanniere', ckbPubBanniere.Checked);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOn', edtRadarTestTempsOn.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOff', edtRadarTestTempsOff.Text);
+      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', ckbTempsOffBetweenTest.Checked);
       // ..SaveConfiguration
     end;
   finally
     ConfigFile.Free;
   end;
 end;
-
-{ ProtocolePROTO_RadarServerSocketValidPacketReceived }
 
 { TfrmCallidusController.ProtocolePROTO_ControllerServerPacketReceived}
 procedure TfrmCallidusController.ProtocolePROTO_ControllerServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
@@ -1102,7 +1120,7 @@ begin
   slVariablesValues := TStringList.Create;
 
   try
-    case TProtocole_PROTO(Sender).CommandList.IndexOf(Answer7) of
+    case TProtocoleProto(Sender).CommandList.IndexOf(Answer7) of
       PROTO_CMD_IMALIVE:
         begin
           AjouteOrUpdateOutListWithThisDevice(ABinding.PeerIP, PayloadData);
@@ -1128,89 +1146,6 @@ begin
   finally
     slVariablesNames.Free;
     slVariablesValues.Free;
-  end;
-end;
-
-procedure TfrmCallidusController.ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
-var
-  PayloadDataRequest, slVariablesNames, slVariablesValues: TStringList;
-  iNewPos, iIndexDevice, iIndexComputerName, iIndexComplementName, iIndexCommand, iIndexGeneric, iIndexVersionName: Integer;
-  sRemoteDevice, sRemoteVersion: string;
-  sPerte: AnsiString;
-  localDeviceType: tDeviceType;
-  ServiceSpeedInfo: TServiceSpeed;
-begin
-  slVariablesNames := TStringList.Create;
-  slVariablesValues := TStringList.Create;
-  try
-    iIndexCommand := ProtocolePROTO_Radar.CommandList.IndexOf(Answer7);
-
-    case iIndexCommand of
-      PROTO_CMD_IMALIVE:
-        begin
-          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-          ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
-          iIndexDevice := slVariablesNames.IndexOf(CALLIDUS_INFO_DEVICETYPE);
-          iIndexComputerName := slVariablesNames.IndexOf(CALLIDUS_INFO_COMPUTERNAME);
-          iIndexComplementName := slVariablesNames.IndexOf(CALLIDUS_INFO_COMPLEMENTNAME);
-          iIndexVersionName := slVariablesNames.IndexOf(CALLIDUS_INFO_VERSION);
-          if iIndexVersionName = -1 then
-            sRemoteVersion := 'Inconnue!'
-          else
-            sRemoteVersion := slVariablesValues.Strings[iIndexVersionName];
-
-          if (iIndexDevice <> -1) and (iIndexComputerName <> -1) and (iIndexComplementName <> -1) then
-          begin
-            localDeviceType := dtUnknown;
-            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Radar' then
-              localDeviceType := dtCallidusRadar;
-            if slVariablesValues.Strings[iIndexDevice] = 'Callidus-Display' then
-              localDeviceType := dtCallidusDisplay;
-
-            iNewPos := CallidusDeviceList.Add(localDeviceType, Socket.RemoteAddress, slVariablesValues.Strings[iIndexComputerName], slVariablesValues.Strings[iIndexDevice], slVariablesValues.Strings[iIndexComplementName], sRemoteVersion);
-            if iNewPos <> -1 then
-            begin
-              sRemoteDevice := TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetDisplayName;
-              lbDeviceDetected.Items.Add(sRemoteDevice);
-              WriteStatusLg('New device detected: ' + TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetFullName, 'Nouvel appareil détecté: ' + TCallidusDevice(CallidusDeviceList.Device[iNewPos]).GetFullName, COLORSUCCESS);
-              if sRemoteVersion <> sCALLIDUS_SYSTEM_VERSION then
-              begin
-                frmDebugWindow.StatusWindow.WriteStatus('ERREUR: ICOMPATIBILITÉ DE VERSION POUR CE DEVICE!', COLORERROR);
-                frmDebugWindow.StatusWindow.WriteStatus('Version du CALLIDUS-CONTROLLER: ' + sCALLIDUS_SYSTEM_VERSION, COLORERROR);
-                frmDebugWindow.StatusWindow.WriteStatus(' Version application-satellite: ' + sRemoteVersion, COLORERROR);
-                if not frmDebugWindow.Visible then
-                  frmDebugWindow.Show;
-              end;
-            end;
-          end;
-
-        end;
-
-      PROTO_CMD_SNDINFO:
-        begin
-          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-          ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
-          Application.ProcessMessages;
-
-          //Si nous ne sommes pas en mode publicité, on pitche au Display le service qu'on vient d'avoir. Sinon, on avait juste dit okay au Radar et c'est tout.
-          if bModePublicite = FALSE then
-          begin
-            ServiceSpeedInfo.CurrentPeakSpeed := -2;
-            iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
-            if iIndexGeneric <> -1 then
-              ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
-            iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
-            if iIndexGeneric <> -1 then
-              ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
-            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then
-              InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
-          end;
-        end;
-    end;
-
-  finally
-    FreeAndNil(slVariablesNames);
-    FreeAndNil(slVariablesValues);
   end;
 end;
 
@@ -1275,39 +1210,6 @@ begin
   WriteStatusLg('Log will be saved under this name: ' + sNomFichierLog, 'Le journal sera sauvegarder sous le nom: ' + sNomFichierLog, COLORSTATUS);
   frmDebugWindow.StatusWindow.PlainText := True;
   frmDebugWindow.StatusWindow.Lines.SaveToFile(sNomFichierLog, TEncoding.ANSI);
-end;
-
-function TfrmCallidusController.SendRadarGenericCommand(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
-var
-  PayloadDataRequest, PayloadDataAnswer: TStringList;
-  Answer: AnsiString;
-  iDevice, iParam: integer;
-begin
-  PayloadDataRequest := TStringList.Create;
-  PayloadDataAnswer := TStringList.Create;
-  try
-    result := TRUE;
-
-    for iParam := 0 to pred(length(params)) do
-      if params[iParam] <> '' then
-        PayloadDataRequest.Add(params[iParam]);
-
-    for iDevice := pred(CallidusDeviceList.Count) downto 0 do
-    begin
-      if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then
-      begin
-        ProtocolePROTO_Radar.WorkingClientSocket.Address := CallidusDeviceList.Device[iDevice].sIPAddress;
-        ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_RADAR;
-        if not ProtocolePROTO_Radar.PitchUnMessageAndGetResponsePROTO(ProtoCommand, PayloadDataRequest, Answer, nil) > 0 then
-          result := FALSE;
-        Application.ProcessMessages;
-      end;
-    end;
-
-  finally
-    FreeAndNil(PayloadDataAnswer);
-    FreeAndNil(PayloadDataRequest);
-  end;
 end;
 
 { TfrmCallidusController.evMainApplicationEventsIdle}

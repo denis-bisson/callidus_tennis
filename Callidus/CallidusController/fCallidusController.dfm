@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = Devices
+    ActivePage = tsRadar
     Align = alClient
     TabOrder = 1
     object Devices: TTabSheet
@@ -668,7 +668,7 @@ object frmCallidusController: TfrmCallidusController
       end
     end
     object tsRadar: TTabSheet
-      Caption = 'Radar'
+      Caption = 'Options pour Callidus-Radar'
       ImageIndex = 5
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
@@ -739,11 +739,49 @@ object frmCallidusController: TfrmCallidusController
       object Button2: TButton
         Left = 72
         Top = 192
-        Width = 220
+        Width = 377
         Height = 25
         Caption = 'Envoie aux RADAR!'
         TabOrder = 6
         OnClick = Button2Click
+      end
+      object Button1: TButton
+        Left = 72
+        Top = 280
+        Width = 377
+        Height = 25
+        Action = actToggleRadarSimulTest
+        TabOrder = 7
+      end
+      object edtRadarTestTempsOn: TLabeledEdit
+        Left = 204
+        Top = 226
+        Width = 121
+        Height = 21
+        EditLabel.Width = 52
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Temps On:'
+        LabelPosition = lpLeft
+        TabOrder = 8
+      end
+      object edtRadarTestTempsOff: TLabeledEdit
+        Left = 204
+        Top = 253
+        Width = 121
+        Height = 21
+        EditLabel.Width = 54
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Temps Off:'
+        LabelPosition = lpLeft
+        TabOrder = 9
+      end
+      object ckbTempsOffBetweenTest: TCheckBox
+        Left = 344
+        Top = 228
+        Width = 161
+        Height = 17
+        Caption = 'Temps off entre les vitesses'
+        TabOrder = 10
       end
     end
   end
@@ -875,8 +913,8 @@ object frmCallidusController: TfrmCallidusController
   end
   object amMainActionManager: TActionManager
     Images = ImageList1
-    Left = 352
-    Top = 216
+    Left = 472
+    Top = 8
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
       Caption = 'Close application'
@@ -953,23 +991,27 @@ object frmCallidusController: TfrmCallidusController
       ImageIndex = 8
       OnExecute = actLaunchApplicationExecute
     end
+    object actToggleRadarSimulTest: TAction
+      Caption = 'D'#233'marre ou cesse le mode de test de r'#233'seau sur le Callidus-Radar'
+      Hint = 'D'#233'marre ou cesse le mode de test de r'#233'seau sur le Callidus-Radar'
+      OnExecute = actToggleRadarSimulTestExecute
+    end
   end
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
     OnIdle = evMainApplicationEventsIdle
-    Left = 528
-    Top = 352
+    Left = 536
+    Top = 312
   end
-  object ProtocolePROTO_Radar: TProtocole_PROTO
+  object ProtocolePROTO_Radar: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
-    OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
     Left = 92
     Top = 214
   end
-  object ProtocolePROTO_Display: TProtocole_PROTO
+  object ProtocolePROTO_Display: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientDisplay
     WriteDebug = True
@@ -989,7 +1031,7 @@ object frmCallidusController: TfrmCallidusController
     Left = 164
     Top = 142
   end
-  object ProtocolePROTO_Controller: TProtocole_PROTO
+  object ProtocolePROTO_Controller: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingServerUDP = IdUDPServerController
     WriteDebug = True
@@ -1005,9 +1047,10 @@ object frmCallidusController: TfrmCallidusController
   object ImageList1: TImageList
     Height = 32
     Width = 32
-    Left = 436
+    Left = 428
+    Top = 8
     Bitmap = {
-      494C01010A00C800E80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800F80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2603,23 +2646,23 @@ object frmCallidusController: TfrmCallidusController
     Interval = 11000
     OnTimer = RefreshListTimerTimer
     Left = 532
-    Top = 168
+    Top = 152
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 508
-    Top = 112
+    Left = 532
+    Top = 208
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 92
-    Top = 270
+    Left = 364
+    Top = 102
   end
   object IdUDPClientDisplay: TIdUDPClient
     Port = 0
-    Left = 228
-    Top = 270
+    Left = 500
+    Top = 86
   end
 end

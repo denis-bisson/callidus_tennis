@@ -318,7 +318,7 @@ object frmCallidusRadar: TfrmCallidusRadar
       end
     end
     object TabSheet2: TTabSheet
-      Caption = 'Network'
+      Caption = 'Test r'#233'seau'
       ImageIndex = 5
       object lblTempsOn: TLabel
         Left = 216
@@ -329,27 +329,31 @@ object frmCallidusRadar: TfrmCallidusRadar
       end
       object lblTempsOff: TLabel
         Left = 216
-        Top = 83
+        Top = 115
         Width = 58
         Height = 13
         Caption = 'Temps OFF:'
       end
-      object Button6: TButton
+      object btnStartTestEnBoucle: TButton
         Left = 12
-        Top = 14
+        Top = 19
         Width = 169
-        Height = 25
+        Height = 38
+        Hint = 
+          'Le Callidus-Radar va envoyer continuellement en boucle des vites' +
+          'ses de serive au Callidus-Controller'
         Action = actTestConnexionWithTarget
+        Caption = 'D'#233'marre test en boucle'
         TabOrder = 0
       end
-      object Button2: TButton
+      object btnStopTestEnBoucle: TButton
         Left = 12
-        Top = 45
-        Width = 75
+        Top = 63
+        Width = 169
         Height = 25
         Caption = 'Stop!'
         TabOrder = 1
-        OnClick = Button2Click
+        OnClick = btnStopTestEnBoucleClick
       end
       object tbTempsOn: TTrackBar
         Left = 216
@@ -365,7 +369,7 @@ object frmCallidusRadar: TfrmCallidusRadar
       end
       object tbTempsOff: TTrackBar
         Left = 216
-        Top = 102
+        Top = 134
         Width = 357
         Height = 45
         Max = 10000
@@ -374,6 +378,14 @@ object frmCallidusRadar: TfrmCallidusRadar
         Position = 200
         TabOrder = 3
         OnChange = tbTempsOffChange
+      end
+      object ckbSendAClearScreenBetweenSpeed: TCheckBox
+        Left = 216
+        Top = 89
+        Width = 350
+        Height = 17
+        Caption = 'Fais un vide entre chaque nouveau envoie de vitesse (temps off)'
+        TabOrder = 4
       end
     end
     object tsOptionsAutoDetection: TTabSheet
@@ -860,12 +872,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
-    SettingsStore.RegRoot = rrCURRENTUSER
-    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '2.0.0.0'
-    Left = 116
-    Top = 166
+    Version = '1.8.0.0'
+    Left = 100
+    Top = 262
   end
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
@@ -873,24 +883,24 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 323
     Top = 160
   end
-  object ProtocolePROTO_Radar: TProtocole_PROTO
+  object ProtocolePROTO_Radar: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientController
     WorkingServerUDP = IdUDPServerRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
     DeviceName = 'Callidus-Radar'
-    OnServerSocketValidPacketReceived = ProtocolePROTO_RadarServerSocketValidPacketReceived
+    OnServerPacketReceived = ProtocolePROTO_RadarServerPacketReceived
     Left = 284
     Top = 254
   end
   object ImageListRadar: TImageList
     Height = 32
     Width = 32
-    Left = 36
-    Top = 198
+    Left = 228
+    Top = 246
     Bitmap = {
-      494C010102000800980020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800AC0020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1438,7 +1448,6 @@ object frmCallidusRadar: TfrmCallidusRadar
   end
   object tmrControllerVerification: TTimer
     Enabled = False
-    OnTimer = tmrControllerVerificationTimer
     Left = 496
     Top = 128
   end
@@ -1447,5 +1456,11 @@ object frmCallidusRadar: TfrmCallidusRadar
     DefaultPort = 0
     Left = 524
     Top = 254
+  end
+  object tmrTestConnexion: TTimer
+    Enabled = False
+    OnTimer = tmrTestConnexionTimer
+    Left = 80
+    Top = 192
   end
 end
