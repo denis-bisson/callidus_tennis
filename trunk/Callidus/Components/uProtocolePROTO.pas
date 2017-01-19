@@ -1,10 +1,12 @@
 unit uProtocolePROTO;
 
+{$MESSAGE WARN '2017-01-18:DB-We should do the trick to rename the unit with no upper case!}
+
 interface
 
 uses
   // Delphi
-  Classes, Types, System.Win.ScktComp, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics,
+  Classes, Types, Vcl.StdCtrls, Vcl.Forms, Vcl.Graphics,
 
   // Third party
   IdUDPClient, IdUDPServer, IdGlobal, IdSocketHandle, IdBaseComponent,
@@ -24,6 +26,7 @@ const
   PROTO_CMD_AREUYTR = $07;
   PROTO_CMD_SNDINFO = $08;
   PROTO_CMD_DISCRTC = $09;
+  PROTO_CMD_TOGGTST = $0A;
   // ATTENTION! Si t'ajoutes une nouvelle commande, il faut aussi l'ajouter dans "FCommandList"...
 
   IDX_PROTO_LENGTH = 0;
@@ -47,16 +50,13 @@ const
   RXBUFFERSIZE = 30000;
 
 type
-  TServerSocketValidPacketReceivedEvent = procedure(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList) of object;
   TServerPacketReceivedEvent = procedure(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList) of object;
 
-  TProtocole_PROTO = class(TComponent)
+  TProtocoleProto = class(TComponent)
   private
     FHostControllerAddress: string;
     FWriteDebugFlag: boolean;
     FMessageWindow: tRichEditCallidus;
-    FClientSocket: TClientSocket;
-    FServerSocket: TServerSocket;
     FClientUDP: TIdUDPClient;
     FServerUDP: TIdUDPServer;
     FSequenceNumber: byte;
@@ -66,7 +66,6 @@ type
     FRxServerBuffer: TIdBytes;
     FRxClientBufferIndex: integer;
     FRxServerBufferIndex: integer;
-    FOnServerSocketValidPacketReceived: TServerSocketValidPacketReceivedEvent;
     FOnServerPacketReceived: TServerPacketReceivedEvent;
     FFriendlyNameForLog: string;
     FDeviceName: string;
@@ -81,27 +80,7 @@ type
     function Init: boolean;
     function PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
     function isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
-    function PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString; PayloadDataReceived: TStringList): integer;
     procedure PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
-    function ServerSocketReplyAnswer(Socket: TCustomWinSocket; AnswerIndex: integer; PayloadDataOut: TStringList): boolean;
-    procedure AnyClientSocketConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyClientSocketConnecting(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyClientSocketDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyClientSocketError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
-    procedure AnyClientSocketLookup(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyClientSocketRead(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyClientSocketWrite(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketAccept(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketClientConnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketClientError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
-    procedure AnyServerSocketClientRead(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketClientWrite(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketGetSocket(Sender: TObject; Socket: NativeInt; var ClientSocket: TServerClientWinSocket);
-    procedure AnyServerSocketGetThread(Sender: TObject; ClientSocket: TServerClientWinSocket; var SocketThread: TServerClientThread);
-    procedure AnyServerSocketListen(Sender: TObject; Socket: TCustomWinSocket);
-    procedure AnyServerSocketThreadEnd(Sender: TObject; Thread: TServerClientThread);
-    procedure AnyServerSocketThreadStart(Sender: TObject; Thread: TServerClientThread);
     procedure AnyUDPClientConnected(Sender: TObject);
     procedure AnyUDPClientDisconnected(Sender: TObject);
     procedure AnyUDPClientStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
@@ -121,14 +100,11 @@ type
     property HostControllerAddress: string read FHostControllerAddress write FHostControllerAddress;
     property WorkingClientUDP: TIdUDPClient read FClientUDP write FClientUDP;
     property WorkingServerUDP: TIdUDPServer read FServerUDP write FServerUDP;
-    property WorkingClientSocket: TClientSocket read FClientSocket write FClientSocket;
-    property WorkingServerSocket: TServerSocket read FServerSocket write FServerSocket;
     property MessageWindow: tRichEditCallidus read FMessageWindow write FMessageWindow;
     property WriteDebug: boolean read FWriteDebugFlag write FWriteDebugFlag;
     property FriendlyNameForLog: string read FFriendlyNameForLog write FFriendlyNameForLog;
     property DeviceName: string read FDeviceName write FDeviceName;
     property ComplementDeviceName: string read FComplementDeviceName write FComplementDeviceName;
-    property OnServerSocketValidPacketReceived: TServerSocketValidPacketReceivedEvent read FOnServerSocketValidPacketReceived write FOnServerSocketValidPacketReceived;
     property OnServerPacketReceived: TServerPacketReceivedEvent read FOnServerPacketReceived write FOnServerPacketReceived;
   end;
 
@@ -147,16 +123,16 @@ uses
 
 {$R uProtocolePROTO.dcr}
 
-constructor TProtocole_PROTO.Create(AOwner: TComponent);
+constructor TProtocoleProto.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FFriendlyNameForLog := 'Unknown';
   FHostControllerAddress := IP_ADDRESS_NULL;
 end;
 
-{ TProtocole_PROTO.init }
+{ TProtocoleProto.init }
 
-function TProtocole_PROTO.Init: boolean;
+function TProtocoleProto.Init: boolean;
 var
   sWorkingAddress: string;
   posDot1, posDot2, posDot3: integer;
@@ -188,42 +164,17 @@ begin
     FCommandList := TStringList.Create;
     FCommandList := TStringList.Create;
     FCommandList.Sorted := FALSE;
-    FCommandList.Add('NULLLLL'); // 0
-    FCommandList.Add('WHOSERV'); // 1
-    FCommandList.Add('SERVRIS'); // 2
-    FCommandList.Add('IMALIVE'); // 3
-    FCommandList.Add('SMPLACK'); // 4
-    FCommandList.Add('ATICKET'); // 5
-    FCommandList.Add('SPLTEST'); // 6
-    FCommandList.Add('AREUYTR'); // 7
-    FCommandList.Add('SNDINFO'); // 8
-    FCommandList.Add('DISCRTC'); // 9
-
-    if FClientSocket <> nil then
-    begin
-      FClientSocket.OnConnect := AnyClientSocketConnect;
-      FClientSocket.OnConnecting := AnyClientSocketConnecting;
-      FClientSocket.OnDisconnect := AnyClientSocketDisconnect;
-      FClientSocket.OnError := AnyClientSocketError;
-      FClientSocket.OnLookup := AnyClientSocketLookup;
-      FClientSocket.OnRead := AnyClientSocketRead;
-      FClientSocket.OnWrite := AnyClientSocketWrite;
-    end;
-
-    if FServerSocket <> nil then
-    begin
-      FServerSocket.OnAccept := AnyServerSocketAccept;
-      FServerSocket.OnClientConnect := AnyServerSocketClientConnect;
-      FServerSocket.OnClientDisconnect := AnyServerSocketClientDisconnect;
-      FServerSocket.OnClientError := AnyServerSocketClientError;
-      FServerSocket.OnClientRead := AnyServerSocketClientRead;
-      FServerSocket.OnClientWrite := AnyServerSocketClientWrite;
-      FServerSocket.OnGetSocket := AnyServerSocketGetSocket;
-      FServerSocket.OnGetThread := AnyServerSocketGetThread;
-      FServerSocket.OnListen := AnyServerSocketListen;
-      FServerSocket.OnThreadEnd := AnyServerSocketThreadEnd;
-      FServerSocket.OnThreadStart := AnyServerSocketThreadStart;
-    end;
+    FCommandList.Add('NULLLLL'); // $00
+    FCommandList.Add('WHOSERV'); // $01
+    FCommandList.Add('SERVRIS'); // $02
+    FCommandList.Add('IMALIVE'); // $03
+    FCommandList.Add('SMPLACK'); // $04
+    FCommandList.Add('ATICKET'); // $05
+    FCommandList.Add('SPLTEST'); // $06
+    FCommandList.Add('AREUYTR'); // $07
+    FCommandList.Add('SNDINFO'); // $08
+    FCommandList.Add('DISCRTC'); // $09
+    FCommandList.Add('TOGGTST'); // $0A
 
     if FClientUDP <> nil then
     begin
@@ -249,8 +200,8 @@ begin
   end;
 end;
 
-{ TProtocole_PROTO.GetHotControllerAddress}
-function TProtocole_PROTO.GetHotControllerAddress: boolean;
+{ TProtocoleProto.GetHotControllerAddress}
+function TProtocoleProto.GetHotControllerAddress: boolean;
 var
   TxBuffer, RxBuffer: TIdBytes;
   iChar, iNbBytesToSend, iNbBytesReceived: integer;
@@ -328,27 +279,11 @@ begin
   end;
 end;
 
-function TProtocole_PROTO.ServerSocketReplyAnswer(Socket: TCustomWinSocket; AnswerIndex: integer; PayloadDataOut: TStringList): boolean;
+{ TProtocoleProto.PitchUnMessagePROTONoHandshake }
+procedure TProtocoleProto.PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
 var
   TxBuffer: TIdBytes;
   NbBytestoSend: integer;
-begin
-  try
-    SetLength(TxBuffer, 2000);
-    NbBytestoSend := PreparePacket(AnswerIndex, PayloadDataOut, TxBuffer, length(TxBuffer));
-    Socket.SendBuf(TxBuffer[0], NbBytestoSend);
-    result := TRUE;
-  except
-    result := FALSE;
-  end;
-end;
-
-{ TProtocole_PROTO.PitchUnMessagePROTONoHandshake }
-procedure TProtocole_PROTO.PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
-var
-  FreezeStartMoment: dword;
-  TxBuffer: TIdBytes;
-  NbBytestoSend, iExpectedAnswerPacketLength, iChar: integer;
 begin
   if (FClientUDP <> nil) and ((FHostControllerAddress <> IP_ADDRESS_NULL) or (DestinationAddress<>'')) then
   begin
@@ -375,219 +310,7 @@ begin
   end;
 end;
 
-function TProtocole_PROTO.PitchUnMessageAndGetResponsePROTO(CommandIndex: integer; PayloadDataIn: TStringList; var Answer7: AnsiString; PayloadDataReceived: TStringList): integer;
-var
-  FreezeStartMoment: dword;
-  TxBuffer: TIdBytes;
-  bKeepGoing: boolean;
-  NbBytestoSend, iExpectedAnswerPacketLength, iChar: integer;
-  sAnswerReceived: AnsiString;
-  ComputedCRC16, ExpectedCRC16: word;
-begin
-  result := -1;
-  if PayloadDataReceived <> nil then
-    PayloadDataReceived.Clear;
-
-  if FClientSocket <> nil then
-  begin
-
-    iExpectedAnswerPacketLength := -1;
-    Answer7 := '';
-    FreezeStartMoment := GetTickcount; // To avoid warning that "FreezeStartMoment" is used without being initialized
-
-    try
-      SetLength(TxBuffer, 2000);
-
-      bKeepGoing := TRUE;
-
-      // 1. We close socket if it was already opened (but it should not happen).
-      if FClientSocket.Active then
-      begin
-        WriteStatusLg('Socket is now connected, we''ll close it...', 'Nous avons présentement une connexion, nous allons la fermer...', COLORDANGER);
-        FClientSocket.Close;
-        Application.ProcessMessages;
-        WriteStatusLg('Connexion is now supposed to be closed', 'La connexion est supposée être fermée maintenant.', COLORSUCCESS);
-      end;
-      if FClientSocket.Active then
-      begin
-        bKeepGoing := FALSE;
-        WriteStatusLg('ERROR: We should not be connected now...', 'ERREUR: Nous ne devrions pas être connecté présentement!', COLORERROR);
-      end;
-
-      // 2. We attempt to connect on the socket-server.
-      if bKeepGoing then
-      begin
-        WriteStatusLg('About to try to connect to server...', 'Sur le point d''essayer de se connecter sur le serveur...', COLORDANGER);
-        FClientSocket.Open;
-        FreezeStartMoment := GetTickcount;
-        while (not FClientSocket.Active) and ((FreezeStartMoment + TIMEOUT_FOR_CONNEXION) > GetTickcount) do
-        begin
-          sleep(1);
-          if (FreezeStartMoment + TIMEOUT_FOR_CONNEXION) > GetTickcount then
-            Application.ProcessMessages;
-        end;
-        if FClientSocket.Active then
-        begin
-          WriteStatusLg('SUCCESS! We were able to connect!', 'SUCCÈS! On a été capable de se connecter!', COLORSUCCESS);
-        end
-        else
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Unable to connect to server...', 'ERREUR: Incapable de se connecter sur le serveur...', COLORERROR);
-        end;
-      end;
-
-      // 3. We now attempt to send our message.
-      if bKeepGoing then
-      begin
-        WriteStatusLg('Will now send our message...', 'On va maintenant envoyer notre message...', COLORDANGER);
-        FRxClientBufferIndex := 0;
-        NbBytestoSend := PreparePacket(CommandIndex, PayloadDataIn, TxBuffer, length(TxBuffer));
-        if NbBytestoSend > 0 then
-        begin
-          FClientSocket.Socket.SendBuf(TxBuffer[0], NbBytestoSend);
-          WriteStatusLg('Message sent!', 'Message envoyé!', COLORSUCCESS);
-        end
-        else
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Problem preparing the packet to send...', 'ERREUR: Problème à préparer le packet à envoyer...', COLORERROR);
-        end;
-      end;
-
-      // 4. We now wait a response
-      if bKeepGoing then
-      begin
-        WriteStatusLg('Now waiting an answer...', 'On attent maintenant la réponse...', COLORDANGER);
-        FreezeStartMoment := GetTickcount;
-        while (FRxClientBufferIndex < 3) and ((FreezeStartMoment + TIMEOUT_FOR_SIMPLE_MESSAGE) > GetTickcount) do
-        begin
-          sleep(1);
-          if (FreezeStartMoment + TIMEOUT_FOR_SIMPLE_MESSAGE) > GetTickcount then
-            Application.ProcessMessages;
-        end;
-
-        if FRxClientBufferIndex < 3 then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Timeout while waiting an answer from server...', 'ERREUR: Temps d''attente maximal dépassé à attrendre une réponse...', COLORERROR);
-        end;
-      end;
-
-      // 5. On valide que la réponse a une longueur qui a de l'allure
-      if bKeepGoing then
-      begin
-        iExpectedAnswerPacketLength := (FRxClientBuffer[IDX_PROTO_LENGTH + 0] shl 16) or (FRxClientBuffer[IDX_PROTO_LENGTH + 1] shl 8) or (FRxClientBuffer[IDX_PROTO_LENGTH + 2]);
-        if (iExpectedAnswerPacketLength < (IDX_PROTO_PAYLOAD_DATA + 2)) or (iExpectedAnswerPacketLength > RXBUFFERSIZE) then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Detect length for answer is invalid...', 'ERREUR: La longueur de la réponse n''a pas d''allure...', COLORERROR);
-        end;
-      end;
-
-      // 6. On attend tous nos bytes
-      if bKeepGoing then
-      begin
-        while (FRxClientBufferIndex < iExpectedAnswerPacketLength) and ((FreezeStartMoment + TIMEOUT_FOR_SIMPLE_MESSAGE) > GetTickcount) do
-        begin
-          sleep(1);
-          if (FreezeStartMoment + TIMEOUT_FOR_SIMPLE_MESSAGE) > GetTickcount then
-            Application.ProcessMessages;
-        end;
-        if FRxClientBufferIndex < iExpectedAnswerPacketLength then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Timeout while waiting whole answer from server...', 'ERREUR: Temps d''attente maximal dépassé à attrendre une réponse complète...', COLORERROR);
-        end;
-      end;
-
-      // 7. On valide que la réponse est entre des crochets
-      if bKeepGoing then
-      begin
-        if (FRxClientBuffer[IDX_PROTO_LEFT_BRACKET] <> ord('[')) or (FRxClientBuffer[IDX_PROTO_CLOSE_BRACKET] <> ord(']')) then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: Answer is not between delimiters like expected...', 'ERREUR: La réponse n''est pas entre crochet comme attendu...', COLORERROR);
-        end;
-      end;
-
-      // 8. On valide que la réponse est composée uniquement de lettre
-      if bKeepGoing then
-      begin
-        sAnswerReceived := '';
-        iChar := 0;
-        while (iChar < 7) and (bKeepGoing) do
-        begin
-          sAnswerReceived := sAnswerReceived + AnsiChar(FRxClientBuffer[IDX_PROTO_COMMAND + iChar]);
-          if (FRxClientBuffer[IDX_PROTO_COMMAND + iChar] < ord('A')) or (FRxClientBuffer[IDX_PROTO_COMMAND + iChar] > ord('Z')) then
-          begin
-            bKeepGoing := FALSE;
-            WriteStatusLg('ERROR: Answer is not composed with letters as expected...', 'ERREUR: La réponse n''est pas composé de lettres comme attendu...', COLORERROR);
-          end;
-          inc(iChar);
-        end;
-      end;
-
-      // 8. On valide que la réponse est composée uniquement de lettre
-      if bKeepGoing then
-      begin
-        FLastSequenceNumber := FRxClientBuffer[IDX_PROTO_SEQ];
-        ComputedCRC16 := MyCrc16(addr(FRxClientBuffer[0]), (iExpectedAnswerPacketLength - 2), $0000);
-        ExpectedCRC16 := ((FRxClientBuffer[iExpectedAnswerPacketLength - 2] shl 8) or FRxClientBuffer[iExpectedAnswerPacketLength - 1]);
-        if (ComputedCRC16 <> ExpectedCRC16) then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: CRC16 computed is not the one expected...', 'ERREUR: Le CRC16 calculé n''est pas celui attendu...', COLORERROR);
-          WriteStatusLg(Format('CRC16 computed: 0x%4.4X', [ComputedCRC16]), Format('CRC16 calculé: 0x%4.4X', [ComputedCRC16]), COLORERROR);
-          WriteStatusLg(Format('CRC16 expected: 0x%4.4X', [ExpectedCRC16]), Format('CRC16 attendu: 0x%4.4X', [ExpectedCRC16]), COLORERROR);
-        end;
-      end;
-
-      //9. On se met inactif si tout le packet a été envoyé.
-      if bKeepGoing then
-      begin
-        if FClientSocket.Active then
-        begin
-          WriteStatusLg('Socket is now connected, we''ll close it...', 'Nous avons présentement une connexion, nous allons la fermer...', COLORDANGER);
-          FClientSocket.Close;
-          Application.ProcessMessages;
-          WriteStatusLg('Connexion is now supposed to be closed', 'La connexion est supposée être fermée maintenant.', COLORSUCCESS);
-        end;
-
-        if FClientSocket.Active then
-        begin
-          bKeepGoing := FALSE;
-          WriteStatusLg('ERROR: We should not be connected now...', 'ERREUR: Nous ne devrions pas être connecté présentement!', COLORERROR);
-        end;
-      end;
-
-      // 10. Si tout s'est bien passé, on retourne succès.
-      if bKeepGoing then
-      begin
-        WriteStatusLg('Success! Command was sent and we got a response!', 'Succès! Notre commande a été envoyé et nous avons eu notre réponse!', COLORSUCCESS);
-        FromReceivedStuffLoadPacketInfo(FRxClientBuffer, Answer7, PayloadDataReceived);
-        result := iExpectedAnswerPacketLength;
-      end;
-
-    except
-      WriteStatusLg('ERROR: Exception happened in "PROTO_SendAMessageToServer" ...', 'ERREUR: Une erreur est arrivée pendant "PROTO_SendAMessageToServer"...', COLORERROR);
-      result := -1;
-
-      //2016-03-12:DB-Des fois que...
-      if FClientSocket.Active then
-        FClientSocket.Close;
-      if FClientSocket.Active then
-        WriteStatusLg('ERROR: We should not be connected now (2)...', 'ERREUR: Nous ne devrions pas être connecté présentement! (2)', COLORERROR);
-    end;
-  end
-  else
-  begin
-    WriteStatusLg('ERROR: "FClientSocket" not defined in "PROTO_SendAMessageToServer" ...', 'ERREUR: "FClientSocket" indéfini dans "PROTO_SendAMessageToServer"...', COLORERROR);
-    result := -1;
-  end;
-end;
-
-function TProtocole_PROTO.PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
+function TProtocoleProto.PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
 var
   iIndexInPayloadData, iLineNumber, iNbBytes, iIndexChar, iPacketLength: integer;
   sWorking, sCommandAnswer: string;
@@ -658,153 +381,7 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.AnyClientSocketConnect(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Connect', 'Client Socket Connecté!', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketConnecting(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Connecting', 'Client Socket en train de se connecté', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Disconnect', 'Client Socket déconnecté', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg(Format('Client Socket Error (Error code:%d)', [ErrorCode]), Format('Erreur de Client Socket (Code d''erreur:%d)', [ErrorCode]), COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketLookup(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Lookup', 'Client Socket Lookup', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketRead(Sender: TObject; Socket: TCustomWinSocket);
-var
-  iNbBytesLus: integer;
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Read', 'Client Socket Lecture', COLORSTATUS);
-  iNbBytesLus := Socket.ReceiveBuf(FRxClientBuffer[FRxClientBufferIndex], (RXBUFFERSIZE - FRxClientBufferIndex));
-  FRxClientBufferIndex := FRxClientBufferIndex + iNbBytesLus;
-end;
-
-procedure TProtocole_PROTO.AnyClientSocketWrite(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Client Socket Write', 'Écriture du Client Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketAccept(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Accept', 'Acception du Server Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketClientConnect(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Connect', 'Connexion au Server Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Client Disconnect', 'Déconnexion du Server Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketClientError(Sender: TObject; Socket: TCustomWinSocket; ErrorEvent: TErrorEvent; var ErrorCode: integer);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg(Format('Server Socket Client Error, Error Code: %d', [ErrorCode]), Format('Erreur sur le Server Socket, code d''erreur: %d', [ErrorCode]), COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketClientRead(Sender: TObject; Socket: TCustomWinSocket);
-var
-  iNbByteReceived, iMessage: integer;
-  sAnswer: AnsiString;
-  slPayloadDataReceived: TStringList;
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Client Read', 'Lecteur de données reçus sur le Serveur Socket', COLORSTATUS);
-  iNbByteReceived := Socket.ReceiveBuf(FRxServerBuffer[FRxServerBufferIndex], (length(FRxServerBuffer) - FRxServerBufferIndex));
-  FRxServerBufferIndex := FRxServerBufferIndex + iNbByteReceived;
-  if FWriteDebugFlag then
-    WriteStatusLg(Format('Number of byte received: %d', [iNbByteReceived]), Format('Nombre d''octets reçus: %d', [iNbByteReceived]), COLORSTATUS);
-
-  if isValidPacketReceived(FRxServerBuffer, FRxServerBufferIndex) then
-  begin
-    FRxServerBufferIndex := 0;
-    try
-      slPayloadDataReceived := TStringList.Create;
-      FromReceivedStuffLoadPacketInfo(FRxServerBuffer, sAnswer, slPayloadDataReceived);
-      if FWriteDebugFlag then
-      begin
-        WriteStatusLg('We received this: ' + sAnswer, 'Nous avons reçu ceci: ' + sAnswer, COLORDANGER);
-        WriteStatusLg('Number of string in payload data: ' + IntToStr(slPayloadDataReceived.Count), 'Nombre de chaînes dans la réponse: ' + IntToStr(slPayloadDataReceived.Count), COLORDANGER);
-        if slPayloadDataReceived.Count > 0 then
-        begin
-          for iMessage := 0 to pred(slPayloadDataReceived.Count) do
-            WriteStatusLg(Format('  Line %2d: %s', [iMessage, slPayloadDataReceived.Strings[iMessage]]), Format('  Chaîne %2d: %s', [iMessage, slPayloadDataReceived.Strings[iMessage]]), COLORDANGER);
-        end;
-      end;
-
-      if Assigned(OnServerSocketValidPacketReceived) then
-      begin
-        OnServerSocketValidPacketReceived(self, Socket, sAnswer, slPayloadDataReceived);
-      end;
-    finally
-      FreeAndNil(slPayloadDataReceived);
-    end;
-  end;
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketClientWrite(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Client Write', 'Écriture au Serveur Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketGetSocket(Sender: TObject; Socket: NativeInt; var ClientSocket: TServerClientWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Get Socket', 'Obtention d''un Socket sur le Serveur Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketGetThread(Sender: TObject; ClientSocket: TServerClientWinSocket; var SocketThread: TServerClientThread);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Get Thread', 'Obtention d''un thread sur le Server Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketListen(Sender: TObject; Socket: TCustomWinSocket);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Listen', 'En écoute sur le Serveur Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketThreadEnd(Sender: TObject; Thread: TServerClientThread);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Thread End', 'Fin d''un thread sur le Server Socket', COLORSTATUS);
-end;
-
-procedure TProtocole_PROTO.AnyServerSocketThreadStart(Sender: TObject; Thread: TServerClientThread);
-begin
-  if FWriteDebugFlag then
-    WriteStatusLg('Server Socket Thread Start', 'Début d''un thread sur le Server Socket', COLORSTATUS);
-end;
-
-function TProtocole_PROTO.isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
+function TProtocoleProto.isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
 var
   bKeepGoing: boolean;
   iExpectedAnswerPacketLength, iChar: integer;
@@ -878,7 +455,7 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.FromReceivedStuffLoadPacketInfo(paramBuffer: TIdBytes; var Answer7: AnsiString; var PayloadDataReceived: TStringList);
+procedure TProtocoleProto.FromReceivedStuffLoadPacketInfo(paramBuffer: TIdBytes; var Answer7: AnsiString; var PayloadDataReceived: TStringList);
 var
   iChar, iExpectedAnswerPacketLength, iPromeneur, iPayloadLength: integer;
   sBuildingString: string;
@@ -923,7 +500,7 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.WriteStatusLg(MsgInEnglish, MsgInFrench: string; ColorToUse: TColor);
+procedure TProtocoleProto.WriteStatusLg(MsgInEnglish, MsgInFrench: string; ColorToUse: TColor);
 begin
   if FMessageWindow <> nil then
   begin
@@ -933,7 +510,7 @@ begin
     end;
   end;
 end;
-procedure TProtocole_PROTO.WriteStatus(MsgInEnglish: string; ColorToUse: TColor);
+procedure TProtocoleProto.WriteStatus(MsgInEnglish: string; ColorToUse: TColor);
 begin
   if FMessageWindow <> nil then
   begin
@@ -944,7 +521,7 @@ begin
   end;
 end;
 
-function TProtocole_PROTO.MyCrc16(Pointer: PByte; NbBytes: integer; InitialCRC: word): word;
+function TProtocoleProto.MyCrc16(Pointer: PByte; NbBytes: integer; InitialCRC: word): word;
 const
   { (* }
   CRCTable: array[$00..$FF] of word = ($0000, $C0C1, $C181, $0140, $C301, $03C0, $0280, $C241, $C601, $06C0, $0780, $C741, $0500, $C5C1, $C481, $0440, $CC01, $0CC0, $0D80, $CD41, $0F00, $CFC1, $CE81, $0E40, $0A00, $CAC1, $CB81, $0B40, $C901, $09C0, $0880, $C841, $D801, $18C0, $1980, $D941, $1B00, $DBC1, $DA81, $1A40, $1E00, $DEC1, $DF81, $1F40, $DD01, $1DC0, $1C80, $DC41, $1400, $D4C1, $D581, $1540, $D701, $17C0, $1680, $D641, $D201, $12C0, $1380, $D341, $1100, $D1C1, $D081, $1040, $F001,
@@ -965,56 +542,53 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.AnyUDPClientConnected(Sender: TObject);
+procedure TProtocoleProto.AnyUDPClientConnected(Sender: TObject);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Client Connected', 'Client UDP connecté', COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPClientDisconnected(Sender: TObject);
+procedure TProtocoleProto.AnyUDPClientDisconnected(Sender: TObject);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Client Disconnected', 'Client UDP déconnecté', COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPClientStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
+procedure TProtocoleProto.AnyUDPClientStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Client Status: ' + AStatusText, 'Statut du client UDP: ' + AStatusText, COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPServerAfterBind(Sender: TObject);
+procedure TProtocoleProto.AnyUDPServerAfterBind(Sender: TObject);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Server After Bind!', 'Après le "bind" sur le serveur UDP', COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPServerBeforeBind(AHandle: TIdSocketHandle);
+procedure TProtocoleProto.AnyUDPServerBeforeBind(AHandle: TIdSocketHandle);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Server Before Bind!', 'Avant le "bind" sur le serveur UDP', COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPServerStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
+procedure TProtocoleProto.AnyUDPServerStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Server Status: ' + AStatusText, 'Statut du serveur UDP: ' + AStatusText, COLORSTATUS);
 end;
 
-procedure TProtocole_PROTO.AnyUDPServerException(AThread: TIdUDPListenerThread; ABinding: TIdSocketHandle; const AMessage: string; const AExceptionClass: TClass);
+procedure TProtocoleProto.AnyUDPServerException(AThread: TIdUDPListenerThread; ABinding: TIdSocketHandle; const AMessage: string; const AExceptionClass: TClass);
 begin
   if FWriteDebugFlag then
     WriteStatusLg('UDP Server Exception: ' + AMessage, 'Exception sur le serveur UDP: ' + AMessage, COLORSTATUS);
 end;
 
-{ TProtocole_PROTO.AnyUDPClientSendIdentification}
-procedure TProtocole_PROTO.AnyUDPClientSendIdentification;
+{ TProtocoleProto.AnyUDPClientSendIdentification}
+procedure TProtocoleProto.AnyUDPClientSendIdentification;
 var
-  TxBuffer, RxBuffer: TIdBytes;
-  iChar, iNbBytesToSend, iNbBytesReceived: integer;
-  slPayloadDataReceived: TStringList;
-  sAnswer: AnsiString;
-  FreezeTime: DWord;
+  TxBuffer: TIdBytes;
+  iNbBytesToSend: integer;
   sBroadCastAddress: string;
 begin
   SetLength(TxBuffer, 100);
@@ -1038,8 +612,8 @@ begin
   end;
 end;
 
-{ TProtocole_PROTO.AnyUDPServerRead}
-procedure TProtocole_PROTO.AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
+{ TProtocoleProto.AnyUDPServerRead}
+procedure TProtocoleProto.AnyUDPServerRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
 var
   sDisplayable: string;
   iChar, iNbBytesToSend: integer;
@@ -1126,7 +700,7 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.LoadStringListWithIdentificationInfo(paramSl: TStringList);
+procedure TProtocoleProto.LoadStringListWithIdentificationInfo(paramSl: TStringList);
 begin
   paramSl.Add(CALLIDUS_INFO_COMPUTERNAME + '=' + Callidus_GetComputerName);
   paramSl.Add(CALLIDUS_INFO_DEVICETYPE + '=' + FDeviceName);
@@ -1134,8 +708,8 @@ begin
   paramSl.Add(CALLIDUS_INFO_VERSION + '=' + sCALLIDUS_SYSTEM_VERSION);
 end;
 
-{ TProtocole_PROTO.SendIamAliveMessage }
-procedure TProtocole_PROTO.SendIamAliveMessage;
+{ TProtocoleProto.SendIamAliveMessage }
+procedure TProtocoleProto.SendIamAliveMessage;
 var
   PayloadDataRequest: TStringList;
 begin
@@ -1151,21 +725,17 @@ begin
   end;
 end;
 
-procedure TProtocole_PROTO.ShutDownService;
+procedure TProtocoleProto.ShutDownService;
 begin
   if WorkingClientUDP <> nil then
     WorkingClientUDP.Active := FALSE;
   if WorkingServerUDP <> nil then
     WorkingServerUDP.Active := FALSE;
-  if WorkingClientSocket <> nil then
-    WorkingClientSocket.Active := FALSE;
-  if WorkingServerSocket <> nil then
-    WorkingServerSocket.Active := FALSE;
 end;
 
 procedure Register;
 begin
-  RegisterComponents('Callidus', [TProtocole_PROTO]);
+  RegisterComponents('Callidus', [TProtocoleProto]);
 end;
 
 end.

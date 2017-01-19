@@ -1,18 +1,5 @@
 ﻿unit fCallidusRadar;
 
-// 2015-11-15:DB-Ce qui concerne le port série pour la configuration, l'envoie de commande et la réception c'est fait.
-// Ça forme le packet pour l'envoyer.
-// Ça attend la réponse, valide que a de l'allure de même que le checksum.
-//
-// 2015-12-10:DB-Lorsqu'on ferme l'application et que la fenêtre de debug était affichée,
-// lorsqu'on re-démarre l'application, la fenêtre de debug sera aussi affichée.
-// Si elle ne l'était pas en quittant, elle ne le sera pas en revenant non plus.
-// Cela aidera lorsqu'on pitconne pour débugger l'application.
-//
-// 2015-12-10:DB-Autant pour la fenêtre principale que celle de debug, le programme
-// supporte maintenant mieux le fait de travailler sur deux écrans. Les fenêtres
-// reviennent à la bonne places d'un session à l'autre.
-
 interface
 
 uses
@@ -20,17 +7,16 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids, Vcl.ValEdit, Vcl.ComCtrls, Vcl.Menus,
-  AdvObj, BaseGrid, AdvGrid, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls,
-  Vcl.PlatformDefaultStyleActnCtrls, System.Actions, Vcl.ActnList, VaClasses,
-  VaComm, Vcl.AppEvnts, System.Win.ScktComp,
+  BaseGrid, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ImgList,
+  Vcl.PlatformDefaultStyleActnCtrls, System.Actions, Vcl.ActnList,
+  Vcl.AppEvnts, Vcl.Buttons, System.ImageList,
 
   // Third party
-  IdUDPServer, IdGlobal, IdSocketHandle, IdBaseComponent, IdComponent,
-  IdUDPBase,
+  AdvObj, AdvGrid, VaClasses, VaComm, IdUDPServer, IdGlobal, IdSocketHandle,
+  IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient,
 
-  // MyStuff
-  uCommonStuff, uProtocolePROTO, Vcl.Buttons, System.ImageList, Vcl.ImgList,
-  IdUDPClient;
+  // Callidus
+  uCommonStuff, uProtocolePROTO;
 
 type
   TRadarMethod = (rm_GetMethod, rm_ChangeMethod, rm_SetMethod);
@@ -118,8 +104,8 @@ type
     View1: TMenuItem;
     oggleDebugWindow1: TMenuItem;
     actTestConnexionWithTarget: TAction;
-    Button6: TButton;
-    ProtocolePROTO_Radar: TProtocole_PROTO;
+    btnStartTestEnBoucle: TButton;
+    ProtocolePROTO_Radar: TProtocoleProto;
     cbSaveLogEachTimeWhenQuiting: TCheckBox;
     actStopMonitoring: TAction;
     Button1: TButton;
@@ -134,7 +120,7 @@ type
     IdUDPServerRadar: TIdUDPServer;
     tmrControllerVerification: TTimer;
     sbRadar: TStatusBar;
-    Button2: TButton;
+    btnStopTestEnBoucle: TButton;
     miFullCommunicationLog: TMenuItem;
     btnApply: TButton;
     actAutodetection: TAction;
@@ -153,6 +139,8 @@ type
     lblTempsOn: TLabel;
     tbTempsOff: TTrackBar;
     lblTempsOff: TLabel;
+    ckbSendAClearScreenBetweenSpeed: TCheckBox;
+    tmrTestConnexion: TTimer;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
@@ -183,8 +171,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure acSelectStalkerConfigFileExecute(Sender: TObject);
     procedure actCloseAllApplicationsExecute(Sender: TObject);
-    procedure tmrControllerVerificationTimer(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnStopTestEnBoucleClick(Sender: TObject);
     procedure miFullCommunicationLogClick(Sender: TObject);
     procedure aeMainApplicationEventsException(Sender: TObject; E: Exception);
     function FaisRemonterLeServiceSpeed(pServiceSpeedInfo: PTServiceSpeed): boolean;
@@ -196,11 +183,12 @@ type
     procedure cbDetectRadarClick(Sender: TObject);
     procedure cbDetectNetworkClick(Sender: TObject);
     procedure btnStopAutoDetectClick(Sender: TObject);
-    procedure ProtocolePROTO_RadarServerSocketValidPacketReceived(
-      Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString;
-      PayloadData: TStringList);
     procedure tbTempsOnChange(Sender: TObject);
     procedure tbTempsOffChange(Sender: TObject);
+    procedure ProtocolePROTO_RadarServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
+    procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
+    procedure ProcessInfoForTogguleTestParam(PayloadData: TStringList);
+    procedure tmrTestConnexionTimer(Sender: TObject);
 
   private
     { Private declarations }
@@ -215,7 +203,7 @@ type
     isFirstActivation: boolean;
     NomFichierConfiguration: string;
     iIndexApplication: integer;
-    bFlagAbort, bAbortAutoDetection: boolean;
+    bFlagAbort, bAbortAutoDetection, bCurrentlyDoingNetworkCycleTest: boolean;
     bFirstNetworkDetection: boolean;
   public
     { Public declarations }
@@ -242,7 +230,7 @@ uses
 
   // Third party
 
-  // My stuff
+  // Callidus
   fDebugWindow;
 
 const
@@ -553,40 +541,44 @@ begin
   end;
 end;
 
-procedure TfrmCallidusRadar.actTestConnexionWithTargetExecute(Sender: TObject);
+procedure TfrmCallidusRadar.tmrTestConnexionTimer(Sender: TObject);
 var
   Timeout: dword;
   ServiceSpeedTemporaire: TServiceSpeed;
 begin
-  DisableToute;
-  try
-    bFlagAbort := FALSE;
-    while not bFlagAbort do
-    begin
-      // 1. On affiche la valeur durant 2 seconde
-      ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
-      ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
-      bOverAllActionResult := FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
-      Timeout := GetTickCount + dword(tbTempsOn.Position);
-      while (GetTickCount < Timeout) and (not bFlagAbort) do
-      begin
-        Application.ProcessMessages;
-        if GetTickCount < Timeout then sleep(2);
-      end;
-//
-      // 2. On efface la valeur durant 0.5 seconde
-//      bOverAllActionResult := FaisRemonterLeServiceSpeed(nil);
-//      Timeout := GetTickCount + Dword(tbTempsOff.Position);
-//      while (GetTickCount < Timeout) and (not bFlagAbort) do
-//      begin
-//        Application.ProcessMessages;
-//        if GetTickCount < Timeout then sleep(10);
-//      end;
+  TTimer(Sender).Enabled := False;
 
+  if bCurrentlyDoingNetworkCycleTest then
+  begin
+    case TTimer(Sender).Tag of
+      0, 1:
+        begin
+          ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
+          ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
+          FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
+          TTimer(Sender).Interval := tbTempsOn.Position;
+          if ckbSendAClearScreenBetweenSpeed.Checked then TTimer(Sender).Tag := 2;
+        end;
+
+      2:
+        begin
+          FaisRemonterLeServiceSpeed(nil);
+          TTimer(Sender).Interval := tbTempsOff.Position;
+          TTimer(Sender).Tag := 1;
+        end;
     end;
-  finally
-    EnableToute;
+
+    TTimer(Sender).Enabled := true;
   end;
+end;
+
+procedure TfrmCallidusRadar.actTestConnexionWithTargetExecute(Sender: TObject);
+begin
+  bFlagAbort := FALSE;
+  bCurrentlyDoingNetworkCycleTest := True;
+  tmrTestConnexion.Tag := 0;
+  tmrTestConnexion.Interval := 10;
+  tmrTestConnexion.Enabled := True;
 end;
 
 procedure TfrmCallidusRadar.actToggleDebugWindowExecute(Sender: TObject);
@@ -679,29 +671,13 @@ begin
     LoadConfiguration;
     btnMonitoring.Glyph.Assign(nil);
     ImageListRadar.GetBitmap(0, btnMonitoring.Glyph);
-//    ProtocolePROTO_Radar.WorkingClientSocket.Port := PORT_FOR_SENDING_CONTROLLER;
-//    ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-//    sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
-
-//    try
-//      ServerSocketForRadar.Port := PORT_FOR_SENDING_RADAR;
-//      WriteStatusLg('About to open server...', 'Sur le point d''ouvrir le serveur...', COLORDANGER);
-//      ServerSocketForRadar.Open;
-//      Application.ProcessMessages;
-//      if ServerSocketForRadar.Active then
-//        WriteStatusLg('Server opened successfully!', 'Le serveur a été ouvert avec succès!', COLORSUCCESS)
-//      else
-//        WriteStatusLg('ERROR: Failed to open server!', 'ERREUR: Problème d''ouverture du serveur...,COLORERROR)', COLORERROR);
-//    except
-//      WriteStatusLg('ERROR: Exception while in "actStartServicingExecute"...', 'ERREUR: Exception durant "actStartServicingExecute"...', COLORERROR);
-//    end;
 
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Radar.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
     ProtocolePROTO_Radar.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_RADAR;
     ProtocolePROTO_Radar.Init;
     bFirstNetworkDetection := TRUE;
-//    tmrControllerVerification.Enabled := TRUE;
+    //    tmrControllerVerification.Enabled := TRUE;
   end;
 end;
 
@@ -716,9 +692,10 @@ begin
   Application.ProcessMessages;
 end;
 
-procedure TfrmCallidusRadar.Button2Click(Sender: TObject);
+procedure TfrmCallidusRadar.btnStopTestEnBoucleClick(Sender: TObject);
 begin
   bFlagAbort := TRUE;
+  bCurrentlyDoingNetworkCycleTest := False;
   Application.ProcessMessages;
 end;
 
@@ -803,7 +780,7 @@ begin
   cbComPort.Hint := 'Detected COM port are in green' + #$0A + 'Not detected are in red' + #$0A + 'Right click on drop box to refresh list';
   VaCommRadar.OnRxChar := VaCommRadarRxChar;
   sbNetwork.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-//sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
+  bCurrentlyDoingNetworkCycleTest := False;
 end;
 
 procedure TfrmCallidusRadar.RefreshDisplayedParameterTable(paramShowReadBackValues: boolean);
@@ -827,8 +804,8 @@ var
           StringToShow := WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Display.Strings[WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Firmware.IndexOf(IntToStr(WorkingRadarConfig.Parameter[ParamIndex].ReadBack_Value))];
         2:
           StringToShow := IntToStr(WorkingRadarConfig.Parameter[ParamIndex].ReadBack_Value);
-        else
-          StringToShow := 'error...';
+      else
+        StringToShow := 'error...';
       end;
       NewAdvStringGrid.GridCells[COL_SENSORVAL, RowIndex] := StringToShow;
     end;
@@ -838,8 +815,8 @@ var
         StringToShow := WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Display.Strings[WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Firmware.IndexOf(IntToStr(WorkingRadarConfig.Parameter[ParamIndex].Proposed_Value))];
       2:
         StringToShow := IntToStr(WorkingRadarConfig.Parameter[ParamIndex].Proposed_Value);
-      else
-        StringToShow := 'error...';
+    else
+      StringToShow := 'error...';
     end;
     NewAdvStringGrid.GridCells[COL_PROPOSEVAL, RowIndex] := StringToShow;
 
@@ -848,8 +825,8 @@ var
         StringToShow := WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Display.Strings[WorkingRadarConfig.Parameter[ParamIndex].Value_Items_Firmware.IndexOf(IntToStr(WorkingRadarConfig.Parameter[ParamIndex].Default_Value))];
       2:
         StringToShow := IntToStr(WorkingRadarConfig.Parameter[ParamIndex].Default_Value);
-      else
-        StringToShow := 'error...';
+    else
+      StringToShow := 'error...';
     end;
     NewAdvStringGrid.GridCells[COL_DEFAULTVAL, RowIndex] := StringToShow;
 
@@ -1186,8 +1163,8 @@ begin
         PacketToSend := PacketToSend + AnsiChar(WorkingRadarConfig.Parameter[IndexParameter].Command_ID);
       rm_SetMethod:
         PacketToSend := PacketToSend + AnsiChar((WorkingRadarConfig.Parameter[IndexParameter].Command_ID or $80));
-      else
-        PacketToSend := PacketToSend + AnsiChar(WorkingRadarConfig.Parameter[IndexParameter].Command_ID);
+    else
+      PacketToSend := PacketToSend + AnsiChar(WorkingRadarConfig.Parameter[IndexParameter].Command_ID);
     end;
 
     // 08:Antenna Number
@@ -1299,10 +1276,10 @@ begin
                           else
                             WorkingRadarConfig.Parameter[IndexParameter].ReadBack_Value := iValue;
                         end;
-                      else
-                        begin
-                          WorkingRadarConfig.Parameter[IndexParameter].ReadBack_Value := 0;
-                        end;
+                    else
+                      begin
+                        WorkingRadarConfig.Parameter[IndexParameter].ReadBack_Value := 0;
+                      end;
                     end;
                   end;
                 except
@@ -1448,10 +1425,10 @@ begin
       998, 999: // 2015-12-10:DB-We don't disable the button to start the monitor, the toggle of the debug view, etc.
         begin
         end;
-      else
-        begin
-          ActionManagerRadarConfig.Actions[iAction].Enabled := FALSE;
-        end;
+    else
+      begin
+        ActionManagerRadarConfig.Actions[iAction].Enabled := FALSE;
+      end;
     end;
 
   end;
@@ -1575,78 +1552,16 @@ begin
   end;
 end;
 
-{ tmrControllerVerificationTimer }
-// When client-socket has no controller to connect to, we attempt each 2 seconds to find it.
-// When client-socket does have a controller to connect to, we attempt each 10 seconds to still validate it's there.
+{ TfrmCallidusRadar.tbTempsOnChange }
 procedure TfrmCallidusRadar.tbTempsOnChange(Sender: TObject);
 begin
-lblTempsOn.Caption:='Temps ON: '+IntToStr(tbTempsOn.Position)+' ms';
+  lblTempsOn.Caption := 'Temps ON: ' + IntToStr(tbTempsOn.Position) + ' ms';
 end;
 
-{ TfrmCallidusRadar.tmrControllerVerificationTimer}
-procedure TfrmCallidusRadar.tmrControllerVerificationTimer(Sender: TObject);
-begin
-  tmrControllerVerification.Enabled := FALSE;
-  try
-    if cbDetectNetwork.Checked then
-    begin
-      if ProtocolePROTO_Radar.GetHotControllerAddress then
-      begin
-        if ProtocolePROTO_Radar.WorkingClientSocket.Address <> ProtocolePROTO_Radar.HostControllerAddress then
-        begin
-          ProtocolePROTO_Radar.WorkingClientSocket.Address := ProtocolePROTO_Radar.HostControllerAddress;
-          sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
-          ProtocolePROTO_Radar.SendIamAliveMessage;
-          if bFirstNetworkDetection then
-          begin
-            if cbDetectRadar.Enabled and cbDetectRadar.Checked then
-            begin
-              DisableToute;
-              btnMonitoring.Enabled := False;
-              edConfigFile.Enabled := FALSE;
-              btnConfigFile.Enabled := FALSE;
-              try
-                if AutoDetectRadar then
-                begin
-                  if cbLanceMonitoring.Enabled and cbLanceMonitoring.Checked then
-                  begin
-                    actStartMonitoringExecute(actStartMonitoring);
-                  end;
-                end;
-              finally
-                btnConfigFile.Enabled := True;
-                edConfigFile.Enabled := True;
-                btnMonitoring.Enabled := True;
-                EnableToute(False);
-              end;
-            end;
-          end;
-          bFirstNetworkDetection := FALSE;
-        end
-        else
-        begin
-          ProtocolePROTO_Radar.SendIamAliveMessage;
-        end;
-      end
-      else
-      begin
-//        ProtocolePROTO_Radar.WorkingClientSocket.Address := IP_ADDRESS_NULL;
-//        sbNetwork.Panels[IDX_PANEL_CONTROLLERIP].Text := 'controller:' + ProtocolePROTO_Radar.WorkingClientSocket.Address;
-      end;
-
-//      if ProtocolePROTO_Radar.WorkingClientSocket.Address <> IP_ADDRESS_NULL then
-//        tmrControllerVerification.Interval := 10000
-//      else
-        tmrControllerVerification.Interval := 2000;
-    end;
-  finally
-    tmrControllerVerification.Enabled := TRUE;
-  end;
-end;
-
+{ TfrmCallidusRadar.tbTempsOffChange }
 procedure TfrmCallidusRadar.tbTempsOffChange(Sender: TObject);
 begin
-lblTempsOff.Caption:='Temps OFF: '+IntToStr(tbTempsOff.Position)+' ms';
+  lblTempsOff.Caption := 'Temps OFF: ' + IntToStr(tbTempsOff.Position) + ' ms';
 end;
 
 procedure TfrmCallidusRadar.ProcessSpeedPacket(sSpeedReceived: AnsiString);
@@ -1849,6 +1764,10 @@ begin
       cbDetectRadar.Checked := ReadBool(sConfigSectionName, 'cbDetectRadar', FALSE);
       cbLanceMonitoring.Checked := ReadBool(sConfigSectionName, 'cbLanceMonitoring', FALSE);
       cbDetectNetworkClick(cbDetectNetwork);
+
+      tbTempsOn.Position := ReadInteger(sConfigSectionName, 'tbTempsOn', 0);
+      tbTempsOff.Position := ReadInteger(sConfigSectionName, 'tbTempsOff', 0);
+      ckbSendAClearScreenBetweenSpeed.Checked := ReadBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', True);
       // ..LoadConfiguration
     end;
   finally
@@ -1891,6 +1810,10 @@ begin
       WriteBool(sConfigSectionName, 'cbDetectNetwork', cbDetectNetwork.Checked);
       WriteBool(sConfigSectionName, 'cbDetectRadar', cbDetectRadar.Checked);
       WriteBool(sConfigSectionName, 'cbLanceMonitoring', cbLanceMonitoring.Checked);
+
+      WriteInteger(sConfigSectionName, 'tbTempsOn', tbTempsOn.Position);
+      WriteInteger(sConfigSectionName, 'tbTempsOff', tbTempsOff.Position);
+      WriteBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', ckbSendAClearScreenBetweenSpeed.Checked);
       // ..SaveConfiguration
     end;
   finally
@@ -2017,7 +1940,22 @@ begin
 end;
 
 { TfrmCallidusRadar.ProtocolePROTO_RadarServerSocketValidPacketReceived }
-procedure TfrmCallidusRadar.ProtocolePROTO_RadarServerSocketValidPacketReceived(Sender: TObject; Socket: TCustomWinSocket; Answer7: AnsiString; PayloadData: TStringList);
+procedure TfrmCallidusRadar.ProtocolePROTO_RadarServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
+begin
+  case TProtocoleProto(Sender).CommandList.IndexOf(Answer7) of
+    PROTO_CMD_DISCRTC:
+      begin
+        ProcessInfoForSpeedParam(PayloadData);
+      end;
+
+    PROTO_CMD_TOGGTST:
+      begin
+        ProcessInfoForTogguleTestParam(PayloadData);
+      end;
+  end;
+end;
+
+procedure TfrmCallidusRadar.ProcessInfoForTogguleTestParam(PayloadData: TStringList);
 var
   slVariablesNames, slVariablesValues: TStringList;
   iIndexCommand: integer;
@@ -2026,29 +1964,54 @@ begin
   slVariablesNames := TStringList.Create;
   slVariablesValues := TStringList.Create;
   try
-    iIndexCommand := ProtocolePROTO_Radar.CommandList.IndexOf(Answer7);
+    CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-    case iIndexCommand of
-      PROTO_CMD_DISCRTC:
-        begin
-          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
-          ProtocolePROTO_Radar.ServerSocketReplyAnswer(Socket, PROTO_CMD_SMPLACK, nil);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPON);
+    if iAnyValue <> -1 then tbTempsOn.Position := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPOFF);
+    if iAnyValue <> -1 then tbTempsOff.Position := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_USEOFF);
+    if iAnyValue <> -1 then ckbSendAClearScreenBetweenSpeed.Checked := (iAnyValue = 1);
+    tbTempsOnChange(tbTempsOn);
+    tbTempsOffChange(tbTempsOff);
 
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOW_LIMIT);
-          if iAnyValue <> -1 then edLowServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIG_LIMIT);
-          if iAnyValue <> -1 then edHighServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_SHOW_TIME);
-          if iAnyValue <> -1 then edShowTimeServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOWINACSP);
-          if iAnyValue <> -1 then edLowInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIGINACSP);
-          if iAnyValue <> -1 then edHighInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
-          iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_INAC_TIME);
-          if iAnyValue <> -1 then edInactivityTime.Text := slVariablesValues.Strings[iAnyValue];
-          SetVariableFromVisibleServiceSpeedParam;
-        end;
-    end;
+    if not bCurrentlyDoingNetworkCycleTest then
+      btnStartTestEnBoucle.Click
+    else
+      btnStopTestEnBoucle.Click;
+
+    Application.ProcessMessages;
+
+  finally
+    FreeAndNil(slVariablesNames);
+    FreeAndNil(slVariablesValues);
+  end;
+end;
+
+procedure TfrmCallidusRadar.ProcessInfoForSpeedParam(PayloadData: TStringList);
+var
+  slVariablesNames, slVariablesValues: TStringList;
+  iIndexCommand: integer;
+  iAnyValue: integer;
+begin
+  slVariablesNames := TStringList.Create;
+  slVariablesValues := TStringList.Create;
+  try
+    CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOW_LIMIT);
+    if iAnyValue <> -1 then edLowServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIG_LIMIT);
+    if iAnyValue <> -1 then edHighServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_SHOW_TIME);
+    if iAnyValue <> -1 then edShowTimeServiceSpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_LOWINACSP);
+    if iAnyValue <> -1 then edLowInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_HIGINACSP);
+    if iAnyValue <> -1 then edHighInactivitySpeed.Text := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_RADAR_INAC_TIME);
+    if iAnyValue <> -1 then edInactivityTime.Text := slVariablesValues.Strings[iAnyValue];
+    SetVariableFromVisibleServiceSpeedParam;
   finally
     FreeAndNil(slVariablesNames);
     FreeAndNil(slVariablesValues);

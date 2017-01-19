@@ -1,3 +1,16 @@
+-FIX: Le mode publicité est maintenant de retour fonctionnel.
+-FIX: Le Callidus-Display interprète maintenant correctement les commandes pour se mettre plein-écran ou non.
+-ADD: Le Callidus-Radar se rappelle maintenant d'une session à l'autre des paramètres du test-réseau concernant les temps entre les vitesses de balles simulées.
+-ADD: Le Callidus-Controller peut maintenant lancer le test-réseau sur le Callidus-Radar pour que celui-ci simule des vitesses de balles.
+-UPD: Dead-code have been removed from the main forms of Callidus-Controller, Callidus-Radar and Callidus-Display so no remaining things from TServerSocket or TClientSocket.
+-CHG: The component regarding the protocol is now called "TProtocoleProto" instead of something like "TProtocole_PROTO"
+-RMV: In that component, all the things related with TServerSocket and 
+-UPD: Dead-code also have been removed from the component "TProtocoleProto".
+
+
+Faudrait que le test-réseau de balle fonctionne avec des timers pour qu'on puisse recevoir des commandes. Ça l'air que là on n'en reçoit pas.
+
+
 -ADD: In the CALLIDUS-CONTROLLER, there is now a function to have the controller broadcast its address so others will know its location.
 -ADD: In the CALLIDUS-CONTROLLER, there are now buttons to launch the CALLIDUS-RADAR and the CALLIDUS-DISPLAY application.
 -ADD: From now on, any communication between Callidus-Controller and remote stations is made in UDP.

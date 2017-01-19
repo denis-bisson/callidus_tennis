@@ -155,7 +155,7 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   TextHeight = 13
   object pmMainPopUpMenu: TPopupMenu
     Left = 224
-    Top = 151
+    Top = 63
     object ogglefullscreenornot1: TMenuItem
       Action = actToggleScreenMode
       GroupIndex = 102
@@ -190,7 +190,7 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   end
   object ActionManagerRadarConfig: TActionManager
     Left = 228
-    Top = 26
+    Top = 10
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
       Caption = 'Close Application'
@@ -209,7 +209,6 @@ object frmCallidusDisplay: TfrmCallidusDisplay
     object actStartServicing: TAction
       Caption = 'Start Servicing'
       ShortCut = 120
-      OnExecute = actStartServicingExecute
     end
     object actCloseAllApplications: TAction
       Caption = 'Close all Callidus applications'
@@ -220,10 +219,10 @@ object frmCallidusDisplay: TfrmCallidusDisplay
   object aeMainApplicationEvents: TApplicationEvents
     OnException = aeMainApplicationEventsException
     OnIdle = aeMainApplicationEventsIdle
-    Left = 227
-    Top = 90
+    Left = 379
+    Top = 10
   end
-  object ProtocolePROTO_Display: TProtocole_PROTO
+  object ProtocolePROTO_Display: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientController
     WorkingServerUDP = IdUDPServerRadar
@@ -231,30 +230,18 @@ object frmCallidusDisplay: TfrmCallidusDisplay
     FriendlyNameForLog = 'DISPLAY'
     DeviceName = 'Callidus-Display'
     OnServerPacketReceived = ProtocolePROTO_DisplayServerPacketReceived
-    Left = 236
-    Top = 283
-  end
-  object AutoStartTimer: TTimer
-    Enabled = False
-    OnTimer = AutoStartTimerTimer
-    Left = 232
-    Top = 208
-  end
-  object tmrControllerVerification: TTimer
-    Enabled = False
-    OnTimer = tmrControllerVerificationTimer
-    Left = 80
-    Top = 259
+    Left = 68
+    Top = 115
   end
   object IdUDPClientController: TIdUDPClient
     Port = 0
-    Left = 76
-    Top = 190
+    Left = 68
+    Top = 62
   end
   object IdUDPServerRadar: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
     Left = 68
-    Top = 134
+    Top = 14
   end
 end
