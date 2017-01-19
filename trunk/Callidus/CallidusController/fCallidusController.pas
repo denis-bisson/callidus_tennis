@@ -15,7 +15,7 @@ uses
   IdUDPBase, IdUDPClient,
 
   // Callidus
-  uCommonStuff, uProtocolePROTO, uCheckListCallidus, uLabeledEditCallidus;
+  uCommonStuff, uProtocoleProto, uCheckListCallidus, uLabeledEditCallidus;
 
 type
   tDeviceType = (dtUnknown, dtCallidusRadar, dtCallidusDisplay);
