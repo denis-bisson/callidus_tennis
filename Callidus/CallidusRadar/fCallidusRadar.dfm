@@ -167,10 +167,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     TabOrder = 0
     object tsConfiguration: TTabSheet
       Caption = 'Configuration'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object btnReadStalkerConfigFile: TButton
         Left = 0
         Top = 7
@@ -216,10 +212,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsDebug: TTabSheet
       Caption = 'Debug'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object chkbNoRadarFakeAnswer: TCheckBox
         Left = 16
         Top = 16
@@ -242,10 +234,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet1: TTabSheet
       Caption = 'Settings Service Speed'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -809,10 +797,8 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
-    SettingsStore.RegRoot = rrCURRENTUSER
-    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '2.0.0.0'
+    Version = '1.8.0.0'
     Left = 100
     Top = 262
   end
@@ -839,7 +825,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 228
     Top = 246
     Bitmap = {
-      494C010102000800B40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800B80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000

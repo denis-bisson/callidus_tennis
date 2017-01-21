@@ -179,10 +179,10 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = tsRadar
+    ActivePage = cbCommenditaireFullScreen
     Align = alClient
     TabOrder = 1
-    object Devices: TTabSheet
+    object tsApplicationSatellite: TTabSheet
       Caption = 'Application-satellite'
       DesignSize = (
         576
@@ -365,16 +365,30 @@ object frmCallidusController: TfrmCallidusController
       Caption = 'Callidus-Display'
       ImageIndex = 1
       object Label4: TLabel
-        Left = 19
-        Top = 16
+        Left = 32
+        Top = 248
         Width = 81
         Height = 13
         Caption = 'Couleur de fond:'
       end
+      object lblHintForResolution: TLabel
+        Left = 241
+        Top = 20
+        Width = 125
+        Height = 13
+        Caption = 'Derni'#232're r'#233'solution re'#231'ue:'
+      end
+      object lblResolution: TLabel
+        Left = 372
+        Top = 20
+        Width = 60
+        Height = 13
+        Caption = '1000 x 1000'
+      end
       object pnlBackground: TPanel
         Tag = 1
-        Left = 19
-        Top = 32
+        Left = 36
+        Top = 267
         Width = 58
         Height = 25
         BevelInner = bvRaised
@@ -649,6 +663,14 @@ object frmCallidusController: TfrmCallidusController
           CheckboxSpacing = 0
           CallidusFilterType = 0
         end
+      end
+      object Button1: TButton
+        Left = 19
+        Top = 15
+        Width = 216
+        Height = 25
+        Action = actGetResolution
+        TabOrder = 3
       end
     end
     object tsPub: TTabSheet
@@ -1033,6 +1055,11 @@ object frmCallidusController: TfrmCallidusController
       ShortCut = 24695
       OnExecute = actStopNetworkTestExecute
     end
+    object actGetResolution: TAction
+      Category = 'Callidus-Display'
+      Caption = 'Demande la r'#233'solution'
+      OnExecute = actGetResolutionExecute
+    end
   end
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
@@ -1087,7 +1114,7 @@ object frmCallidusController: TfrmCallidusController
     Left = 320
     Top = 8
     Bitmap = {
-      494C01010A00C800000120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800040120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

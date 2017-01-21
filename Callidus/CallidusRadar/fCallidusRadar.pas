@@ -1971,11 +1971,11 @@ begin
   try
     CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPON);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPSON);
     if iAnyValue <> -1 then itnTempsOn := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_TEMPOFF);
     if iAnyValue <> -1 then itnTempsOff := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_USEOFF);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_USETOFF);
     if iAnyValue <> -1 then btnIncludeTempsOff := (StrToIntDef(slVariablesValues.Strings[iAnyValue], 0) = 1);
 
     if not bCurrentlyDoingNetworkCycleTest then
