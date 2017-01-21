@@ -450,14 +450,9 @@ end;
 
 procedure TfrmCallidusDisplay.ProcessInfoForPublicityAndScreenSize(PayloadData: TStringList);
 var
-  ServiceSpeedInfo: TInformationForShowingServiceSpeed;
   slAnswer, slVariablesNames, slVariablesValues: TStringList;
-  iIndexCommand: integer;
   iAnyValue: integer;
-  iSpeedValueIndex: integer;
   sAnyValue: string;
-  iShadowIndex: integer;
-  iColorIndex: integer;
 begin
   slVariablesNames := TStringList.Create;
   slVariablesValues := TStringList.Create;
@@ -498,10 +493,8 @@ procedure TfrmCallidusDisplay.ProcessInfoForSpeedDisplay(PayloadData: TStringLis
 var
   ServiceSpeedInfo: TInformationForShowingServiceSpeed;
   slAnswer, slVariablesNames, slVariablesValues: TStringList;
-  iIndexCommand: integer;
   iAnyValue: integer;
   iSpeedValueIndex: integer;
-  sAnyValue: string;
   iShadowIndex: integer;
   iColorIndex: integer;
 begin
