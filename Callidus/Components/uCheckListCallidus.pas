@@ -20,7 +20,7 @@ type
     constructor Create(AOwner: TComponent); override;
     function GetNumberOfSelection: longint;
   published
-    property CheckWhenMove: boolean read FCheckWhenMove write FCheckWhenMove default FALSE;
+    property CheckWhenMove: boolean read FCheckWhenMove write FCheckWhenMove default False;
     property LastItemTouched: longint read FLastITem write FLastITem default -1;
   end;
 
@@ -44,11 +44,11 @@ begin
   begin
     if (Button = mbLeft) and (X > 14) then
     begin
-      FJaiVuMouseDown := TRUE;
+      FJaiVuMouseDown := True;
 
       SearchPoint.x := X;
       SearchPoint.y := y;
-      MaybeItem := ItemAtPos(SearchPoint, TRUE);
+      MaybeItem := ItemAtPos(SearchPoint, True);
 
       if MaybeItem <> -1 then
       begin
@@ -75,7 +75,7 @@ begin
       SearchPoint.x := X;
       SearchPoint.y := y;
 
-      MaybeItem := ItemAtPos(SearchPoint, TRUE);
+      MaybeItem := ItemAtPos(SearchPoint, True);
       if (MaybeItem <> -1) then
       begin
         Checked[MaybeItem] := FLastAction;
@@ -88,16 +88,16 @@ end;
 procedure tCheckListCallidus.ResetContent;
 begin
   inherited;
-  FJaiVuMouseDown := FALSE;
+  FJaiVuMouseDown := False;
 end;
 
 { tCheckListCallidus.Create}
 constructor tCheckListCallidus.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FLastAction := FALSE;
+  FLastAction := False;
   FLastItem := -1;
-  FJaiVuMouseDown := FALSE;
+  FJaiVuMouseDown := False;
 end;
 
 { tCheckListCallidus.GetNumberOfSelection}

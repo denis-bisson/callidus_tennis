@@ -275,7 +275,7 @@ var
 begin
 
   try
-    result := TRUE;
+    result := True;
     Title := Stralloc(100);
     ClassName := Stralloc(100);
     GetWindowText(wHandle, Title, 99);
@@ -287,7 +287,7 @@ begin
     strDispose(ClassName);
   except
     TStringList(lParam).Add('Gotcha!');
-    result := TRUE; // Anyway....
+    result := True; // Anyway....
   end;
 
 end;
@@ -301,21 +301,21 @@ begin
   if ListeWindowTitle <> nil then
     ListeWindowTitle := TStringList.Create;
 
-  ListeWindowTitle.Sorted := FALSE;
+  ListeWindowTitle.Sorted := False;
   ListeWindowTitle.Clear;
 
   if ListeWindowClass <> nil then
     ListeWindowClass := TStringList.Create;
-  ListeWindowClass.Sorted := FALSE;
+  ListeWindowClass.Sorted := False;
   ListeWindowClass.Clear;
 
   if ListeWindowHandle <> nil then
     ListeWindowHandle := TStringList.Create;
-  ListeWindowHandle.Sorted := FALSE;
+  ListeWindowHandle.Sorted := False;
   ListeWindowHandle.Clear;
 
   ListeTempo := TStringList.Create;
-  ListeTempo.Sorted := FALSE;
+  ListeTempo.Sorted := False;
   ListeTempo.Clear;
 
   EnumWindows(@EnumWindowsToStringList, integer(ListeTempo));

@@ -483,8 +483,8 @@ begin
     if iAnyValue <> -1 then
     begin
       sAnyValue := slVariablesValues.Strings[iAnyValue];
-      if sAnyValue = sDISPLAY_PARAM_FULLSCREEN then SetInFullScreen(TRUE);
-      if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(FALSE);
+      if sAnyValue = sDISPLAY_PARAM_FULLSCREEN then SetInFullScreen(True);
+      if sAnyValue = sDISPLAY_PARAM_NORMALSCREEN then SetInFullScreen(False);
     end;
 
   finally

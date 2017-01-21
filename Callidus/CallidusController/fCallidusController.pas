@@ -66,7 +66,7 @@ type
     estcommunicationwithCallidusDisplay1: TMenuItem;
     actCloseAllCallidusApplications: TAction;
     Action11: TMenuItem;
-    AutoStartTimer: TTimer;
+    tmrBroadcastServerLocation: TTimer;
     IdUDPServerController: TIdUDPServer;
     ProtocolePROTO_Controller: TProtocoleProto;
     pgMainPagecontrol: TPageControl;
@@ -166,14 +166,12 @@ type
     procedure SaveConfiguration;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure actToggleDebugWindowExecute(Sender: TObject);
-    procedure actStartServicingExecute(Sender: TObject);
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
     function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
     function SendCommandToRemoteStation(WhereWichToSend: TSpecificOrNot; ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
     procedure EnableToute;
     procedure actCloseAllCallidusApplicationsExecute(Sender: TObject);
-    procedure AutoStartTimerTimer(Sender: TObject);
     procedure actFlushCurrentDetectedListExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure miFullCommunicationLogClick(Sender: TObject);
@@ -202,6 +200,7 @@ type
     procedure actGetRadarParamsExecute(Sender: TObject);
     procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
     procedure actGetResolutionExecute(Sender: TObject);
+    procedure tmrBroadcastServerLocationTimer(Sender: TObject);
 
   private
     { Private declarations }
@@ -294,7 +293,7 @@ var
 begin
   result := -1;
   iPromeneur := 0;
-  bAlreadyPresent := FALSE;
+  bAlreadyPresent := False;
 
   while (iPromeneur < count) and (not bAlreadyPresent) do
   begin
@@ -356,8 +355,8 @@ procedure TfrmCallidusController.actGetResolutionExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    lblHintForResolution.Visible := false;
-    lblResolution.Visible := false;
+    lblHintForResolution.Visible := False;
+    lblResolution.Visible := False;
     bOverAllActionResult := SendCommandToRemoteStation(sonSelected, PROTO_CMD_GETRESO, dtCallidusDisplay, []);
   finally
     EnableToute;
@@ -390,7 +389,6 @@ end;
 procedure TfrmCallidusController.actMasterSelfIdentificationExecute(Sender: TObject);
 begin
   ProtocolePROTO_Radar.AnyUDPClientSendIdentification;
-
   ProtocolePROTO_Display.AnyUDPClientSendIdentification;
 end;
 
@@ -402,6 +400,17 @@ begin
   finally
     if bModePublicite then
       TimerPublicityFullScreen.Enabled := True;
+  end;
+end;
+
+procedure TfrmCallidusController.tmrBroadcastServerLocationTimer(Sender: TObject);
+begin
+  tmrBroadcastServerLocation.Enabled:=False;
+  try
+     actMasterSelfIdentificationExecute(actMasterSelfIdentification);
+  finally
+    tmrBroadcastServerLocation.Interval:=15000;
+    tmrBroadcastServerLocation.Enabled:=True;
   end;
 end;
 
@@ -474,7 +483,7 @@ begin
       case rgMode.ItemIndex of
         1, 2:
           begin
-            if chklst.Checked[chklst.ItemIndex] = FALSE then
+            if chklst.Checked[chklst.ItemIndex] = False then
               chklst.ItemIndex := iFirstCheck;
           end;
       end;
@@ -566,11 +575,6 @@ begin
   finally
     EnableToute;
   end;
-end;
-
-procedure TfrmCallidusController.actStartServicingExecute(Sender: TObject);
-begin
-  MessageDlg('Pas de cod epour le moment...', mtInformation, [mbOk], 0);
 end;
 
 procedure TfrmCallidusController.actStopNetworkTestExecute(Sender: TObject);
@@ -833,12 +837,6 @@ begin
   end;
 end;
 
-procedure TfrmCallidusController.AutoStartTimerTimer(Sender: TObject);
-begin
-  AutoStartTimer.Enabled := FALSE;
-  actStartServicingExecute(actStartServicing);
-end;
-
 procedure TfrmCallidusController.btnCommanditClick(Sender: TObject);
 var
   sNomFichierList, sListFilename: string;
@@ -1012,14 +1010,14 @@ begin
     begin
       LoadWindowConfig(ConfigFile, Self, CALLIDUSCONTROLLERCONFIGSECTION);
       LoadWindowConfig(ConfigFile, frmDebugWindow, DEBUGWINDOWSECTION);
-      bDebugWasVisible := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'bDebugWasVisible', FALSE);
+      bDebugWasVisible := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'bDebugWasVisible', False);
       if bDebugWasVisible then
         frmDebugWindow.Show;
       miSaveLogEachTime.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', True);
       miFullCommunicationLog.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'miFullCommunicationLog', False);
       //    miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
-      edServiceSpeedUnit.Checkbox.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', TRUE);
+      edServiceSpeedUnit.Checkbox.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', True);
       edServiceSpeedUnit.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', 'kmh');
       sMaybeRatio := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'sMaybeRatio', '25%');
       cbShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShadowSize', 10);
@@ -1050,7 +1048,7 @@ begin
       ckbPubBanniereClick(ckbPubBanniere);
       edtRadarTestTempsOn.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOn', '250');
       edtRadarTestTempsOff.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOff', '100');
-      ckbTempsOffBetweenTest.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', TRUE);
+      ckbTempsOffBetweenTest.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', True);
       // ..LoadConfiguration
     end;
   finally
@@ -1179,7 +1177,7 @@ begin
         begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-          if bModePublicite = FALSE then
+          if bModePublicite = False then
           begin
             ServiceSpeedInfo.CurrentPeakSpeed := -2;
             iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
@@ -1217,11 +1215,11 @@ end;
 
 procedure TfrmCallidusController.RefreshListTimerTimer(Sender: TObject);
 begin
-  RefreshListTimer.Enabled := FALSE;
+  RefreshListTimer.Enabled := False;
   try
     lbDeviceDetected.Refresh;
   finally
-    RefreshListTimer.Enabled := TRUE;
+    RefreshListTimer.Enabled := True;
   end;
 end;
 
@@ -1238,7 +1236,7 @@ var
 begin
   frmDebugWindow.StatusWindow.Clear;
   frmDebugWindow.StatusWindow.Color := COLORBACK_WORKING;
-  bOverAllActionResult := FALSE;
+  bOverAllActionResult := False;
 end;
 
 procedure TfrmCallidusController.edServiceSpeedUnitSubCheckboxClick(Sender: TObject);
@@ -1284,7 +1282,7 @@ begin
   Application.ProcessMessages;
   if isFirstActivation then
   begin
-    isFirstActivation := FALSE;
+    isFirstActivation := False;
     btnCommanditClick(btnCommandFull);
     btnCommanditClick(btnBanniere);
     LoadConfiguration;
@@ -1301,8 +1299,8 @@ begin
     ProtocolePROTO_Display.WorkingClientUDP.Port := PORT_CALLIDUS_DISPLAY;
     ProtocolePROTO_Display.Init;
 
-    //AutoStartTimer.Enabled := TRUE;
-    //RefreshListTimer.Enabled := True;
+    tmrBroadcastServerLocation.Interval:=2000;
+    tmrBroadcastServerLocation.Enabled:=True;
   end;
 end;
 

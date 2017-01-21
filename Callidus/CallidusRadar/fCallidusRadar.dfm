@@ -322,7 +322,7 @@ object frmCallidusRadar: TfrmCallidusRadar
       ImageIndex = 4
       object GroupBox1: TGroupBox
         Left = 3
-        Top = 117
+        Top = 90
         Width = 346
         Height = 78
         Caption = 'Auto-d'#233'tection:'
@@ -348,34 +348,25 @@ object frmCallidusRadar: TfrmCallidusRadar
         Left = 3
         Top = 3
         Width = 346
-        Height = 102
+        Height = 78
         Caption = 'Au d'#233'marrage:'
         TabOrder = 1
-        object cbDetectNetwork: TCheckBox
+        object ckbDetectRadar: TCheckBox
           Left = 17
           Top = 24
-          Width = 216
-          Height = 17
-          Caption = 'Activation de la d'#233'tection r'#233'seau'
-          TabOrder = 0
-          OnClick = cbDetectNetworkClick
-        end
-        object cbDetectRadar: TCheckBox
-          Left = 17
-          Top = 47
           Width = 304
           Height = 17
-          Caption = 'Si positif, on lance l'#39'auto-d'#233'tection du COM pour le RADAR'
-          TabOrder = 1
-          OnClick = cbDetectRadarClick
+          Caption = 'On lance l'#39'auto-d'#233'tection du COM pour le RADAR'
+          TabOrder = 0
+          OnClick = ckbDetectRadarClick
         end
         object cbLanceMonitoring: TCheckBox
           Left = 17
-          Top = 70
+          Top = 47
           Width = 234
           Height = 17
           Caption = 'Si positif, on lance le monitoring'
-          TabOrder = 2
+          TabOrder = 1
         end
       end
       object pnlAutoDetection: TMemo
@@ -663,8 +654,8 @@ object frmCallidusRadar: TfrmCallidusRadar
       end>
   end
   object pmRadarConfig: TPopupMenu
-    Left = 228
-    Top = 102
+    Left = 232
+    Top = 62
     object RefreshCOMportlist1: TMenuItem
       Action = actRefreshComboComm
     end
@@ -797,8 +788,10 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
+    SettingsStore.RegRoot = rrCURRENTUSER
+    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '1.8.0.0'
+    Version = '2.0.0.0'
     Left = 100
     Top = 262
   end
@@ -825,7 +818,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 228
     Top = 246
     Bitmap = {
-      494C010102000800B80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800C00020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1363,18 +1356,18 @@ object frmCallidusRadar: TfrmCallidusRadar
   object odMainApp: TOpenDialog
     Filter = 'Stalker config file|*.cfg'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 316
-    Top = 118
+    Left = 328
+    Top = 70
   end
   object IdUDPClientController: TIdUDPClient
     Port = 0
     Left = 420
     Top = 254
   end
-  object tmrControllerVerification: TTimer
+  object tmrDemarrage: TTimer
     Enabled = False
-    Left = 496
-    Top = 128
+    Left = 216
+    Top = 144
   end
   object IdUDPServerRadar: TIdUDPServer
     Bindings = <>
@@ -1385,7 +1378,7 @@ object frmCallidusRadar: TfrmCallidusRadar
   object tmrTestConnexion: TTimer
     Enabled = False
     OnTimer = tmrTestConnexionTimer
-    Left = 160
-    Top = 65528
+    Left = 140
+    Top = 32
   end
 end

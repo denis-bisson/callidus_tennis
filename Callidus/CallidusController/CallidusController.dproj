@@ -44,56 +44,56 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>CallidusController</SanitizedProjectName>
-        <DCC_E>false</DCC_E>
-        <DCC_N>false</DCC_N>
-        <DCC_S>false</DCC_S>
-        <DCC_F>false</DCC_F>
-        <DCC_K>false</DCC_K>
+        <DCC_E>False</DCC_E>
+        <DCC_N>False</DCC_N>
+        <DCC_S>False</DCC_S>
+        <DCC_F>False</DCC_F>
+        <DCC_K>False</DCC_K>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_IncludeVerInfo>True</VerInfo_IncludeVerInfo>
         <DCC_UsePackage>DBXSqliteDriver;bindcompdbx;IndyIPCommon;RESTComponents;DBXInterBaseDriver;vcl;IndyIPServer;vclactnband;frxe23;vclFireDAC;IndySystem;vcwdXE8;tethering;svnui;dsnapcon;FireDACADSDriver;OverbyteIcsDXE8Run;FireDACMSAccDriver;fmxFireDAC;vclimg;TeeDB;FireDAC;vcltouch;vcldb;bindcompfmx;svn;Intraweb;FireDACSqliteDriver;FireDACPgDriver;FireDACASADriver;inetdb;FMXTee;soaprtl;DbxCommonDriver;FmxTeeUI;TMS_Common;FireDACIBDriver;fmx;fmxdae;xmlrtl;soapmidas;Tee;fmxobj;vclwinx;rtl;DbxClientDriver;alvPkgDXE5;CustomIPTransport;vcldsnap;dbexpress;IndyCore;asgdxe8;TMSPanelsDXE8;vclx;bindcomp;appanalytics;dsnap;MixedComponents;vacommPkgDXE8;FireDACCommon;IndyIPClient;bindcompvcl;frxDB23;RESTBackendComponents;TeeUI;VCLRESTComponents;vclribbon;dbxcds;VclSmp;soapserver;adortl;FireDACODBCDriver;frxTee23;asgxlsdxe8;vclie;bindengine;DBXMySQLDriver;CloudService;dsnapxml;FireDACMySQLDriver;dbrtl;inetdbxpress;IndyProtocols;frx23;BluberiCompCollection;FireDACCommonDriver;inet;fmxase;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
-        <DCC_DebugDCUs>true</DCC_DebugDCUs>
-        <DCC_Optimize>false</DCC_Optimize>
-        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
-        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
-        <DCC_RemoteDebug>true</DCC_RemoteDebug>
+        <DCC_DebugDCUs>True</DCC_DebugDCUs>
+        <DCC_Optimize>False</DCC_Optimize>
+        <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
+        <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
+        <DCC_RemoteDebug>True</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_DcuOutput>..\DCUs\</DCC_DcuOutput>
         <DCC_ExeOutput>..\Executables\</DCC_ExeOutput>
-        <DCC_DebugInfoInExe>false</DCC_DebugInfoInExe>
+        <DCC_DebugInfoInExe>False</DCC_DebugInfoInExe>
         <DCC_UnitSearchPath>..\Components;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
-        <DCC_Hints>false</DCC_Hints>
-        <DCC_RangeChecking>true</DCC_RangeChecking>
-        <DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
+        <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+        <DCC_Hints>False</DCC_Hints>
+        <DCC_RangeChecking>True</DCC_RangeChecking>
+        <DCC_IMPLICIT_STRING_CAST>False</DCC_IMPLICIT_STRING_CAST>
         <Icon_MainIcon>CallidusController.ico</Icon_MainIcon>
-        <VerInfo_Build>590</VerInfo_Build>
+        <VerInfo_Build>592</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.590;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <AppEnableHighDPI>true</AppEnableHighDPI>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <DCC_RemoteDebug>false</DCC_RemoteDebug>
+        <AppEnableRuntimeThemes>True</AppEnableRuntimeThemes>
+        <VerInfo_AutoIncVersion>True</VerInfo_AutoIncVersion>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.592;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <AppEnableHighDPI>True</AppEnableHighDPI>
+        <VerInfo_IncludeVerInfo>True</VerInfo_IncludeVerInfo>
+        <DCC_RemoteDebug>False</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <AppEnableHighDPI>true</AppEnableHighDPI>
+        <AppEnableRuntimeThemes>True</AppEnableRuntimeThemes>
+        <AppEnableHighDPI>True</AppEnableHighDPI>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -134,7 +134,7 @@
                 <DeployFile LocalName="CallidusController.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>CallidusController.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
+                        <Overwrite>True</Overwrite>
                     </Platform>
                 </DeployFile>
                 <DeployClass Name="DependencyModule">
@@ -208,7 +208,7 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Required="true" Name="ProjectOutput">
+                <DeployClass Required="True" Name="ProjectOutput">
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                     </Platform>
@@ -470,7 +470,7 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Required="true" Name="DependencyPackage">
+                <DeployClass Required="True" Name="DependencyPackage">
                     <Platform Name="Win32">
                         <Operation>0</Operation>
                         <Extensions>.bpl</Extensions>

@@ -115,7 +115,7 @@ type
     Closeallapplications1: TMenuItem;
     IdUDPClientController: TIdUDPClient;
     IdUDPServerRadar: TIdUDPServer;
-    tmrControllerVerification: TTimer;
+    tmrDemarrage: TTimer;
     sbRadar: TStatusBar;
     miFullCommunicationLog: TMenuItem;
     btnApply: TButton;
@@ -126,13 +126,12 @@ type
     cbKeepRetryingAutodetect: TCheckBox;
     cbTryAllBaudRate: TCheckBox;
     GroupBox2: TGroupBox;
-    cbDetectNetwork: TCheckBox;
-    cbDetectRadar: TCheckBox;
+    ckbDetectRadar: TCheckBox;
     cbLanceMonitoring: TCheckBox;
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
     tmrTestConnexion: TTimer;
-    procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = FALSE);
+    procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = False);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
     procedure AdvAnyGridCanEditCell(Sender: TObject; ARow, ACol: integer; var CanEdit: boolean);
@@ -170,8 +169,7 @@ type
     procedure actAutodetectionExecute(Sender: TObject);
     function AutoDetectRadar: boolean;
     procedure CloseConnexion;
-    procedure cbDetectRadarClick(Sender: TObject);
-    procedure cbDetectNetworkClick(Sender: TObject);
+    procedure ckbDetectRadarClick(Sender: TObject);
     procedure btnStopAutoDetectClick(Sender: TObject);
     procedure ProtocolePROTO_RadarServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
     procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
@@ -194,7 +192,6 @@ type
     NomFichierConfiguration: string;
     iIndexApplication: integer;
     bFlagAbort, bAbortAutoDetection, bCurrentlyDoingNetworkCycleTest: boolean;
-    bFirstNetworkDetection: boolean;
     itnTempsOn, itnTempsOff: integer;
     btnIncludeTempsOff: boolean;
   public
@@ -202,7 +199,7 @@ type
     ServiceSpeed: TServiceSpeed;
     procedure LoadRadarConfigFile;
     function EstablishConnexionWithRadar: boolean;
-    function SendReceiveRadarParameter(RadarAddress, IndexParameter: integer; paramMethod: TRadarMethod; paramNoVerification: boolean = FALSE): boolean;
+    function SendReceiveRadarParameter(RadarAddress, IndexParameter: integer; paramMethod: TRadarMethod; paramNoVerification: boolean = False): boolean;
     procedure VaCommRadarRxChar(Sender: TObject; Count: integer);
     procedure RefreshConfigRadarStatusBar;
     procedure SetVisibleServiceSpeedParamFromVariable;
@@ -407,7 +404,7 @@ begin
     RadarAddress := StrToIntDef(cbRadarAddress.Items.Strings[cbRadarAddress.ItemIndex], 2);
     cbRadarAddress.ItemIndex := RadarAddress - 2;
 
-    if SetTransmitterOnOrOff(FALSE) then
+    if SetTransmitterOnOrOff(False) then
     begin
       bKeepGoing := True;
       iParam := 0;
@@ -449,7 +446,7 @@ end;
 
 procedure TfrmCallidusRadar.actStartMonitoringExecute(Sender: TObject);
 begin
-  actStartMonitoring.Enabled := FALSE;
+  actStartMonitoring.Enabled := False;
   Application.ProcessMessages;
   try
     try
@@ -485,7 +482,7 @@ begin
       else
       begin
         ServiceSpeed.StateMachine := tmss_STOPPED;
-        bMonitorSpeed := FALSE;
+        bMonitorSpeed := False;
         Application.ProcessMessages;
         actStartMonitoring.Caption := STR_STARTMONITORING;
         btnMonitoring.Caption := actStartMonitoring.Caption;
@@ -558,13 +555,13 @@ begin
         end;
     end;
 
-    TTimer(Sender).Enabled := true;
+    TTimer(Sender).Enabled := True;
   end;
 end;
 
 procedure TfrmCallidusRadar.StopNetworkTest(PayloadData: TStringList);
 begin
-  bFlagAbort := FALSE;
+  bFlagAbort := False;
   bCurrentlyDoingNetworkCycleTest := False;
   Application.ProcessMessages;
 end;
@@ -655,7 +652,7 @@ begin
   Application.ProcessMessages;
   if isFirstActivation then
   begin
-    isFirstActivation := FALSE;
+    isFirstActivation := False;
     LoadConfiguration;
     btnMonitoring.Glyph.Assign(nil);
     ImageListRadar.GetBitmap(0, btnMonitoring.Glyph);
@@ -664,8 +661,29 @@ begin
     ProtocolePROTO_Radar.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
     ProtocolePROTO_Radar.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_RADAR;
     ProtocolePROTO_Radar.Init;
-    bFirstNetworkDetection := TRUE;
-    //    tmrControllerVerification.Enabled := TRUE;
+
+    if ckbDetectRadar.Checked then
+    begin
+      DisableToute;
+      btnMonitoring.Enabled := False;
+      edConfigFile.Enabled := False;
+      btnConfigFile.Enabled := False;
+      try
+        if AutoDetectRadar then
+        begin
+          if cbLanceMonitoring.Enabled and cbLanceMonitoring.Checked then
+          begin
+            actStartMonitoringExecute(actStartMonitoring);
+          end;
+        end;
+      finally
+        btnConfigFile.Enabled := True;
+        edConfigFile.Enabled := True;
+        btnMonitoring.Enabled := True;
+        EnableToute(False);
+      end;
+    end;
+
   end;
 end;
 
@@ -682,7 +700,7 @@ end;
 
 procedure TfrmCallidusRadar.btnStopTestEnBoucleClick(Sender: TObject);
 begin
-  bFlagAbort := TRUE;
+  bFlagAbort := True;
   bCurrentlyDoingNetworkCycleTest := False;
   Application.ProcessMessages;
 end;
@@ -763,7 +781,7 @@ begin
   Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
   isFirstActivation := True;
   NomFichierConfiguration := GetConfigFilename('CallidusRadar');
-  bMonitorSpeed := FALSE;
+  bMonitorSpeed := False;
   PopulatecbComPort;
   cbComPort.Hint := 'Detected COM port are in green' + #$0A + 'Not detected are in red' + #$0A + 'Right click on drop box to refresh list';
   VaCommRadar.OnRxChar := VaCommRadarRxChar;
@@ -987,20 +1005,9 @@ begin
   end;
 end;
 
-procedure TfrmCallidusRadar.cbDetectNetworkClick(Sender: TObject);
-begin
-  cbDetectRadar.Enabled := cbDetectNetwork.Checked;
-  cbDetectRadarClick(cbDetectRadar);
-end;
-
-procedure TfrmCallidusRadar.cbDetectRadarClick(Sender: TObject);
-begin
-  cbLanceMonitoring.Enabled := cbDetectRadar.Enabled and cbDetectRadar.Checked;
-end;
-
 procedure TfrmCallidusRadar.ChangeServiceSettingClick(Sender: TObject);
 begin
-  btnApply.Enabled := TRUE;
+  btnApply.Enabled := True;
 end;
 
 function GetDisplayableStuff(A: AnsiString): AnsiString;
@@ -1015,7 +1022,7 @@ begin
       result := result + AnsiString(Format('<0x%2.2X>', [ord(A[iChar])]));
 end;
 
-function CharChainToString(A: AnsiString; bSpaceBetween: boolean = True; bReverse: boolean = FALSE): AnsiString;
+function CharChainToString(A: AnsiString; bSpaceBetween: boolean = True; bReverse: boolean = False): AnsiString;
 var
   Index: integer;
   B: AnsiString;
@@ -1046,7 +1053,7 @@ begin
   result := Format('%2.2d:%2.2d:%2.2d.%3.3d', [MyHour, MyMin, MySec, MyMilliSec]);
 end;
 
-function HexStringToCharChain(A: AnsiString; bReverse: boolean = FALSE): AnsiString;
+function HexStringToCharChain(A: AnsiString; bReverse: boolean = False): AnsiString;
 var
   Index: integer;
   B, sSingleByte: AnsiString;
@@ -1089,7 +1096,7 @@ begin
 end;
 {$R+}
 
-function TfrmCallidusRadar.SendReceiveRadarParameter(RadarAddress, IndexParameter: integer; paramMethod: TRadarMethod; paramNoVerification: boolean = FALSE): boolean;
+function TfrmCallidusRadar.SendReceiveRadarParameter(RadarAddress, IndexParameter: integer; paramMethod: TRadarMethod; paramNoVerification: boolean = False): boolean;
 var
   sValue, PacketToSend: AnsiString;
   iValue: int64;
@@ -1101,7 +1108,7 @@ var
   dwTimeoutValue: dword;
   realTimeoutValue, realTempsDeUnByte: real;
 begin
-  result := FALSE;
+  result := False;
 
   if not paramNoVerification then
   begin
@@ -1246,7 +1253,7 @@ begin
                 try
                   if paramMethod = rm_GetMethod then
                   begin
-                    sValue := '0x' + CharChainToString(copy(RadarAnswer, 9, (ExpectedAnswerLength - 10)), FALSE, True);
+                    sValue := '0x' + CharChainToString(copy(RadarAnswer, 9, (ExpectedAnswerLength - 10)), False, True);
                     iValue := StrToIntDef(sValue, 0);
 
                     case WorkingRadarConfig.Parameter[IndexParameter].DataType of
@@ -1312,13 +1319,13 @@ begin
       end;
     end;
   except
-    result := FALSE;
+    result := False;
   end;
 end;
 
 function TfrmCallidusRadar.EstablishConnexionWithRadar: boolean;
 begin
-  result := FALSE;
+  result := False;
 
   try
     if not VaCommRadar.Active then
@@ -1336,12 +1343,12 @@ begin
 
     if VaCommRadar.Active then
     begin
-      cbComPort.Enabled := FALSE;
+      cbComPort.Enabled := False;
       RefreshConfigRadarStatusBar;
       result := True;
     end;
   except
-    result := FALSE;
+    result := False;
   end;
 end;
 
@@ -1378,7 +1385,7 @@ begin
       begin
         if (posEF <> 1) then
           RadarAnswer := AnsiStrings.RightStr(RadarAnswer, (length(RadarAnswer) - (posEF - 1)));
-        bCurrentlyWaitingEF := FALSE;
+        bCurrentlyWaitingEF := False;
       end;
     end;
 
@@ -1406,7 +1413,7 @@ procedure TfrmCallidusRadar.DisableToute;
 var
   iAction: integer;
 begin
-  bMonitorSpeed := FALSE;
+  bMonitorSpeed := False;
   for iAction := 0 to pred(ActionManagerRadarConfig.ActionCount) do
   begin
     case ActionManagerRadarConfig.Actions[iAction].Tag of
@@ -1415,19 +1422,19 @@ begin
         end;
     else
       begin
-        ActionManagerRadarConfig.Actions[iAction].Enabled := FALSE;
+        ActionManagerRadarConfig.Actions[iAction].Enabled := False;
       end;
     end;
 
   end;
   frmDebugWindow.StatusWindow.Clear;
   frmDebugWindow.StatusWindow.Color := COLORBACK_WORKING;
-  lblComPort.Enabled := FALSE;
-  cbComPort.Enabled := FALSE;
-  lblRadarAddress.Enabled := FALSE;
-  cbRadarAddress.Enabled := FALSE;
+  lblComPort.Enabled := False;
+  cbComPort.Enabled := False;
+  lblRadarAddress.Enabled := False;
+  cbRadarAddress.Enabled := False;
 
-  bOverAllActionResult := FALSE;
+  bOverAllActionResult := False;
   InitialTabSheet := pcRadarPageControl.ActivePage;
 end;
 
@@ -1474,14 +1481,14 @@ begin
   RadarAddress := StrToIntDef(cbRadarAddress.Items.Strings[cbRadarAddress.ItemIndex], 2);
   cbRadarAddress.ItemIndex := RadarAddress - 2;
   WorkingRadarConfig.Parameter[IndexCommandeTransmitControl].Proposed_Value := Math.ifThen(StateWanted, $01, $00);
-  if StateWanted = FALSE then
+  if StateWanted = False then
     bDoWithVerification := True
   else
-    bDoWithVerification := FALSE;
+    bDoWithVerification := False;
 
   result := SendReceiveRadarParameter(RadarAddress, IndexCommandeTransmitControl, rm_SetMethod, bDoWithVerification);
 
-  if (not result) and (StateWanted = FALSE) then
+  if (not result) and (StateWanted = False) then
   begin
     result := SendReceiveRadarParameter(RadarAddress, IndexCommandeTransmitControl, rm_SetMethod);
   end;
@@ -1497,7 +1504,7 @@ begin
     RadarAddress := StrToIntDef(cbRadarAddress.Items.Strings[cbRadarAddress.ItemIndex], 2);
     cbRadarAddress.ItemIndex := RadarAddress - 2;
 
-    if SetTransmitterOnOrOff(FALSE) then
+    if SetTransmitterOnOrOff(False) then
     begin
       bKeepGoing := True;
 
@@ -1678,7 +1685,7 @@ begin
   ServiceSpeed.HighLimitInactivitySpeed := StrToIntDef(edHighInactivitySpeed.Text, 200);
   ServiceSpeed.TimeInactivitySpeed := StrToIntDef(edInactivityTime.Text, 5000);
   SetVisibleServiceSpeedParamFromVariable;
-  btnApply.Enabled := FALSE;
+  btnApply.Enabled := False;
 end;
 
 procedure TfrmCallidusRadar.WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
@@ -1728,19 +1735,18 @@ begin
       ServiceSpeed.HighLimitInactivitySpeed := ReadInteger(sConfigSectionName, 'HighLimitInactivitySpeed', 200);
       ServiceSpeed.TimeInactivitySpeed := ReadInteger(sConfigSectionName, 'TimeInactivitySpeed', 5000);
       SetVisibleServiceSpeedParamFromVariable;
-      bDebugWasVisible := ReadBool(sConfigSectionName, 'bDebugWasVisible', FALSE);
+      bDebugWasVisible := ReadBool(sConfigSectionName, 'bDebugWasVisible', False);
       if bDebugWasVisible then
         frmDebugWindow.Show;
       cbSaveLogEachTimeWhenQuiting.Checked := ReadBool(sConfigSectionName, 'cbSaveLogEachTimeWhenQuiting', True);
-      miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', FALSE);
+      miFullCommunicationLog.Checked := ReadBool(sConfigSectionName, 'miFullCommunicationLog', False);
       //miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
-      cbKeepRetryingAutodetect.Checked := ReadBool(sConfigSectionName, 'cbKeepRetryingAutodetect', TRUE);
-      cbTryAllBaudRate.Checked := ReadBool(sConfigSectionName, 'cbTryAllBaudRate', FALSE);
-      cbDetectNetwork.Checked := ReadBool(sConfigSectionName, 'cbDetectNetwork', FALSE);
-      cbDetectRadar.Checked := ReadBool(sConfigSectionName, 'cbDetectRadar', FALSE);
-      cbLanceMonitoring.Checked := ReadBool(sConfigSectionName, 'cbLanceMonitoring', FALSE);
-      cbDetectNetworkClick(cbDetectNetwork);
+      cbKeepRetryingAutodetect.Checked := ReadBool(sConfigSectionName, 'cbKeepRetryingAutodetect', True);
+      cbTryAllBaudRate.Checked := ReadBool(sConfigSectionName, 'cbTryAllBaudRate', False);
+      ckbDetectRadar.Checked := ReadBool(sConfigSectionName, 'ckbDetectRadar', False);
+      cbLanceMonitoring.Checked := ReadBool(sConfigSectionName, 'cbLanceMonitoring', False);
+      ckbDetectRadarClick(ckbDetectRadar);
 
       itnTempsOn := ReadInteger(sConfigSectionName, 'tbTempsOn', 0);
       itnTempsOff := ReadInteger(sConfigSectionName, 'tbTempsOff', 0);
@@ -1784,8 +1790,7 @@ begin
       WriteBool(sConfigSectionName, 'miFullCommunicationLog', miFullCommunicationLog.Checked);
       WriteBool(sConfigSectionName, 'cbKeepRetryingAutodetect', cbKeepRetryingAutodetect.Checked);
       WriteBool(sConfigSectionName, 'cbTryAllBaudRate', cbTryAllBaudRate.Checked);
-      WriteBool(sConfigSectionName, 'cbDetectNetwork', cbDetectNetwork.Checked);
-      WriteBool(sConfigSectionName, 'cbDetectRadar', cbDetectRadar.Checked);
+      WriteBool(sConfigSectionName, 'ckbDetectRadar', ckbDetectRadar.Checked);
       WriteBool(sConfigSectionName, 'cbLanceMonitoring', cbLanceMonitoring.Checked);
 
       WriteInteger(sConfigSectionName, 'tbTempsOn', itnTempsOn);
@@ -1815,13 +1820,13 @@ begin
     pcRadarPageControl.ActivePage := tsOptionsAutoDetection;
     pnlAutoDetection.Visible := True;
     btnStopAutoDetect.Visible := True;
-    bAbortAutoDetection := FALSE;
+    bAbortAutoDetection := False;
     pcRadarPageControl.Enabled := False;
     Application.ProcessMessages;
 
     try
-      bRadarFound := FALSE;
-      bFlagFirstAttempt := TRUE;
+      bRadarFound := False;
+      bFlagFirstAttempt := True;
       iRememberCom := cbComPort.ItemIndex;
 
       repeat
@@ -1858,7 +1863,7 @@ begin
                     CloseConnexion;
                     WriteStatusLg(Format('We will try to detect on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Nous allons nous essayer sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORDANGER);
                     VaCommRadar.UserBaudrate := BAUDRATETABLE[iIndexBaudRate];
-                    if SetTransmitterOnOrOff(FALSE) then
+                    if SetTransmitterOnOrOff(False) then
                     begin
                       WriteStatusLg(Format('RADAR was detected successfully on COM%d @ %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), Format('Le RADAR a été détecté avec succès sur le COM%d à %d bps', [iComPromeneur + 1, BAUDRATETABLE[iIndexBaudRate]]), COLORSUCCESS);
                       bRadarFound := True;
@@ -1885,7 +1890,7 @@ begin
           if (bFlagFirstAttempt) and (not bRadarFound) and (not bAbortAutoDetection) then
           begin
             iComPromeneur := 0;
-            bFlagFirstAttempt := FALSE;
+            bFlagFirstAttempt := False;
             WriteStatusLg('Since we did not find RADAR, we will now looping through ALL the detected COM ports...', 'Puisque nous n''avons pas détecter de RADAR, nous allons maintenant parcourir TOUS les COM''s qui ont été détectés...', COLORDANGER);
           end;
         end; //while (iComPromeneur < cbComPort.Items.Count) and (not bRadarFound) do
@@ -1901,7 +1906,7 @@ begin
       if bAbortAutoDetection then MessageDlg('ATTENTION! Vous avez annulé l''auto-détection!', mtWarning, [mbOk], 0);
     end;
   except
-    result := FALSE;
+    result := False;
   end;
 end;
 
@@ -1980,7 +1985,7 @@ begin
 
     if not bCurrentlyDoingNetworkCycleTest then
     begin
-      bFlagAbort := FALSE;
+      bFlagAbort := False;
       bCurrentlyDoingNetworkCycleTest := True;
       tmrTestConnexion.Tag := 0;
       tmrTestConnexion.Interval := 10;
@@ -2021,6 +2026,12 @@ begin
     FreeAndNil(slVariablesNames);
     FreeAndNil(slVariablesValues);
   end;
+end;
+
+{ TfrmCallidusRadar.cbDetectRadarClick}
+procedure TfrmCallidusRadar.ckbDetectRadarClick(Sender: TObject);
+begin
+  cbLanceMonitoring.Enabled := ckbDetectRadar.Checked;
 end;
 
 end.
