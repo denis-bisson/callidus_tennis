@@ -44,6 +44,8 @@ type
     property Device[Index: integer]: TCallidusDevice read GetDevice;
   end;
 
+  TSpecificOrNot = (sonAllOfAKind, sonSelected, sonFirst);
+
   TfrmCallidusController = class(TForm)
     MyStatusBar: TStatusBar;
     mmMainMenu: TMainMenu;
@@ -68,7 +70,7 @@ type
     IdUDPServerController: TIdUDPServer;
     ProtocolePROTO_Controller: TProtocoleProto;
     pgMainPagecontrol: TPageControl;
-    Devices: TTabSheet;
+    tsApplicationSatellite: TTabSheet;
     Label1: TLabel;
     actFlushCurrentDetectedList: TAction;
     Flushcurrentdetectedlist1: TMenuItem;
@@ -153,6 +155,10 @@ type
     actSendRadarParams: TAction;
     actGetRadarParams: TAction;
     btnReadRadarParameters: TButton;
+    actGetResolution: TAction;
+    Button1: TButton;
+    lblHintForResolution: TLabel;
+    lblResolution: TLabel;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -163,7 +169,7 @@ type
     procedure actStartServicingExecute(Sender: TObject);
     procedure WriteStatusLg(sDebugLineEnglish: string; sDebugLineFrench: string = ''; clColorRequested: dword = COLORSTATUS);
     function InformeDisplayDuneNouvelleVitesse(paramInfoSpeed: TServiceSpeed): boolean;
-    function SendCommandToRemoteStation(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+    function SendCommandToRemoteStation(WhereWichToSend: TSpecificOrNot; ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
     procedure DisableToute;
     procedure EnableToute;
     procedure actCloseAllCallidusApplicationsExecute(Sender: TObject);
@@ -195,6 +201,7 @@ type
     procedure actSendRadarParamsExecute(Sender: TObject);
     procedure actGetRadarParamsExecute(Sender: TObject);
     procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
+    procedure actGetResolutionExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -338,7 +345,20 @@ procedure TfrmCallidusController.actGetRadarParamsExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_GETRDRP, dtCallidusRadar, []);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_GETRDRP, dtCallidusRadar, []);
+  finally
+    EnableToute;
+  end;
+end;
+
+{ TfrmCallidusController.actGetResolutionExecute }
+procedure TfrmCallidusController.actGetResolutionExecute(Sender: TObject);
+begin
+  DisableToute;
+  try
+    lblHintForResolution.Visible := false;
+    lblResolution.Visible := false;
+    bOverAllActionResult := SendCommandToRemoteStation(sonSelected, PROTO_CMD_GETRESO, dtCallidusDisplay, []);
   finally
     EnableToute;
   end;
@@ -391,7 +411,7 @@ var
 begin
   result := False;
   if GetPubFileName(1, sLocalFilename) then
-    result := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
+    result := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
 end;
 
 { TfrmCallidusController.GetPubFileName }
@@ -557,7 +577,7 @@ procedure TfrmCallidusController.actStopNetworkTestExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_STOPTST, dtCallidusRadar, []);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_STOPTST, dtCallidusRadar, []);
   finally
     EnableToute;
   end;
@@ -581,7 +601,7 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_HIGINACSP + '=' + edHighInactivitySpeed.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SET_RADAR_INAC_TIME + '=' + edInactivityTime.Text);
 
-    bOverAllActionResult:=SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusRadar, Params);
   finally
     EnableToute;
   end;
@@ -591,7 +611,7 @@ procedure TfrmCallidusController.actSetInFullScreenExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_FULLSCREEN]);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_FULLSCREEN]);
   finally
     EnableToute;
   end;
@@ -601,13 +621,13 @@ procedure TfrmCallidusController.actSetInNormalScreenExecute(Sender: TObject);
 begin
   DisableToute;
   try
-    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_NORMALSCREEN]);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_ADJUSTSCREEN + '=' + sDISPLAY_PARAM_NORMALSCREEN]);
   finally
     EnableToute;
   end;
 end;
 
-function TfrmCallidusController.SendCommandToRemoteStation(ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
+function TfrmCallidusController.SendCommandToRemoteStation(WhereWichToSend: TSpecificOrNot; ProtoCommand: integer; deviceType: tDeviceType; params: array of string): boolean;
 var
   PayloadDataRequest, PayloadDataAnswer: TStringList;
   Answer: AnsiString;
@@ -634,10 +654,40 @@ begin
           if params[iParam] <> '' then
             PayloadDataRequest.Add(params[iParam]);
 
-        for iDevice := pred(CallidusDeviceList.Count) downto 0 do
-          if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then LocalEnvoieLaCommande;
+        //case WhereWichToSend of
+        case WhereWichToSend of
+          sonAllOfAKind:
+            begin
+              for iDevice := pred(CallidusDeviceList.Count) downto 0 do
+                if CallidusDeviceList.Device[iDevice].DeviceType = deviceType then LocalEnvoieLaCommande;
+            end;
 
-        result:=True;
+          sonSelected:
+            begin
+              iDevice := -1;
+              if lbDeviceDetected.ItemIndex <> -1 then
+              begin
+                if CallidusDeviceList.Device[lbDeviceDetected.ItemIndex].DeviceType = deviceType then
+                begin
+                  iDevice := lbDeviceDetected.ItemIndex;
+                end;
+              end;
+
+              if iDevice <> -1 then
+                LocalEnvoieLaCommande
+              else
+              begin
+                pgMainPagecontrol.ActivePage := tsApplicationSatellite;
+                MessageDlg('L''application-satellite sélectionné n''est pas du type requis pour la commande demandée!', mtError, [mbOk], 0);
+              end;
+            end;
+
+          sonFirst:
+            begin
+            end;
+        end;
+
+        result := True;
       finally
         FreeAndNil(PayloadDataAnswer);
         FreeAndNil(PayloadDataRequest);
@@ -692,29 +742,29 @@ begin
   sSpeedUnitToShow := '';
   sSpeedRatio := '25';
 
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEPOSY + '=' + edPositionSpeedY.Text);
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESIZY + '=' + edTailleSpeedY.Text);
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESPEED + '=' + IntToStr(paramInfoSpeed.CurrentPeakSpeed));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICESHADOWSIZE + '=' + IntToStr(cbShadowSize.ItemIndex));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORBACK + '=' + IntToStr(pnlBackground.Color));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEED + '=' + IntToStr(pnlSpeedCote1.Color));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORSPEEDSHADOW + '=' + IntToStr(pnlSpeedShadow.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_POSITIY + '=' + edPositionSpeedY.Text);
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SIZEHGT + '=' + edTailleSpeedY.Text);
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SERVSPD + '=' + IntToStr(paramInfoSpeed.CurrentPeakSpeed));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWSIZ + '=' + IntToStr(cbShadowSize.ItemIndex));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_BACKCLR + '=' + IntToStr(pnlBackground.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedCote1.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWCOL + '=' + IntToStr(pnlSpeedShadow.Color));
 
   if edServiceSpeedUnit.Checkbox.Checked then
   begin
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITPOSY + '=' + edUnitPosY.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSIZY + '=' + edTailleUnitY.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNIT + '=' + edServiceSpeedUnit.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORUNIT + '=' + IntToStr(pnlUnit.Color));
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_COLORUNITSHADOW + '=' + IntToStr(pnlUnitShadow.Color));
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SHOWSERVICEUNITSHDY + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIPOSY + '=' + edUnitPosY.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISIZE + '=' + edTailleUnitY.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIUNIT + '=' + edServiceSpeedUnit.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNICOLO + '=' + IntToStr(pnlUnit.Color));
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISCOL + '=' + IntToStr(pnlUnitShadow.Color));
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISHSZ + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
 
   if ckbPubBanniere.Checked then
     if GetPubFileName(2, sLocalPubFilename) then
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
 
-  result := SendCommandToRemoteStation(PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
+  result := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
 
 procedure TfrmCallidusController.lbDeviceDetectedDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -770,14 +820,14 @@ begin
     SetLength(Params, 20);
     CleanMonArray(Params);
     icurrentIndexInArray := 0;
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_TEMPON + '=' + edtRadarTestTempsOn.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_TEMPSON + '=' + edtRadarTestTempsOn.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_TEMPOFF + '=' + edtRadarTestTempsOff.Text);
     if ckbTempsOffBetweenTest.Checked then
-      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USEOFF + '=' + '1')
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USETOFF + '=' + '1')
     else
-      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USEOFF + '=' + '0');
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_USETOFF + '=' + '0');
 
-    bOverAllActionResult := SendCommandToRemoteStation(PROTO_CMD_STRTTST, dtCallidusRadar, Params);
+    bOverAllActionResult := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_STRTTST, dtCallidusRadar, Params);
   finally
     EnableToute;
   end;
@@ -895,6 +945,9 @@ end;
 
 procedure TfrmCallidusController.FormCreate(Sender: TObject);
 begin
+  lblHintForResolution.Visible := False;
+  lblResolution.Visible := False;
+
   NomFichierConfiguration := GetConfigFilename('CallidusController');
   lblHelpBanniere.Caption := 'Les noms des fichiers de publicité pour les bannières au-dessus de la vitesse doivent être dans un fichier texte';
   lblHelpBanniere.Caption := lblHelpBanniere.Caption + #$0A + 'appelé "PubBanniere.lst". Le path complet NE DOIT pas être inclus, juste le nom du fichier et son extension.';
@@ -1138,9 +1191,22 @@ begin
         end;
 
       PROTO_CMD_RDRINFO:
-      begin
-        ProcessInfoForSpeedParam(PayloadData);
-      end;
+        begin
+          ProcessInfoForSpeedParam(PayloadData);
+          CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
+          iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_INFO_RESOLXY);
+          if iIndexGeneric <> -1 then
+          begin
+            lblResolution.Caption := slVariablesValues.Strings[iIndexGeneric];
+            lblHintForResolution.Visible := True;
+            lblResolution.Visible := True;
+          end;
+        end;
+
+      PROTO_CMD_RESOLIS:
+        begin
+
+        end;
     end;
 
   finally
@@ -1320,7 +1386,6 @@ begin
     FreeAndNil(slVariablesValues);
   end;
 end;
-
 
 end.
 

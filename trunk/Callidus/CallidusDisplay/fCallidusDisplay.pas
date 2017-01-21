@@ -417,21 +417,34 @@ begin
 end;
 
 procedure TfrmCallidusDisplay.ProtocolePROTO_DisplayServerPacketReceived(Sender: TObject; ABinding: TIdSocketHandle; const AData: TIdBytes; Answer7: AnsiString; PayloadData: TStringList);
+var
+  PayloadDataRequest: TStringList;
 begin
-  case TProtocoleProto(Sender).CommandList.IndexOf(Answer7) of
-    PROTO_CMD_IMALIVE:
-      begin
-      end;
+  PayloadDataRequest := TStringList.Create;
+  try
+    case TProtocoleProto(Sender).CommandList.IndexOf(Answer7) of
+      PROTO_CMD_IMALIVE:
+        begin
+        end;
 
-    PROTO_CMD_SNDINFO:
-      begin
-        ProcessInfoForSpeedDisplay(PayloadData);
-      end;
+      PROTO_CMD_SNDINFO:
+        begin
+          ProcessInfoForSpeedDisplay(PayloadData);
+        end;
 
-    PROTO_CMD_DISCRTC:
-      begin
-        ProcessInfoForPublicityAndScreenSize(PayloadData);
-      end;
+      PROTO_CMD_DISCRTC:
+        begin
+          ProcessInfoForPublicityAndScreenSize(PayloadData);
+        end;
+
+      PROTO_CMD_GETRESO:
+        begin
+          PayloadDataRequest.Add(CALLIDUS_INFO_RESOLXY + '=' + IntToStr(ClientWidth) + 'x' + IntToStr(ClientHeight));
+          ProtocolePROTO_Display.PitchUnMessagePROTONoHandshake('', PROTO_CMD_RDRINFO, PayloadDataRequest);
+        end;
+    end;
+  finally
+    FreeAndNil(PayloadDataRequest);
   end;
 end;
 
@@ -523,33 +536,33 @@ begin
           slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
     end;
 
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEPOSY);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_POSITIY);
     if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESIZY);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_SIZEHGT);
     if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-    iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESPEED);
+    iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SERVSPD);
     if iSpeedValueIndex <> -1 then ServiceSpeedInfo.sSpeedValue := slVariablesValues.Strings[iSpeedValueIndex];
 
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNIT);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIUNIT);
     if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITPOSY);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIPOSY);
     if iAnyValue <> -1 then ServiceSpeedInfo.UnitPosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSIZY);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISIZE);
     if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
-    iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICESHADOWSIZE);
+    iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SHDWSIZ);
     if iShadowIndex <> -1 then ServiceSpeedInfo.iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_SHOWSERVICEUNITSHDY);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISHSZ);
     if iColorIndex <> -1 then ServiceSpeedInfo.iUnitshadowcount := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORBACK);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_BACKCLR);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEED);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SPDCOLO);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeed := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORSPEEDSHADOW);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SHDWCOL);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorSpeedShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNIT);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_UNICOLO);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorUnit := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
-    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_CMD_COLORUNITSHADOW);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISCOL);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorUnitShadow := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
 
     ShowServiceSpeed(ServiceSpeedInfo);

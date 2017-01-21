@@ -28,6 +28,8 @@ const
   PROTO_CMD_STOPTST = $0B;
   PROTO_CMD_GETRDRP = $0C;
   PROTO_CMD_RDRINFO = $0D;
+  PROTO_CMD_GETRESO = $0E;
+  PROTO_CMD_RESOLIS = $0F;
 
   // ATTENTION! Si t'ajoutes une nouvelle commande, il faut aussi l'ajouter dans "FCommandList"...
 
@@ -178,10 +180,10 @@ begin
     FCommandList.Add('DISCRTC'); // $09
     FCommandList.Add('STRTTST'); // $0A
     FCommandList.Add('STPTTST'); // $0B
-    FCommandList.Add('GETRDRP'); // $0C;
-    FCommandList.Add('RDRINFO'); // $0D;
-
-
+    FCommandList.Add('GETRDRP'); // $0C
+    FCommandList.Add('RDRINFO'); // $0D
+    FCommandList.Add('GETRESO'); // $0E
+    FCommandList.Add('RESOLIS'); // $0F
 
     if FClientUDP <> nil then
     begin
