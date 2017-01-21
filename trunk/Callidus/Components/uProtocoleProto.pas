@@ -167,7 +167,7 @@ begin
 
     FCommandList := TStringList.Create;
     FCommandList := TStringList.Create;
-    FCommandList.Sorted := FALSE;
+    FCommandList.Sorted := False;
     FCommandList.Add('NULLLLL'); // $00
     FCommandList.Add('WHOSERV'); // $01
     FCommandList.Add('SERVRIS'); // $02
@@ -203,9 +203,9 @@ begin
       FServerUDP.Active := True;
     end;
 
-    result := TRUE;
+    result := True;
   except
-    result := FALSE;
+    result := False;
   end;
 end;
 
@@ -219,7 +219,7 @@ var
   FreezeTime: DWord;
   sBroadCastAddress: string;
 begin
-  result := FALSE;
+  result := False;
   FHostControllerAddress := IP_ADDRESS_NULL;
 
   SetLength(TxBuffer, 100);
@@ -228,8 +228,8 @@ begin
 
   if FClientUDP.Active then
   begin
-    FClientUDP.Active := FALSE;
-    FClientUDP.BroadcastEnabled := TRUE;
+    FClientUDP.Active := False;
+    FClientUDP.BroadcastEnabled := True;
   end;
 
   if not FClientUDP.Active then
@@ -266,7 +266,7 @@ begin
               FHostControllerAddress := Format('%d.%d.%d.%d', [FServerIpAddress[0], FServerIpAddress[1], FServerIpAddress[2], FServerIpAddress[3]]);
 
               WriteStatusLg('Controller has been detected at: ' + HostControllerAddress, 'Le contrôleur a été détecté à: ' + HostControllerAddress, COLORSUCCESS);
-              result := TRUE;
+              result := True;
             end;
         else
           begin
@@ -315,7 +315,7 @@ begin
   end
   else
   begin
-    WriteStatusLg('We can''t send anything because we don''t know remote address OR our client UDP is not ready...', 'On n''envoie rien car on ne connait pa sl''adresse de destination ou le client UDP n''est pas prêt...', COLORSUCCESS);
+//    WriteStatusLg('We can''t send anything because we don''t know remote address OR our client UDP is not ready...', 'On n''envoie rien car on ne connait pa sl''adresse de destination ou le client UDP n''est pas prêt...', COLORSUCCESS);
   end;
 end;
 
@@ -397,8 +397,8 @@ var
   sAnswerReceived: AnsiString;
   ComputedCRC16, ExpectedCRC16: word;
 begin
-  result := FALSE;
-  bKeepGoing := TRUE;
+  result := False;
+  bKeepGoing := True;
   iExpectedAnswerPacketLength := 0;
 
   try
@@ -406,7 +406,7 @@ begin
     if bKeepGoing then
     begin
       if paramBufferIndex < 3 then
-        bKeepGoing := FALSE;
+        bKeepGoing := False;
     end;
 
     // 2. Packet length is valid?
@@ -414,21 +414,21 @@ begin
     begin
       iExpectedAnswerPacketLength := (paramBuffer[IDX_PROTO_LENGTH + 0] shl 16) or (paramBuffer[IDX_PROTO_LENGTH + 1] shl 8) or (paramBuffer[IDX_PROTO_LENGTH + 2]);
       if (iExpectedAnswerPacketLength < (IDX_PROTO_PAYLOAD_DATA + 2)) or (iExpectedAnswerPacketLength > RXBUFFERSIZE) then
-        bKeepGoing := FALSE;
+        bKeepGoing := False;
     end;
 
     // 3. All the bytes received?
     if bKeepGoing then
     begin
       if paramBufferIndex < iExpectedAnswerPacketLength then
-        bKeepGoing := FALSE;
+        bKeepGoing := False;
     end;
 
     // 4. Answer between brackets?
     if bKeepGoing then
     begin
       if (paramBuffer[IDX_PROTO_LEFT_BRACKET] <> ord('[')) or (paramBuffer[IDX_PROTO_CLOSE_BRACKET] <> ord(']')) then
-        bKeepGoing := FALSE;
+        bKeepGoing := False;
     end;
 
     // 5. Only letters in answer?
@@ -440,7 +440,7 @@ begin
       begin
         sAnswerReceived := sAnswerReceived + AnsiChar(paramBuffer[IDX_PROTO_COMMAND + iChar]);
         if (paramBuffer[IDX_PROTO_COMMAND + iChar] < ord('A')) or (paramBuffer[IDX_PROTO_COMMAND + iChar] > ord('Z')) then
-          bKeepGoing := FALSE
+          bKeepGoing := False
         else
           inc(iChar);
       end;
@@ -453,14 +453,14 @@ begin
       ComputedCRC16 := MyCrc16(addr(paramBuffer[0]), (iExpectedAnswerPacketLength - 2), $0000);
       ExpectedCRC16 := ((paramBuffer[iExpectedAnswerPacketLength - 2] shl 8) or paramBuffer[iExpectedAnswerPacketLength - 1]);
       if (ComputedCRC16 <> ExpectedCRC16) then
-        bKeepGoing := FALSE;
+        bKeepGoing := False;
     end;
 
     // 7. If everything is good, we have an answer sir!
     if bKeepGoing then
-      result := TRUE;
+      result := True;
   except
-    result := FALSE;
+    result := False;
   end;
 end;
 
@@ -606,8 +606,8 @@ begin
 
   if FClientUDP.Active then
   begin
-    FClientUDP.Active := FALSE;
-    FClientUDP.BroadcastEnabled := TRUE;
+    FClientUDP.Active := False;
+    FClientUDP.BroadcastEnabled := True;
   end;
 
   if not FClientUDP.Active then FClientUDP.Active := True;
@@ -737,9 +737,9 @@ end;
 procedure TProtocoleProto.ShutDownService;
 begin
   if WorkingClientUDP <> nil then
-    WorkingClientUDP.Active := FALSE;
+    WorkingClientUDP.Active := False;
   if WorkingServerUDP <> nil then
-    WorkingServerUDP.Active := FALSE;
+    WorkingServerUDP.Active := False;
 end;
 
 procedure Register;

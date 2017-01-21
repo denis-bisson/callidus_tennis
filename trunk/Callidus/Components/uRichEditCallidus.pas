@@ -57,15 +57,15 @@ type
 
   published
     constructor Create(AOwner: TComponent); override;
-    property AddTime: boolean read FAddTime write FAddTime default FALSE;
-    property DoWriteDebug: boolean read FWriteDebug write FWriteDebug default FALSE;
+    property AddTime: boolean read FAddTime write FAddTime default False;
+    property DoWriteDebug: boolean read FWriteDebug write FWriteDebug default False;
     property TitleColor: TColor read FTitleColor write FTitleColor default clBlack;
     property SubTitleColor: TColor read FSubTitleColor write FSubTitleColor default clBlack;
     property LastTextColor: TColor read FLastTextColor write FLastTextColor default clBlack;
     property TitleChar: Char read FTitleChar write FTitleChar default '=';
     property SubTitleChar: Char read FSubTitleChar write FSubTitleChar default '-';
     property TitleWidth: longint read FTitleWidth write FTitleWidth default 78;
-    property FlagWriteOptionel: boolean read FFlagWriteOptionel write FFlagWriteOptionel default TRUE;
+    property FlagWriteOptionel: boolean read FFlagWriteOptionel write FFlagWriteOptionel default True;
     property Language: longint read FLanguage write FLanguage default 0;
   end;
 
@@ -79,7 +79,7 @@ procedure Attempt_WriteFinalResult(StatusWindow: tRichEditCallidus; FinalString:
 procedure Register;
 
 var
-  Attempt_FlagConsoleApplication: boolean = FALSE;
+  Attempt_FlagConsoleApplication: boolean = False;
 
 implementation
 
@@ -97,14 +97,14 @@ uses
 constructor tRichEditCallidus.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FWriteDebug := FALSE;
+  FWriteDebug := False;
   FTitleColor := clBlue;
   FSubTitleColor := clMaroon;
   FLastTextColor := clBlack;
   FTitleChar := #61;
   FSubTitleChar := #45;
   FTitleWidth := 78;
-  FFlagWriteOptionel := TRUE;
+  FFlagWriteOptionel := True;
 end;
 
 { tRichEditCallidus.AddLinesFromTextFile}
@@ -468,17 +468,17 @@ var
   PosTrigger, IndexLigne: longint;
   FlagStop: boolean;
 begin
-  result := FALSE;
+  result := False;
   AnswerCode := '';
   PosTrigger := 0;
 
   IndexLigne := 0;
-  FlagStop := FALSE;
-  while (IndexLigne < Lines.Count) and (FlagStop = FALSE) do
+  FlagStop := False;
+  while (IndexLigne < Lines.Count) and (FlagStop = False) do
   begin
     PosTrigger := pos(KeywordToSearch, Lines.Strings[IndexLigne]);
     if PosTrigger <> 0 then
-      FlagStop := TRUE
+      FlagStop := True
     else
       inc(IndexLigne);
   end;
@@ -486,7 +486,7 @@ begin
   if FlagStop then
   begin
     AnswerCode := AnsiString(copy(Lines.Strings[IndexLigne], PosTrigger + length(KeywordToSearch), LongueurToExtract));
-    result := TRUE;
+    result := True;
   end;
 end;
 
@@ -603,13 +603,13 @@ begin
     begin
       FMissingPopupMenu := TPopupMenu.Create(Self);
 
-      BatisMenu(FMissingPopupMenu, FALSE);
+      BatisMenu(FMissingPopupMenu, False);
       PopupMenu := FMissingPopupMenu;
     end;
   end
   else
   begin
-    BatisMenu(PopupMenu, TRUE);
+    BatisMenu(PopupMenu, True);
   end;
 end;
 

@@ -973,7 +973,6 @@ object frmCallidusController: TfrmCallidusController
     object actStartServicing: TAction
       Caption = 'Start Servicing'
       ShortCut = 120
-      OnExecute = actStartServicingExecute
     end
     object actCloseAllCallidusApplications: TAction
       Caption = 'Close all Callidus applications'
@@ -1083,11 +1082,11 @@ object frmCallidusController: TfrmCallidusController
     Left = 540
     Top = 222
   end
-  object AutoStartTimer: TTimer
+  object tmrBroadcastServerLocation: TTimer
     Enabled = False
-    OnTimer = AutoStartTimerTimer
-    Left = 536
-    Top = 88
+    OnTimer = tmrBroadcastServerLocationTimer
+    Left = 60
+    Top = 248
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
@@ -1114,7 +1113,7 @@ object frmCallidusController: TfrmCallidusController
     Left = 320
     Top = 8
     Bitmap = {
-      494C01010A00C800040120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C8000C0120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2709,15 +2708,15 @@ object frmCallidusController: TfrmCallidusController
     Enabled = False
     Interval = 11000
     OnTimer = RefreshListTimerTimer
-    Left = 436
-    Top = 272
+    Left = 320
+    Top = 316
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 440
-    Top = 292
+    Left = 192
+    Top = 312
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
