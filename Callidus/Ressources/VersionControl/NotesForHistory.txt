@@ -1,3 +1,6 @@
+CHG: Renommage de component dans Callidus-Controller pour que ça soit plus uniforme, plus groupé.
+ADD: On peut configurer trois couleurs pour l'affichage de la vitesse du service selon qu ele service a été lent, normal ou ultra-rapide. On configure aussi à partir de quelle vitesse il est considéré comme moyen et la vitesse qu'il est considéré comme utlra-rapide. Donc si mettons on met 200 pour le début du palier du plus rapide, on peut s'arranger donc pour que tout ce qui égale ou dépasse 200 km/h soit rouge.
+
 -ADD: Le Callidus-Controller peut maintenant demander au Callidus-Display sélectionné la résolution courante de son écran.
 -CHG: Début tranquillement de la conversion des noms des paramètres et des constantes de paramètres des commandes Proto sont maintenant avec des mots toujours sur 7 caractères. Cela donne de quoi de plus joli et aligné surtout dans le code.
 

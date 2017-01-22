@@ -327,7 +327,7 @@ object frmCallidusController: TfrmCallidusController
           Width = 161
           Height = 17
           Caption = 'Temps off entre les vitesses'
-          TabOrder = 1
+          TabOrder = 2
         end
         object edtRadarTestTempsOff: TLabeledEdit
           Left = 151
@@ -338,7 +338,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = 'Temps Off:'
           LabelPosition = lpLeft
-          TabOrder = 2
+          TabOrder = 1
         end
         object edtRadarTestTempsOn: TLabeledEdit
           Left = 151
@@ -364,22 +364,25 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Callidus-Display'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 22
       object Label4: TLabel
-        Left = 32
-        Top = 248
-        Width = 81
+        Left = 11
+        Top = 60
+        Width = 83
         Height = 13
-        Caption = 'Couleur de fond:'
+        Caption = 'Couleur de &Fond:'
+        FocusControl = pnlBackground
       end
       object lblHintForResolution: TLabel
-        Left = 241
+        Left = 233
         Top = 20
         Width = 125
         Height = 13
         Caption = 'Derni'#232're r'#233'solution re'#231'ue:'
       end
       object lblResolution: TLabel
-        Left = 372
+        Left = 364
         Top = 20
         Width = 60
         Height = 13
@@ -387,219 +390,104 @@ object frmCallidusController: TfrmCallidusController
       end
       object pnlBackground: TPanel
         Tag = 1
-        Left = 36
-        Top = 267
+        Left = 98
+        Top = 54
         Width = 58
         Height = 25
         BevelInner = bvRaised
         BevelOuter = bvLowered
         Color = clWhite
         ParentBackground = False
-        TabOrder = 0
+        TabOrder = 1
         OnClick = pnlBackgroundClick
+        OnEnter = pnlColorEnter
       end
       object GroupBox3: TGroupBox
-        Left = 19
-        Top = 70
-        Width = 198
-        Height = 157
-        Caption = 'Vitesse:'
-        TabOrder = 1
+        Left = 11
+        Top = 85
+        Width = 562
+        Height = 100
+        Caption = '&Vitesse:'
+        TabOrder = 2
         object Label5: TLabel
-          Left = 21
-          Top = 65
-          Width = 41
+          Left = 109
+          Top = 20
+          Width = 73
           Height = 13
-          Caption = 'Couleur:'
+          Caption = 'Couleur (&Lent):'
+          FocusControl = pnlSpeedSlow
         end
         object Label6: TLabel
-          Left = 116
-          Top = 65
+          Left = 396
+          Top = 20
           Width = 36
           Height = 13
-          Caption = 'Ombre:'
+          Caption = '&Ombre:'
+          FocusControl = pnlSpeedShadow
         end
         object Label2: TLabel
-          Left = 116
-          Top = 111
+          Left = 492
+          Top = 20
           Width = 61
           Height = 13
-          Caption = 'Taille ombre:'
+          Caption = 'Taille om&bre:'
+          FocusControl = cbShadowSize
         end
-        object pnlSpeedCote1: TPanel
+        object lblSpeedTaille: TLabel
+          Left = 14
+          Top = 22
+          Width = 28
+          Height = 13
+          Caption = '&Taille:'
+          FocusControl = cbTailleSpeedY
+        end
+        object Label3: TLabel
+          Left = 205
+          Top = 20
+          Width = 84
+          Height = 13
+          Caption = 'Couleur (&Moyen):'
+          FocusControl = pnlSpeedMedium
+        end
+        object Label7: TLabel
+          Left = 300
+          Top = 20
+          Width = 80
+          Height = 13
+          Caption = 'Couleur (T&urbo):'
+          FocusControl = pnlSpeedTurbo
+        end
+        object pnlSpeedSlow: TPanel
           Tag = 2
-          Left = 21
-          Top = 80
+          Left = 109
+          Top = 34
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 2
+          TabOrder = 1
           OnClick = pnlBackgroundClick
+          OnEnter = pnlColorEnter
         end
         object pnlSpeedShadow: TPanel
-          Tag = 3
-          Left = 116
-          Top = 80
+          Tag = 5
+          Left = 396
+          Top = 34
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 3
+          TabOrder = 4
           OnClick = pnlBackgroundClick
-        end
-        object edPositionSpeedY: TLabeledEdit
-          Left = 21
-          Top = 38
-          Width = 60
-          Height = 21
-          EditLabel.Width = 50
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Position Y:'
-          TabOrder = 0
-        end
-        object edTailleSpeedY: TLabeledEdit
-          Left = 116
-          Top = 38
-          Width = 60
-          Height = 21
-          EditLabel.Width = 28
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Taille:'
-          TabOrder = 1
+          OnEnter = pnlColorEnter
         end
         object cbShadowSize: TComboBox
-          Left = 116
-          Top = 126
-          Width = 57
-          Height = 21
-          Style = csDropDownList
-          TabOrder = 4
-          Items.Strings = (
-            '0'
-            '1'
-            '2'
-            '3'
-            '4'
-            '5'
-            '6'
-            '7'
-            '8'
-            '9'
-            '10'
-            '11'
-            '12'
-            '13'
-            '14'
-            '15'
-            '16'
-            '17'
-            '18'
-            '19'
-            '20'
-            '21'
-            '22'
-            '23'
-            '24'
-            '25'
-            '26'
-            '27'
-            '28'
-            '29'
-            '30'
-            '31'
-            '32'
-            '33'
-            '34'
-            '35'
-            '36'
-            '37'
-            '38'
-            '39'
-            '40')
-        end
-      end
-      object gbSpeedUnit: TGroupBox
-        Left = 260
-        Top = 70
-        Width = 197
-        Height = 213
-        Caption = 'Unit'#233' de vitesse:'
-        TabOrder = 2
-        object lblUnitColor: TLabel
-          Left = 21
-          Top = 116
-          Width = 41
-          Height = 13
-          Caption = 'Couleur:'
-        end
-        object lblUnitShadowcolor: TLabel
-          Left = 116
-          Top = 116
-          Width = 36
-          Height = 13
-          Caption = 'Ombre:'
-        end
-        object lblUnitTailleShadow: TLabel
-          Left = 116
-          Top = 163
-          Width = 61
-          Height = 13
-          Caption = 'Taille ombre:'
-        end
-        object pnlUnit: TPanel
-          Tag = 4
-          Left = 21
-          Top = 132
-          Width = 60
-          Height = 25
-          BevelInner = bvRaised
-          BevelOuter = bvLowered
-          Color = clWhite
-          ParentBackground = False
-          TabOrder = 3
-          OnClick = pnlBackgroundClick
-        end
-        object pnlUnitShadow: TPanel
-          Tag = 5
-          Left = 116
-          Top = 132
-          Width = 60
-          Height = 25
-          BevelInner = bvRaised
-          BevelOuter = bvLowered
-          Color = clWhite
-          ParentBackground = False
-          TabOrder = 4
-          OnClick = pnlBackgroundClick
-        end
-        object edUnitPosY: TLabeledEdit
-          Left = 21
-          Top = 90
-          Width = 60
-          Height = 21
-          EditLabel.Width = 50
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Position Y:'
-          TabOrder = 1
-        end
-        object edTailleUnitY: TLabeledEdit
-          Left = 116
-          Top = 90
-          Width = 60
-          Height = 21
-          EditLabel.Width = 28
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Taille:'
-          TabOrder = 2
-        end
-        object cbUnitShadowSize: TComboBox
-          Left = 116
-          Top = 178
+          Left = 492
+          Top = 36
           Width = 57
           Height = 21
           Style = csDropDownList
@@ -647,9 +535,191 @@ object frmCallidusController: TfrmCallidusController
             '39'
             '40')
         end
-        object edServiceSpeedUnit: tLabeledEditCallidus
-          Left = 55
-          Top = 38
+        object cbTailleSpeedY: TComboBox
+          Left = 14
+          Top = 36
+          Width = 60
+          Height = 21
+          TabOrder = 0
+        end
+        object pnlSpeedMedium: TPanel
+          Tag = 3
+          Left = 205
+          Top = 34
+          Width = 60
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 2
+          OnClick = pnlBackgroundClick
+          OnEnter = pnlColorEnter
+        end
+        object pnlSpeedTurbo: TPanel
+          Tag = 4
+          Left = 300
+          Top = 34
+          Width = 60
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 3
+          OnClick = pnlBackgroundClick
+          OnEnter = pnlColorEnter
+        end
+        object edtPalierMedium: TLabeledEdit
+          Left = 109
+          Top = 69
+          Width = 60
+          Height = 21
+          EditLabel.Width = 90
+          EditLabel.Height = 13
+          EditLabel.Caption = '&Palier pour moyen:'
+          LabelPosition = lpLeft
+          TabOrder = 6
+        end
+        object edtPalierTurbo: TLabeledEdit
+          Left = 300
+          Top = 69
+          Width = 60
+          Height = 21
+          EditLabel.Width = 84
+          EditLabel.Height = 13
+          EditLabel.Caption = 'P&alier pour turbo:'
+          LabelPosition = lpLeft
+          TabOrder = 7
+        end
+      end
+      object gbSpeedUnit: TGroupBox
+        Left = 11
+        Top = 199
+        Width = 562
+        Height = 113
+        Caption = 'U&nit'#233' de vitesse:'
+        TabOrder = 3
+        object lblUnitColor: TLabel
+          Left = 300
+          Top = 62
+          Width = 41
+          Height = 13
+          Caption = 'Couleur:'
+        end
+        object lblUnitShadowcolor: TLabel
+          Left = 396
+          Top = 62
+          Width = 36
+          Height = 13
+          Caption = 'Ombre:'
+        end
+        object lblUnitTailleShadow: TLabel
+          Left = 492
+          Top = 62
+          Width = 61
+          Height = 13
+          Caption = 'Taille ombre:'
+        end
+        object pnlUnitColor: TPanel
+          Tag = 6
+          Left = 300
+          Top = 78
+          Width = 60
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 4
+          OnClick = pnlBackgroundClick
+        end
+        object pnlUnitShadow: TPanel
+          Tag = 7
+          Left = 396
+          Top = 78
+          Width = 60
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 5
+          OnClick = pnlBackgroundClick
+        end
+        object edtUnitPosY: TLabeledEdit
+          Left = 109
+          Top = 78
+          Width = 60
+          Height = 21
+          EditLabel.Width = 50
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Position Y:'
+          TabOrder = 2
+        end
+        object edtUnitSize: TLabeledEdit
+          Left = 205
+          Top = 78
+          Width = 60
+          Height = 21
+          EditLabel.Width = 28
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Taille:'
+          TabOrder = 3
+        end
+        object cbUnitShadowSize: TComboBox
+          Left = 492
+          Top = 78
+          Width = 57
+          Height = 21
+          Style = csDropDownList
+          TabOrder = 6
+          Items.Strings = (
+            '0'
+            '1'
+            '2'
+            '3'
+            '4'
+            '5'
+            '6'
+            '7'
+            '8'
+            '9'
+            '10'
+            '11'
+            '12'
+            '13'
+            '14'
+            '15'
+            '16'
+            '17'
+            '18'
+            '19'
+            '20'
+            '21'
+            '22'
+            '23'
+            '24'
+            '25'
+            '26'
+            '27'
+            '28'
+            '29'
+            '30'
+            '31'
+            '32'
+            '33'
+            '34'
+            '35'
+            '36'
+            '37'
+            '38'
+            '39'
+            '40')
+        end
+        object edtUnitUnit: tLabeledEditCallidus
+          Left = 32
+          Top = 34
           Width = 121
           Height = 21
           EditLabel.Width = 121
@@ -663,14 +733,24 @@ object frmCallidusController: TfrmCallidusController
           CheckboxSpacing = 0
           CallidusFilterType = 0
         end
+        object edtUnitPosX: TLabeledEdit
+          Left = 14
+          Top = 78
+          Width = 60
+          Height = 21
+          EditLabel.Width = 50
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Position X:'
+          TabOrder = 1
+        end
       end
       object Button1: TButton
-        Left = 19
+        Left = 11
         Top = 15
         Width = 216
         Height = 25
         Action = actGetResolution
-        TabOrder = 3
+        TabOrder = 0
       end
     end
     object tsPub: TTabSheet
