@@ -91,22 +91,20 @@ type
     Label5: TLabel;
     Label6: TLabel;
     Label2: TLabel;
-    pnlSpeedCote1: TPanel;
+    pnlSpeedSlow: TPanel;
     pnlSpeedShadow: TPanel;
-    edPositionSpeedY: TLabeledEdit;
-    edTailleSpeedY: TLabeledEdit;
     cbShadowSize: TComboBox;
     gbSpeedUnit: TGroupBox;
     lblUnitColor: TLabel;
     lblUnitShadowcolor: TLabel;
     lblUnitTailleShadow: TLabel;
-    pnlUnit: TPanel;
+    pnlUnitColor: TPanel;
     pnlUnitShadow: TPanel;
-    edUnitPosY: TLabeledEdit;
-    edTailleUnitY: TLabeledEdit;
+    edtUnitPosY: TLabeledEdit;
+    edtUnitSize: TLabeledEdit;
     cbUnitShadowSize: TComboBox;
     Label4: TLabel;
-    edServiceSpeedUnit: tLabeledEditCallidus;
+    edtUnitUnit: tLabeledEditCallidus;
     lbDeviceDetected: TListBox;
     RefreshListTimer: TTimer;
     actStartPub: TAction;
@@ -159,6 +157,15 @@ type
     Button1: TButton;
     lblHintForResolution: TLabel;
     lblResolution: TLabel;
+    edtUnitPosX: TLabeledEdit;
+    cbTailleSpeedY: TComboBox;
+    lblSpeedTaille: TLabel;
+    pnlSpeedMedium: TPanel;
+    Label3: TLabel;
+    pnlSpeedTurbo: TPanel;
+    Label7: TLabel;
+    edtPalierMedium: TLabeledEdit;
+    edtPalierTurbo: TLabeledEdit;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -199,8 +206,10 @@ type
     procedure actSendRadarParamsExecute(Sender: TObject);
     procedure actGetRadarParamsExecute(Sender: TObject);
     procedure ProcessInfoForSpeedParam(PayloadData: TStringList);
+    procedure FillVariousComboBox;
     procedure actGetResolutionExecute(Sender: TObject);
     procedure tmrBroadcastServerLocationTimer(Sender: TObject);
+    procedure pnlColorEnter(Sender: TObject);
 
   private
     { Private declarations }
@@ -405,12 +414,12 @@ end;
 
 procedure TfrmCallidusController.tmrBroadcastServerLocationTimer(Sender: TObject);
 begin
-  tmrBroadcastServerLocation.Enabled:=False;
+  tmrBroadcastServerLocation.Enabled := False;
   try
-     actMasterSelfIdentificationExecute(actMasterSelfIdentification);
+    actMasterSelfIdentificationExecute(actMasterSelfIdentification);
   finally
-    tmrBroadcastServerLocation.Interval:=15000;
-    tmrBroadcastServerLocation.Enabled:=True;
+    tmrBroadcastServerLocation.Interval := 15000;
+    tmrBroadcastServerLocation.Enabled := True;
   end;
 end;
 
@@ -746,20 +755,27 @@ begin
   sSpeedUnitToShow := '';
   sSpeedRatio := '25';
 
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_POSITIY + '=' + edPositionSpeedY.Text);
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SIZEHGT + '=' + edTailleSpeedY.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SERVSPD + '=' + IntToStr(paramInfoSpeed.CurrentPeakSpeed));
+
+  if paramInfoSpeed.CurrentPeakSpeed >= StrToIntDef(edtPalierTurbo.Text, 100000) then
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedTurbo.Color))
+  else
+    if paramInfoSpeed.CurrentPeakSpeed >= StrToIntDef(edtPalierMedium.Text, 100000) then
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedMedium.Color))
+    else
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedSlow.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SIZEHGT + '=' + cbTailleSpeedY.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWSIZ + '=' + IntToStr(cbShadowSize.ItemIndex));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_BACKCLR + '=' + IntToStr(pnlBackground.Color));
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedCote1.Color));
+
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWCOL + '=' + IntToStr(pnlSpeedShadow.Color));
 
-  if edServiceSpeedUnit.Checkbox.Checked then
+  if edtUnitUnit.Checkbox.Checked then
   begin
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIPOSY + '=' + edUnitPosY.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISIZE + '=' + edTailleUnitY.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIUNIT + '=' + edServiceSpeedUnit.Text);
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNICOLO + '=' + IntToStr(pnlUnit.Color));
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIPOSY + '=' + edtUnitPosY.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISIZE + '=' + edtUnitSize.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIUNIT + '=' + edtUnitUnit.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNICOLO + '=' + IntToStr(pnlUnitColor.Color));
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISCOL + '=' + IntToStr(pnlUnitShadow.Color));
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISHSZ + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
   end;
@@ -967,6 +983,7 @@ begin
   ListeDesDevicesLastTrenteSecondes := TStringList.Create;
   bModePublicite := False;
   bDoingAnAction := False;
+  FillVariousComboBox;
 end;
 
 procedure TfrmCallidusController.FormDestroy(Sender: TObject);
@@ -1017,22 +1034,23 @@ begin
       miFullCommunicationLog.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'miFullCommunicationLog', False);
       //    miFullCommunicationLog.Checked := False;
       miFullCommunicationLogClick(miFullCommunicationLog);
-      edServiceSpeedUnit.Checkbox.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', True);
-      edServiceSpeedUnit.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', 'kmh');
+      edtUnitUnit.Checkbox.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', True);
+      edtUnitUnit.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', 'kmh');
       sMaybeRatio := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'sMaybeRatio', '25%');
       cbShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShadowSize', 10);
       cbUnitShadowSize.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', 5);
       pnlBackground.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', clGreen);
-      pnlSpeedCote1.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', clWhite);
+      pnlSpeedSlow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', clWhite);
+      pnlSpeedMedium.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlSpeedMedium', pnlSpeedSlow.Color);
+      pnlSpeedTurbo.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlSpeedTurbo', pnlSpeedSlow.Color);
       pnlSpeedShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', clBlack);
-      pnlUnit.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', clYellow);
+      pnlUnitColor.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', clYellow);
       pnlUnitShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', clBlack);
       pgMainPagecontrol.ActivePageIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pgMainPagecontrol', 0);
-      edPositionSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPositionSpeedY', '230');
-      edTailleSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', '600');
-      edUnitPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', '380');
-      edTailleUnitY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
-      edServiceSpeedUnitSubCheckboxClick(edServiceSpeedUnit.Checkbox);
+      cbTailleSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', '600');
+      edtUnitPosY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', '380');
+      edtUnitSize.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
+      edServiceSpeedUnitSubCheckboxClick(edtUnitUnit.Checkbox);
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
       rgPubType.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', 1);
       rgModePubBanniere.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', 0);
@@ -1049,6 +1067,8 @@ begin
       edtRadarTestTempsOn.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOn', '250');
       edtRadarTestTempsOff.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOff', '100');
       ckbTempsOffBetweenTest.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', True);
+      edtPalierMedium.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierMedium', '120');
+      edtPalierTurbo.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierTurbo', '200');
       // ..LoadConfiguration
     end;
   finally
@@ -1074,10 +1094,12 @@ begin
     Dispatcher := tag;
   case Dispatcher of
     1: pnlWorking := pnlBackground;
-    2: pnlWorking := pnlSpeedCote1;
-    3: pnlWorking := pnlSpeedShadow;
-    4: pnlWorking := pnlUnit;
-    5: pnlWorking := pnlUnitShadow;
+    2: pnlWorking := pnlSpeedSlow;
+    3: pnlWorking := pnlSpeedMedium;
+    4: pnlWorking := pnlSpeedTurbo;
+    5: pnlWorking := pnlSpeedShadow;
+    6: pnlWorking := pnlUnitColor;
+    7: pnlWorking := pnlUnitShadow;
   end;
 
   if pnlWorking <> nil then
@@ -1087,6 +1109,11 @@ begin
       pnlWorking.Color := ColorDialog1.Color;
   end;
 
+end;
+
+procedure TfrmCallidusController.pnlColorEnter(Sender: TObject);
+begin
+pnlBackgroundClick(Sender);
 end;
 
 procedure TfrmCallidusController.SaveConfiguration;
@@ -1120,20 +1147,21 @@ begin
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'bDebugWasVisible', frmDebugWindow.Visible);
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'cbSaveLogEachTimeWhenQuiting', miSaveLogEachTime.Checked);
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'miFullCommunicationLog', miFullCommunicationLog.Checked);
-      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', edServiceSpeedUnit.Checkbox.Checked);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', edServiceSpeedUnit.Text);
+      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnitcb', edtUnitUnit.Checkbox.Checked);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edServiceSpeedUnited2', edtUnitUnit.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbShadowSize', cbShadowSize.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitShadowSize', cbUnitShadowSize.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlBackground', pnlBackground.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', pnlSpeedCote1.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeed', pnlSpeedSlow.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlSpeedMedium', pnlSpeedMedium.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pnlSpeedTurbo', pnlSpeedTurbo.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlSpeedShadow', pnlSpeedShadow.Color);
-      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', pnlUnit.Color);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', pnlUnitColor.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', pnlUnitShadow.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pgMainPagecontrol', pgMainPagecontrol.ActivePageIndex);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edPositionSpeedY', edPositionSpeedY.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', edTailleSpeedY.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', edUnitPosY.Text);
-      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', edTailleUnitY.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', cbTailleSpeedY.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitPosY', edtUnitPosY.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', edtUnitSize.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', rgPubType.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgModePubBanniere', rgModePubBanniere.ItemIndex);
@@ -1149,6 +1177,8 @@ begin
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOn', edtRadarTestTempsOn.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtRadarTestTempsOff', edtRadarTestTempsOff.Text);
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', ckbTempsOffBetweenTest.Checked);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierMedium', edtPalierMedium.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierTurbo', edtPalierTurbo.Text);
       // ..SaveConfiguration
     end;
   finally
@@ -1241,14 +1271,14 @@ end;
 
 procedure TfrmCallidusController.edServiceSpeedUnitSubCheckboxClick(Sender: TObject);
 begin
-  edUnitPosY.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  edTailleUnitY.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  pnlUnit.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  pnlUnitShadow.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  lblUnitTailleShadow.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  cbUnitShadowSize.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  lblUnitColor.Enabled := edServiceSpeedUnit.Checkbox.Checked;
-  lblUnitShadowcolor.Enabled := edServiceSpeedUnit.Checkbox.Checked;
+  edtUnitPosY.Enabled := edtUnitUnit.Checkbox.Checked;
+  edtUnitSize.Enabled := edtUnitUnit.Checkbox.Checked;
+  pnlUnitColor.Enabled := edtUnitUnit.Checkbox.Checked;
+  pnlUnitShadow.Enabled := edtUnitUnit.Checkbox.Checked;
+  lblUnitTailleShadow.Enabled := edtUnitUnit.Checkbox.Checked;
+  cbUnitShadowSize.Enabled := edtUnitUnit.Checkbox.Checked;
+  lblUnitColor.Enabled := edtUnitUnit.Checkbox.Checked;
+  lblUnitShadowcolor.Enabled := edtUnitUnit.Checkbox.Checked;
 end;
 
 procedure TfrmCallidusController.EnableToute;
@@ -1299,8 +1329,8 @@ begin
     ProtocolePROTO_Display.WorkingClientUDP.Port := PORT_CALLIDUS_DISPLAY;
     ProtocolePROTO_Display.Init;
 
-    tmrBroadcastServerLocation.Interval:=2000;
-    tmrBroadcastServerLocation.Enabled:=True;
+    tmrBroadcastServerLocation.Interval := 2000;
+    tmrBroadcastServerLocation.Enabled := True;
   end;
 end;
 
@@ -1383,6 +1413,19 @@ begin
     FreeAndNil(slVariablesNames);
     FreeAndNil(slVariablesValues);
   end;
+end;
+
+procedure TfrmCallidusController.FillVariousComboBox;
+  procedure FillThisCombobBox(paramComboBox: TComboBox);
+  var
+    iSize: integer;
+  begin
+    paramComboBox.Clear;
+    for iSize := 1 to 200 do
+      paramComboBox.Items.Add(Format('%d', [iSize * 5]));
+  end;
+begin
+  FillThisCombobBox(cbTailleSpeedY);
 end;
 
 end.

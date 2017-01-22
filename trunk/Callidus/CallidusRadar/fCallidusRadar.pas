@@ -194,6 +194,7 @@ type
     bFlagAbort, bAbortAutoDetection, bCurrentlyDoingNetworkCycleTest: boolean;
     itnTempsOn, itnTempsOff: integer;
     btnIncludeTempsOff: boolean;
+    iLastRandomPeek: integer;
   public
     { Public declarations }
     ServiceSpeed: TServiceSpeed;
@@ -540,7 +541,9 @@ begin
     case TTimer(Sender).Tag of
       0, 1:
         begin
-          ServiceSpeedTemporaire.CurrentPeakSpeed := (100 + random(100));
+          iLastRandomPeek := iLastRandomPeek + random(50);
+          if iLastRandomPeek > 250 then iLastRandomPeek := 50 + random(10);
+          ServiceSpeedTemporaire.CurrentPeakSpeed := iLastRandomPeek;
           ServiceSpeedTemporaire.CurrentPeekDirection := 1 + random(2);
           FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
           TTimer(Sender).Interval := itnTempsOn;
@@ -787,6 +790,7 @@ begin
   VaCommRadar.OnRxChar := VaCommRadarRxChar;
   sbNetwork.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
   bCurrentlyDoingNetworkCycleTest := False;
+  iLastRandomPeek := 50;
 end;
 
 procedure TfrmCallidusRadar.RefreshDisplayedParameterTable(paramShowReadBackValues: boolean);
