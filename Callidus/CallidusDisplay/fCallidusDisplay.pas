@@ -22,6 +22,7 @@ type
     SizY: integer;
     sSpeedValue: string;
     sSpeedUnit: string;
+    iUnitSpacing: integer;
     UnitPosY: integer;
     UnitSizY: integer;
     iRatioUnitOnValue: integer;
@@ -236,7 +237,7 @@ var
       iUnitWidthRequired := 0;
     end;
 
-    iTotalWidthRequired := iSpeedWidthRequired + (iUnitWidthRequired) + (iUnitWidthRequired div 2);
+    iTotalWidthRequired := iSpeedWidthRequired + ServiceSpeedInfo.iUnitSpacing + iUnitWidthRequired;
   end;
 
 begin
@@ -349,7 +350,8 @@ begin
     if ServiceSpeedInfo.sSpeedUnit <> '' then
     begin
       Canvas.Font.Size := iUnitSize;
-      iPosX := iPosX + iSpeedWidthRequired + (iUnitWidthRequired div 2); //iUnitWidthRequired ici c'est juste pour avoir un espce.
+//      iPosX := iPosX + iSpeedWidthRequired + (iUnitWidthRequired div 2); //iUnitWidthRequired ici c'est juste pour avoir un espce.
+      iPosX := iPosX + iSpeedWidthRequired + ServiceSpeedInfo.iUnitSpacing;
       if (not FullScreen) then
         iUnitShadowCount := ((ServiceSpeedInfo.iShadowCount * ServiceSpeedInfo.iRatioUnitOnValue) div 100)
       else
@@ -509,6 +511,7 @@ begin
     ServiceSpeedInfo.sSpeedValue := '';
     ServiceSpeedInfo.sSpeedUnit := '';
     ServiceSpeedInfo.UnitSizY := 0;
+    ServiceSpeedInfo.iUnitSpacing:=0;
     ServiceSpeedInfo.iRatioUnitOnValue := 25;
     ServiceSpeedInfo.iShadowCount := 10;
     ServiceSpeedInfo.iUnitshadowcount := 2;
@@ -546,6 +549,8 @@ begin
     if iShadowIndex <> -1 then ServiceSpeedInfo.iShadowCount := StrToIntDef(slVariablesValues.Strings[iShadowIndex], 10);
     iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISHSZ);
     if iColorIndex <> -1 then ServiceSpeedInfo.iUnitshadowcount := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);
+    iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISPAC);
+    if iColorIndex <> -1 then ServiceSpeedInfo.iUnitSpacing := StrToIntDef(slVariablesValues.Strings[iColorIndex], 0);
 
     iColorIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_BACKCLR);
     if iColorIndex <> -1 then ServiceSpeedInfo.colorBackground := StrToIntDef(slVariablesValues.Strings[iColorIndex], $FFFFFF);

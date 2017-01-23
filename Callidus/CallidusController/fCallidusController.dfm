@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = cbCommenditaireFullScreen
+    ActivePage = tsRadar
     Align = alClient
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
@@ -232,7 +232,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = 'Ti&me to show serve speed (ms):'
           LabelPosition = lpLeft
-          TabOrder = 2
+          TabOrder = 4
         end
         object edInactivityTime: TLabeledEdit
           Left = 433
@@ -254,7 +254,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = 'Inactivity high &speed (km/h):'
           LabelPosition = lpLeft
-          TabOrder = 4
+          TabOrder = 3
         end
         object edHighServiceSpeed: TLabeledEdit
           Left = 180
@@ -265,7 +265,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = '&High limit for serve speed (km/h):'
           LabelPosition = lpLeft
-          TabOrder = 1
+          TabOrder = 2
         end
         object edLowServiceSpeed: TLabeledEdit
           Left = 180
@@ -287,7 +287,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = '&Inactivity low speed (km/h):'
           LabelPosition = lpLeft
-          TabOrder = 3
+          TabOrder = 1
         end
         object btnSendRadarParameters: TButton
           Left = 48
@@ -327,7 +327,7 @@ object frmCallidusController: TfrmCallidusController
           Width = 161
           Height = 17
           Caption = 'Temps off entre les vitesses'
-          TabOrder = 2
+          TabOrder = 1
         end
         object edtRadarTestTempsOff: TLabeledEdit
           Left = 151
@@ -338,7 +338,7 @@ object frmCallidusController: TfrmCallidusController
           EditLabel.Height = 13
           EditLabel.Caption = 'Temps Off:'
           LabelPosition = lpLeft
-          TabOrder = 1
+          TabOrder = 2
         end
         object edtRadarTestTempsOn: TLabeledEdit
           Left = 151
@@ -364,8 +364,6 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Callidus-Display'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 22
       object Label4: TLabel
         Left = 11
         Top = 60
@@ -601,28 +599,60 @@ object frmCallidusController: TfrmCallidusController
         Caption = 'U&nit'#233' de vitesse:'
         TabOrder = 3
         object lblUnitColor: TLabel
-          Left = 300
-          Top = 62
+          Left = 205
+          Top = 64
           Width = 41
           Height = 13
           Caption = 'Couleur:'
+          FocusControl = pnlUnitColor
         end
         object lblUnitShadowcolor: TLabel
-          Left = 396
-          Top = 62
+          Left = 300
+          Top = 64
           Width = 36
           Height = 13
           Caption = 'Ombre:'
+          FocusControl = pnlUnitShadow
         end
         object lblUnitTailleShadow: TLabel
-          Left = 492
-          Top = 62
+          Left = 396
+          Top = 64
           Width = 61
           Height = 13
           Caption = 'Taille ombre:'
+          FocusControl = cbUnitShadowSize
+        end
+        object lblUnitSpacing: TLabel
+          Left = 14
+          Top = 64
+          Width = 41
+          Height = 13
+          Caption = '&Spacing:'
+          FocusControl = cbUnitSpacing
+        end
+        object lblUnitSize: TLabel
+          Left = 109
+          Top = 64
+          Width = 28
+          Height = 13
+          Caption = 'Taill&e:'
+          FocusControl = cbUnitSize
         end
         object pnlUnitColor: TPanel
           Tag = 6
+          Left = 205
+          Top = 78
+          Width = 60
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 3
+          OnClick = pnlBackgroundClick
+        end
+        object pnlUnitShadow: TPanel
+          Tag = 7
           Left = 300
           Top = 78
           Width = 60
@@ -634,46 +664,13 @@ object frmCallidusController: TfrmCallidusController
           TabOrder = 4
           OnClick = pnlBackgroundClick
         end
-        object pnlUnitShadow: TPanel
-          Tag = 7
-          Left = 396
-          Top = 78
-          Width = 60
-          Height = 25
-          BevelInner = bvRaised
-          BevelOuter = bvLowered
-          Color = clWhite
-          ParentBackground = False
-          TabOrder = 5
-          OnClick = pnlBackgroundClick
-        end
-        object edtUnitPosY: TLabeledEdit
-          Left = 109
-          Top = 78
-          Width = 60
-          Height = 21
-          EditLabel.Width = 50
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Position Y:'
-          TabOrder = 2
-        end
-        object edtUnitSize: TLabeledEdit
-          Left = 205
-          Top = 78
-          Width = 60
-          Height = 21
-          EditLabel.Width = 28
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Taille:'
-          TabOrder = 3
-        end
         object cbUnitShadowSize: TComboBox
-          Left = 492
-          Top = 78
+          Left = 396
+          Top = 80
           Width = 57
           Height = 21
           Style = csDropDownList
-          TabOrder = 6
+          TabOrder = 5
           Items.Strings = (
             '0'
             '1'
@@ -724,7 +721,7 @@ object frmCallidusController: TfrmCallidusController
           Height = 21
           EditLabel.Width = 121
           EditLabel.Height = 13
-          EditLabel.Caption = 'Affiche l'#39'unit'#233' de vitesse:'
+          EditLabel.Caption = 'A&ffiche l'#39'unit'#233' de vitesse:'
           Enabled = False
           TabOrder = 0
           Checkbox.Width = 15
@@ -733,15 +730,19 @@ object frmCallidusController: TfrmCallidusController
           CheckboxSpacing = 0
           CallidusFilterType = 0
         end
-        object edtUnitPosX: TLabeledEdit
+        object cbUnitSpacing: TComboBox
           Left = 14
-          Top = 78
+          Top = 80
           Width = 60
           Height = 21
-          EditLabel.Width = 50
-          EditLabel.Height = 13
-          EditLabel.Caption = 'Position X:'
           TabOrder = 1
+        end
+        object cbUnitSize: TComboBox
+          Left = 109
+          Top = 80
+          Width = 60
+          Height = 21
+          TabOrder = 2
         end
       end
       object Button1: TButton
@@ -1165,8 +1166,8 @@ object frmCallidusController: TfrmCallidusController
   object tmrBroadcastServerLocation: TTimer
     Enabled = False
     OnTimer = tmrBroadcastServerLocationTimer
-    Left = 60
-    Top = 248
+    Left = 244
+    Top = 260
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
@@ -1180,12 +1181,12 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'CONTROLLER'
     OnServerPacketReceived = ProtocolePROTO_ControllerServerPacketReceived
-    Left = 328
-    Top = 182
+    Left = 372
+    Top = 114
   end
   object ColorDialog1: TColorDialog
-    Left = 492
-    Top = 312
+    Left = 444
+    Top = 220
   end
   object ImageList1: TImageList
     Height = 32
@@ -1193,7 +1194,7 @@ object frmCallidusController: TfrmCallidusController
     Left = 320
     Top = 8
     Bitmap = {
-      494C01010A00C8000C0120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800100120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2788,15 +2789,15 @@ object frmCallidusController: TfrmCallidusController
     Enabled = False
     Interval = 11000
     OnTimer = RefreshListTimerTimer
-    Left = 320
-    Top = 316
+    Left = 376
+    Top = 200
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 192
-    Top = 312
+    Left = 268
+    Top = 196
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
