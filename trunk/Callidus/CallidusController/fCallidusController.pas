@@ -977,7 +977,7 @@ begin
   isFirstActivation := True;
   MyStatusBar.Panels[IDX_PANEL_VERSION].Text := sCALLIDUS_SYSTEM_VERSION;
   MyStatusBar.Panels[IDX_PANEL_LOCALIP].Text := 'local:' + GetLocalIpAddress;
-  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION + ' (2016-03-13)';
+  Caption := Application.Title + ' ' + sCALLIDUS_SYSTEM_VERSION;
   RxIndex := 0;
   SetLength(RxBuffer, 16000);
   CallidusDeviceList := TCallidusDeviceList.Create;

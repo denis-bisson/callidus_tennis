@@ -76,11 +76,11 @@
         <DCC_RangeChecking>True</DCC_RangeChecking>
         <DCC_IMPLICIT_STRING_CAST>False</DCC_IMPLICIT_STRING_CAST>
         <Icon_MainIcon>CallidusController.ico</Icon_MainIcon>
-        <VerInfo_Build>607</VerInfo_Build>
+        <VerInfo_Build>608</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <AppEnableRuntimeThemes>True</AppEnableRuntimeThemes>
         <VerInfo_AutoIncVersion>True</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.607;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.608;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <AppEnableHighDPI>True</AppEnableHighDPI>
         <VerInfo_IncludeVerInfo>True</VerInfo_IncludeVerInfo>
         <DCC_RemoteDebug>False</DCC_RemoteDebug>
