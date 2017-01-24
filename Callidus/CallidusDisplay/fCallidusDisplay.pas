@@ -453,10 +453,10 @@ begin
   try
     CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_FULLPUB);
     if iAnyValue <> -1 then
     begin
-      sAnyValue := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+      sAnyValue := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sFULLSCREENFOLDERNAME + '\' + slVariablesValues.Strings[iAnyValue];
       if sAnyValue <> '' then
       begin
         if not FileExists(sAnyValue) then
@@ -513,10 +513,10 @@ begin
     ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
 
     // On valide que le fichier du commenditaire existe avant de répondre!
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_CMD_SSS_COMMENDITAIRE);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_BANNERF);
     if iAnyValue <> -1 then
     begin
-      ServiceSpeedInfo.sBanderoleCommenditaireFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + slVariablesValues.Strings[iAnyValue];
+      ServiceSpeedInfo.sBanderoleCommenditaireFilename := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sBANNERFOLDERNAME + '\' + slVariablesValues.Strings[iAnyValue];
       if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then
         if not FileExists(ServiceSpeedInfo.sBanderoleCommenditaireFilename) then
           slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
