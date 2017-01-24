@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = tsRadar
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
@@ -1035,8 +1035,8 @@ object frmCallidusController: TfrmCallidusController
   end
   object amMainActionManager: TActionManager
     Images = ImageList1
-    Left = 380
-    Top = 8
+    Left = 388
+    Top = 65532
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
       Caption = 'Close application'
@@ -1192,9 +1192,8 @@ object frmCallidusController: TfrmCallidusController
     Height = 32
     Width = 32
     Left = 320
-    Top = 8
     Bitmap = {
-      494C01010A00C800100120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800140120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

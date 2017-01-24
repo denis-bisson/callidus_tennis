@@ -430,7 +430,7 @@ var
 begin
   result := False;
   if GetPubFileName(1, sLocalFilename) then
-    result := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_CMD_SET_FULL_SCREEN_PUBLICITY + '=' + sLocalFilename]);
+    result := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_DISCRTC, dtCallidusDisplay, [CALLIDUS_INFO_FULLPUB + '=' + sLocalFilename]);
 end;
 
 { TfrmCallidusController.GetPubFileName }
@@ -783,7 +783,7 @@ begin
 
   if ckbPubBanniere.Checked then
     if GetPubFileName(2, sLocalPubFilename) then
-      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_CMD_SSS_COMMENDITAIRE + '=' + sLocalPubFilename);
+      AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_BANNERF + '=' + sLocalPubFilename);
 
   result := SendCommandToRemoteStation(sonAllOfAKind, PROTO_CMD_SNDINFO, dtCallidusDisplay, Params);
 end;
@@ -856,7 +856,7 @@ end;
 
 procedure TfrmCallidusController.btnCommanditClick(Sender: TObject);
 var
-  sNomFichierList, sListFilename: string;
+  sNomFichierList, sListFilename, sFilePrefix: string;
   slFichierDejacoches: TStringList;
   Dispatcher, iMaybeIndex, iIndexfile: integer;
   LocalChecklist: tCheckListCallidus;
@@ -870,19 +870,21 @@ begin
     1:
       begin
         LocalChecklist := clCommenditaire;
-        sListFilename := 'PubFullScreen.lst'
+        sListFilename := 'PubFullScreen.lst';
+        sFilePrefix := sFULLSCREENFOLDERNAME;
       end;
     2:
       begin
         LocalChecklist := clCommdtBanniere;
-        sListFilename := 'PubBanniere.lst'
+        sListFilename := 'PubBanniere.lst';
+        sFilePrefix := sBANNERFOLDERNAME;
       end;
   end;
 
   slFichierDejacoches := TStringList.Create;
   try
     // 1. On s'assure que nous avons déjà le fichier sinon on ne fait rien.
-    sNomFichierList := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sListFilename;
+    sNomFichierList := IncludeTrailingPathDelimiter(ExtractFilePath(paramstr(0))) + sFilePrefix + '\' + sListFilename;
     if FileExists(sNomFichierList) then
     begin
       // 2. On gardera en mémoire les fichiers qui sont déjà cochés
