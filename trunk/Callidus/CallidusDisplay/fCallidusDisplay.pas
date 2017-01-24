@@ -18,12 +18,10 @@ uses
 
 type
   TInformationForShowingServiceSpeed = record
-    PosY: integer;
     SizY: integer;
     sSpeedValue: string;
     sSpeedUnit: string;
     iUnitSpacing: integer;
-    UnitPosY: integer;
     UnitSizY: integer;
     iRatioUnitOnValue: integer;
     iShadowCount: integer;
@@ -329,10 +327,7 @@ begin
     SetRequiredWithAccordingToSpecifiedTextSize;
 
     // 03. Calcul de la position Y pour la vitesse. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
-    if (not FullScreen) or (ServiceSpeedInfo.PosY = 0) then
-      iPosY := ((ClientHeight - iSpeedHeightRequired) div 2)
-    else
-      iPosY := ServiceSpeedInfo.PosY;
+    iPosY := ((ClientHeight - iSpeedHeightRequired) div 2);
 
     // 04. Calcule de la position X pour la vitesse.
     iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
@@ -350,7 +345,6 @@ begin
     if ServiceSpeedInfo.sSpeedUnit <> '' then
     begin
       Canvas.Font.Size := iUnitSize;
-//      iPosX := iPosX + iSpeedWidthRequired + (iUnitWidthRequired div 2); //iUnitWidthRequired ici c'est juste pour avoir un espce.
       iPosX := iPosX + iSpeedWidthRequired + ServiceSpeedInfo.iUnitSpacing;
       if (not FullScreen) then
         iUnitShadowCount := ((ServiceSpeedInfo.iShadowCount * ServiceSpeedInfo.iRatioUnitOnValue) div 100)
@@ -358,10 +352,7 @@ begin
         iUnitshadowcount := ServiceSpeedInfo.iUnitshadowcount;
 
       // 07. Calcul de la position Y. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
-      if (not FullScreen) or (ServiceSpeedInfo.UnitPosY = 0) then
-        iPosY := ((ClientHeight - iUnitHeightRequired) div 2)
-      else
-        iPosY := ServiceSpeedInfo.UnitPosY;
+      iPosY := ((ClientHeight - iUnitHeightRequired) div 2);
 
       for iChar := 1 to length(ServiceSpeedInfo.sSpeedUnit) do
       begin
@@ -506,12 +497,11 @@ begin
   try
     CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-    ServiceSpeedInfo.PosY := 0;
     ServiceSpeedInfo.SizY := 0;
     ServiceSpeedInfo.sSpeedValue := '';
     ServiceSpeedInfo.sSpeedUnit := '';
     ServiceSpeedInfo.UnitSizY := 0;
-    ServiceSpeedInfo.iUnitSpacing:=0;
+    ServiceSpeedInfo.iUnitSpacing := 0;
     ServiceSpeedInfo.iRatioUnitOnValue := 25;
     ServiceSpeedInfo.iShadowCount := 10;
     ServiceSpeedInfo.iUnitshadowcount := 2;
@@ -532,8 +522,6 @@ begin
           slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
     end;
 
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_POSITIY);
-    if iAnyValue <> -1 then ServiceSpeedInfo.PosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_SIZEHGT);
     if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SERVSPD);
@@ -541,8 +529,6 @@ begin
 
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIUNIT);
     if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
-    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIPOSY);
-    if iAnyValue <> -1 then ServiceSpeedInfo.UnitPosY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISIZE);
     if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SHDWSIZ);
