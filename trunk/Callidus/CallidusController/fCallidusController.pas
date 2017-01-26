@@ -766,7 +766,7 @@ begin
     else
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedSlow.Color));
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SIZEHGT + '=' + cbTailleSpeedY.Text);
-  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWSIZ + '=' + IntToStr(cbShadowSize.ItemIndex));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWSIZ + '=' + cbShadowSize.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_BACKCLR + '=' + IntToStr(pnlBackground.Color));
 
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWCOL + '=' + IntToStr(pnlSpeedShadow.Color));
@@ -778,7 +778,7 @@ begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIUNIT + '=' + edtUnitUnit.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNICOLO + '=' + IntToStr(pnlUnitColor.Color));
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISCOL + '=' + IntToStr(pnlUnitShadow.Color));
-    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISHSZ + '=' + IntToStr(cbUnitShadowSize.ItemIndex));
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISHSZ + '=' + cbUnitShadowSize.Text);
   end;
 
   if ckbPubBanniere.Checked then
