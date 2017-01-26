@@ -49,7 +49,7 @@ procedure CleanMonArray(var Params: array of string);
 procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
 
 const
-  sCALLIDUS_SYSTEM_VERSION = 'v1.06';
+  sCALLIDUS_SYSTEM_VERSION = 'v1.07';
 
   sCALLIDUS_DEVICE_NAME_RADAR = 'Callidus-Radar';
   sCALLIDUS_DEVICE_NAME_DISPLAY = 'Callidus-Display';

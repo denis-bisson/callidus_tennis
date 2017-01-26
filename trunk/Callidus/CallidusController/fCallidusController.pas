@@ -1431,6 +1431,7 @@ procedure TfrmCallidusController.FillVariousComboBox;
   end;
 begin
   FillThisCombobBox(cbTailleSpeedY,1,200,5);
+  FillThisCombobBox(cbUnitSize,1,200,5);
   FillThisCombobBox(cbUnitSpacing,-20,40,5);
 end;
 
