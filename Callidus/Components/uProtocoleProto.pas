@@ -40,14 +40,13 @@ const
   IDX_PROTO_CLOSE_BRACKET = 12;
   IDX_PROTO_PAYLOAD_DATA = 13;
 
-  PORT_FOR_IDENTIFICATION = 2191;
-  PORT_FOR_SENDING_CONTROLLER = 2192;
-  PORT_FOR_SENDING_DISPLAY = 2193;
-  PORT_FOR_SENDING_RADAR = 2194;
+//  PORT_CALLIDUS_CONTROLLER = 2192;
+//  PORT_CALLIDUS_DISPLAY = 2193;
+//  PORT_CALLIDUS_RADAR = 2194;
 
-  PORT_CALLIDUS_CONTROLLER = 2192;
-  PORT_CALLIDUS_DISPLAY = 2193;
-  PORT_CALLIDUS_RADAR = 2194;
+  PORT_CALLIDUS_CONTROLLER = 8622;
+  PORT_CALLIDUS_DISPLAY = 8621;
+  PORT_CALLIDUS_RADAR = 8623;
 
   IP_ADDRESS_NULL: string = '0.0.0.0';
 
@@ -642,7 +641,7 @@ var
 
 begin
   if FWriteDebugFlag then
-    WriteStatusLg('UDP Server Received Something', 'Le serveur UDP a reçu de quoi', COLORSTATUS);
+    WriteStatusLg('UDP Server Received Something from '+ABinding.PeerIp, 'Le serveur UDP a reçu de quoi de '+ABinding.PeerIp, COLORSTATUS);
 
   if isValidPacketReceived(AData, Length(AData)) then
   begin
