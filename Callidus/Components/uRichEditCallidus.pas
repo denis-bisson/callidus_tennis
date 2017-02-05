@@ -39,7 +39,7 @@ type
     procedure WriteTitleStringLg(A, B: string);
     procedure WriteSubTitleStringLg(A, B: string);
     procedure WriteStatusStalled(A: string; C: dword);
-    procedure WriteStatus(A: string; C: dword);
+    procedure WriteStatus(A: string; C: dword = clBlack);
     procedure WriteDisplayable(A, Remplacement: string; C: dword);
     procedure WriteDebug(A: string);
     procedure WriteStatusLg(A, B: string; C: dword);
@@ -274,7 +274,7 @@ begin
 end;
 
 { tRichEditCallidus.WriteStatus}
-procedure tRichEditCallidus.WriteStatus(A: string; C: dword);
+procedure tRichEditCallidus.WriteStatus(A: string; C: dword = clBlack);
 var
   Prefix: string;
   Hour, Min, Sec, MSec: word;

@@ -40,9 +40,9 @@ const
   IDX_PROTO_CLOSE_BRACKET = 12;
   IDX_PROTO_PAYLOAD_DATA = 13;
 
-//  PORT_CALLIDUS_CONTROLLER = 2192;
-//  PORT_CALLIDUS_DISPLAY = 2193;
-//  PORT_CALLIDUS_RADAR = 2194;
+  //  PORT_CALLIDUS_CONTROLLER = 2192;
+  //  PORT_CALLIDUS_DISPLAY = 2193;
+  //  PORT_CALLIDUS_RADAR = 2194;
 
   PORT_CALLIDUS_CONTROLLER = 8622;
   PORT_CALLIDUS_DISPLAY = 8621;
@@ -83,7 +83,7 @@ type
     function Init: boolean;
     function PreparePacket(CommandAnswerIndex: integer; PayloadData: TStringList; paramTxBuffer: TIdBytes; MaximumPossibleSize: integer): integer;
     function isValidPacketReceived(paramBuffer: TIdBytes; paramBufferIndex: integer): boolean;
-    procedure PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
+    procedure PitchUnMessagePROTONoHandshake(DestinationAddress: string; CommandIndex: integer; PayloadDataIn: TStringList);
     procedure AnyUDPClientConnected(Sender: TObject);
     procedure AnyUDPClientDisconnected(Sender: TObject);
     procedure AnyUDPClientStatus(ASender: TObject; const AStatus: TIdStatus; const AStatusText: string);
@@ -288,25 +288,29 @@ begin
 end;
 
 { TProtocoleProto.PitchUnMessagePROTONoHandshake }
-procedure TProtocoleProto.PitchUnMessagePROTONoHandshake(DestinationAddress:string; CommandIndex: integer; PayloadDataIn: TStringList);
+procedure TProtocoleProto.PitchUnMessagePROTONoHandshake(DestinationAddress: string; CommandIndex: integer; PayloadDataIn: TStringList);
 var
   TxBuffer: TIdBytes;
   NbBytestoSend: integer;
+  sActualDestination:string;
 begin
-  if (FClientUDP <> nil) and ((FHostControllerAddress <> IP_ADDRESS_NULL) or (DestinationAddress<>'')) then
+  if (FClientUDP <> nil) and ((FHostControllerAddress <> IP_ADDRESS_NULL) or (DestinationAddress <> '')) then
   begin
     try
       SetLength(TxBuffer, 2000);
       // 3. We now attempt to send our message.
-      WriteStatusLg('Will now send our message...', 'On va maintenant envoyer notre message...', COLORDANGER);
+        if DestinationAddress = '' then
+          sActualDestination := FHostControllerAddress
+        else
+          sActualDestination := DestinationAddress;
+
+      WriteStatusLg('Will now send our message to [' + sActualDestination + '] Port: '+IntToStr(FClientUDP.Port), 'On va maintenant envoyer notre message à [' + sActualDestination + '] Port: '+IntToStr(FClientUDP.Port), COLORDANGER);
       FRxClientBufferIndex := 0;
       NbBytestoSend := PreparePacket(CommandIndex, PayloadDataIn, TxBuffer, length(TxBuffer));
+      SetLength(TxBuffer, NbBytestoSend);
       if NbBytestoSend > 0 then
       begin
-        if DestinationAddress='' then
-          FClientUDP.SendBuffer(FHostControllerAddress, FClientUDP.Port, TxBuffer)
-        else
-          FClientUDP.SendBuffer(DestinationAddress, FClientUDP.Port, TxBuffer);
+        FClientUDP.SendBuffer(sActualDestination, FClientUDP.Port, TxBuffer);
         WriteStatusLg('Message sent!', 'Message envoyé!', COLORSUCCESS);
       end
     except
@@ -314,7 +318,7 @@ begin
   end
   else
   begin
-//    WriteStatusLg('We can''t send anything because we don''t know remote address OR our client UDP is not ready...', 'On n''envoie rien car on ne connait pa sl''adresse de destination ou le client UDP n''est pas prêt...', COLORSUCCESS);
+    //    WriteStatusLg('We can''t send anything because we don''t know remote address OR our client UDP is not ready...', 'On n''envoie rien car on ne connait pa sl''adresse de destination ou le client UDP n''est pas prêt...', COLORSUCCESS);
   end;
 end;
 
@@ -641,7 +645,7 @@ var
 
 begin
   if FWriteDebugFlag then
-    WriteStatusLg('UDP Server Received Something from '+ABinding.PeerIp, 'Le serveur UDP a reçu de quoi de '+ABinding.PeerIp, COLORSTATUS);
+    WriteStatusLg('UDP Server Received Something from [' + ABinding.PeerIp + ']', 'Le serveur UDP a reçu de quoi de [' + ABinding.PeerIp + ']', COLORSTATUS);
 
   if isValidPacketReceived(AData, Length(AData)) then
   begin

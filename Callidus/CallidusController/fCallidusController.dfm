@@ -184,6 +184,10 @@ object frmCallidusController: TfrmCallidusController
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
       Caption = 'Application-satellite'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -216,6 +220,10 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Callidus-Radar'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbRadarConfiguration: TGroupBox
         Left = 3
         Top = 11
@@ -757,6 +765,10 @@ object frmCallidusController: TfrmCallidusController
     object tsPub: TTabSheet
       Caption = 'Pub plein '#233'cran'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -851,6 +863,10 @@ object frmCallidusController: TfrmCallidusController
     object TabSheet1: TTabSheet
       Caption = 'Pub bandeau'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -1172,8 +1188,8 @@ object frmCallidusController: TfrmCallidusController
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
-    Left = 508
-    Top = 182
+    Left = 436
+    Top = 98
   end
   object ProtocolePROTO_Controller: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
@@ -1181,8 +1197,8 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'CONTROLLER'
     OnServerPacketReceived = ProtocolePROTO_ControllerServerPacketReceived
-    Left = 372
-    Top = 114
+    Left = 320
+    Top = 106
   end
   object ColorDialog1: TColorDialog
     Left = 444
@@ -1193,7 +1209,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 320
     Bitmap = {
-      494C01010A00C800180120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800200120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2805,7 +2821,7 @@ object frmCallidusController: TfrmCallidusController
   end
   object IdUDPClientDisplay: TIdUDPClient
     Port = 0
-    Left = 532
-    Top = 134
+    Left = 512
+    Top = 98
   end
 end
