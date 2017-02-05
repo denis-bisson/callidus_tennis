@@ -662,6 +662,7 @@ begin
 
     ProtocolePROTO_Radar.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Radar.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
+    ProtocolePROTO_Radar.WorkingServerUDP.Bindings.Clear;
     ProtocolePROTO_Radar.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_RADAR;
     ProtocolePROTO_Radar.Init;
 

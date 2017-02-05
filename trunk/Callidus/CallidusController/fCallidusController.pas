@@ -1323,6 +1323,7 @@ begin
     LoadConfiguration;
 
     ProtocolePROTO_Controller.MessageWindow := frmDebugWindow.StatusWindow;
+    ProtocolePROTO_Controller.WorkingServerUDP.Bindings.Clear;
     ProtocolePROTO_Controller.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_CONTROLLER;
     ProtocolePROTO_Controller.Init;
 

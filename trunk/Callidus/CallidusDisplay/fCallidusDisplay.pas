@@ -195,6 +195,7 @@ begin
 
     ProtocolePROTO_Display.MessageWindow := frmDebugWindow.StatusWindow;
     ProtocolePROTO_Display.WorkingClientUDP.Port := PORT_CALLIDUS_CONTROLLER;
+    ProtocolePROTO_Display.WorkingServerUDP.Bindings.Clear;
     ProtocolePROTO_Display.WorkingServerUDP.DefaultPort := PORT_CALLIDUS_DISPLAY;
     ProtocolePROTO_Display.Init;
   end;
