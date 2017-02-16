@@ -184,10 +184,6 @@ object frmCallidusController: TfrmCallidusController
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
       Caption = 'Application-satellite'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -220,10 +216,6 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Callidus-Radar'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object gbRadarConfiguration: TGroupBox
         Left = 3
         Top = 11
@@ -372,14 +364,6 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Callidus-Display'
       ImageIndex = 1
-      object Label4: TLabel
-        Left = 11
-        Top = 60
-        Width = 83
-        Height = 13
-        Caption = 'Couleur de &Fond:'
-        FocusControl = pnlBackground
-      end
       object lblHintForResolution: TLabel
         Left = 233
         Top = 20
@@ -394,106 +378,100 @@ object frmCallidusController: TfrmCallidusController
         Height = 13
         Caption = '1000 x 1000'
       end
-      object pnlBackground: TPanel
-        Tag = 1
-        Left = 98
-        Top = 54
-        Width = 58
-        Height = 25
-        BevelInner = bvRaised
-        BevelOuter = bvLowered
-        Color = clWhite
-        ParentBackground = False
-        TabOrder = 1
-        OnClick = pnlBackgroundClick
-        OnEnter = pnlColorEnter
-      end
       object GroupBox3: TGroupBox
         Left = 11
-        Top = 85
+        Top = 54
         Width = 562
-        Height = 100
+        Height = 139
         Caption = '&Vitesse:'
-        TabOrder = 2
+        TabOrder = 1
         object Label5: TLabel
-          Left = 109
-          Top = 20
+          Left = 15
+          Top = 88
           Width = 73
           Height = 13
           Caption = 'Couleur (&Lent):'
           FocusControl = pnlSpeedSlow
         end
         object Label6: TLabel
-          Left = 396
-          Top = 20
+          Left = 279
+          Top = 30
           Width = 36
           Height = 13
           Caption = '&Ombre:'
           FocusControl = pnlSpeedShadow
         end
         object Label2: TLabel
-          Left = 492
-          Top = 20
+          Left = 367
+          Top = 30
           Width = 61
           Height = 13
           Caption = 'Taille om&bre:'
           FocusControl = cbShadowSize
         end
         object lblSpeedTaille: TLabel
-          Left = 14
-          Top = 22
+          Left = 191
+          Top = 30
           Width = 28
           Height = 13
           Caption = '&Taille:'
           FocusControl = cbTailleSpeedY
         end
         object Label3: TLabel
-          Left = 205
-          Top = 20
+          Left = 235
+          Top = 88
           Width = 84
           Height = 13
           Caption = 'Couleur (&Moyen):'
           FocusControl = pnlSpeedMedium
         end
         object Label7: TLabel
-          Left = 300
-          Top = 20
+          Left = 455
+          Top = 88
           Width = 80
           Height = 13
           Caption = 'Couleur (T&urbo):'
           FocusControl = pnlSpeedTurbo
         end
+        object Label4: TLabel
+          Left = 455
+          Top = 30
+          Width = 83
+          Height = 13
+          Caption = 'Couleur de &Fond:'
+          FocusControl = pnlBackground
+        end
         object pnlSpeedSlow: TPanel
           Tag = 2
-          Left = 109
-          Top = 34
+          Left = 15
+          Top = 102
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 1
+          TabOrder = 6
           OnClick = pnlBackgroundClick
           OnEnter = pnlColorEnter
         end
         object pnlSpeedShadow: TPanel
           Tag = 5
-          Left = 396
-          Top = 34
+          Left = 279
+          Top = 43
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 4
+          TabOrder = 0
           OnClick = pnlBackgroundClick
           OnEnter = pnlColorEnter
         end
         object cbShadowSize: TComboBox
-          Left = 492
-          Top = 36
+          Left = 367
+          Top = 45
           Width = 57
           Height = 21
           Style = csDropDownList
@@ -542,61 +520,93 @@ object frmCallidusController: TfrmCallidusController
             '40')
         end
         object cbTailleSpeedY: TComboBox
-          Left = 14
-          Top = 36
+          Left = 191
+          Top = 45
           Width = 60
           Height = 21
-          TabOrder = 0
+          TabOrder = 4
         end
         object pnlSpeedMedium: TPanel
           Tag = 3
-          Left = 205
-          Top = 34
+          Left = 235
+          Top = 102
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 2
+          TabOrder = 7
           OnClick = pnlBackgroundClick
           OnEnter = pnlColorEnter
         end
         object pnlSpeedTurbo: TPanel
           Tag = 4
-          Left = 300
-          Top = 34
+          Left = 455
+          Top = 102
           Width = 60
           Height = 25
           BevelInner = bvRaised
           BevelOuter = bvLowered
           Color = clWhite
           ParentBackground = False
-          TabOrder = 3
+          TabOrder = 8
           OnClick = pnlBackgroundClick
           OnEnter = pnlColorEnter
         end
         object edtPalierMedium: TLabeledEdit
-          Left = 109
-          Top = 69
+          Left = 125
+          Top = 104
           Width = 60
           Height = 21
           EditLabel.Width = 90
           EditLabel.Height = 13
           EditLabel.Caption = '&Palier pour moyen:'
-          LabelPosition = lpLeft
-          TabOrder = 6
+          TabOrder = 9
         end
         object edtPalierTurbo: TLabeledEdit
-          Left = 300
-          Top = 69
+          Left = 345
+          Top = 104
           Width = 60
           Height = 21
           EditLabel.Width = 84
           EditLabel.Height = 13
           EditLabel.Caption = 'P&alier pour turbo:'
-          LabelPosition = lpLeft
-          TabOrder = 7
+          TabOrder = 10
+        end
+        object edSpeedX: TLabeledEdit
+          Left = 15
+          Top = 45
+          Width = 60
+          Height = 21
+          EditLabel.Width = 44
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Offset X:'
+          TabOrder = 2
+        end
+        object edSpeedY: TLabeledEdit
+          Left = 103
+          Top = 45
+          Width = 60
+          Height = 21
+          EditLabel.Width = 44
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Offset Y:'
+          TabOrder = 3
+        end
+        object pnlBackground: TPanel
+          Tag = 1
+          Left = 455
+          Top = 43
+          Width = 58
+          Height = 25
+          BevelInner = bvRaised
+          BevelOuter = bvLowered
+          Color = clWhite
+          ParentBackground = False
+          TabOrder = 1
+          OnClick = pnlBackgroundClick
+          OnEnter = pnlColorEnter
         end
       end
       object gbSpeedUnit: TGroupBox
@@ -605,7 +615,7 @@ object frmCallidusController: TfrmCallidusController
         Width = 562
         Height = 113
         Caption = 'U&nit'#233' de vitesse:'
-        TabOrder = 3
+        TabOrder = 2
         object lblUnitColor: TLabel
           Left = 205
           Top = 64
@@ -678,7 +688,7 @@ object frmCallidusController: TfrmCallidusController
           Width = 57
           Height = 21
           Style = csDropDownList
-          TabOrder = 5
+          TabOrder = 7
           Items.Strings = (
             '0'
             '1'
@@ -743,13 +753,33 @@ object frmCallidusController: TfrmCallidusController
           Top = 80
           Width = 60
           Height = 21
-          TabOrder = 1
+          TabOrder = 5
         end
         object cbUnitSize: TComboBox
           Left = 109
           Top = 80
           Width = 60
           Height = 21
+          TabOrder = 6
+        end
+        object edUnitX: TLabeledEdit
+          Left = 207
+          Top = 34
+          Width = 60
+          Height = 21
+          EditLabel.Width = 44
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Offset X:'
+          TabOrder = 1
+        end
+        object edUnitY: TLabeledEdit
+          Left = 295
+          Top = 34
+          Width = 60
+          Height = 21
+          EditLabel.Width = 44
+          EditLabel.Height = 13
+          EditLabel.Caption = 'Offset Y:'
           TabOrder = 2
         end
       end
@@ -765,10 +795,6 @@ object frmCallidusController: TfrmCallidusController
     object tsPub: TTabSheet
       Caption = 'Pub plein '#233'cran'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -863,10 +889,6 @@ object frmCallidusController: TfrmCallidusController
     object TabSheet1: TTabSheet
       Caption = 'Pub bandeau'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         576
         315)
@@ -1160,36 +1182,36 @@ object frmCallidusController: TfrmCallidusController
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
     OnIdle = evMainApplicationEventsIdle
-    Left = 536
-    Top = 312
+    Left = 540
+    Top = 124
   end
   object ProtocolePROTO_Radar: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
-    Left = 524
-    Top = 262
+    Left = 516
+    Top = 82
   end
   object ProtocolePROTO_Display: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 540
-    Top = 222
+    Left = 268
+    Top = 22
   end
   object tmrBroadcastServerLocation: TTimer
     Enabled = False
     OnTimer = tmrBroadcastServerLocationTimer
-    Left = 244
-    Top = 260
+    Left = 452
+    Top = 88
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
-    Left = 436
-    Top = 98
+    Left = 424
+    Top = 6
   end
   object ProtocolePROTO_Controller: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
@@ -1197,19 +1219,19 @@ object frmCallidusController: TfrmCallidusController
     WriteDebug = True
     FriendlyNameForLog = 'CONTROLLER'
     OnServerPacketReceived = ProtocolePROTO_ControllerServerPacketReceived
-    Left = 320
-    Top = 106
+    Left = 500
+    Top = 22
   end
   object ColorDialog1: TColorDialog
-    Left = 444
-    Top = 220
+    Left = 296
+    Top = 104
   end
   object ImageList1: TImageList
     Height = 32
     Width = 32
     Left = 320
     Bitmap = {
-      494C01010A00C800200120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800240120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2804,24 +2826,30 @@ object frmCallidusController: TfrmCallidusController
     Enabled = False
     Interval = 11000
     OnTimer = RefreshListTimerTimer
-    Left = 376
-    Top = 200
+    Left = 248
+    Top = 120
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 268
-    Top = 196
+    Left = 372
+    Top = 100
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 540
-    Top = 182
+    Left = 476
+    Top = 2
   end
   object IdUDPClientDisplay: TIdUDPClient
     Port = 0
-    Left = 512
-    Top = 98
+    Left = 536
+    Top = 18
+  end
+  object ApplicationEvents1: TApplicationEvents
+    OnException = evMainApplicationEventsException
+    OnIdle = evMainApplicationEventsIdle
+    Left = 544
+    Top = 128
   end
 end

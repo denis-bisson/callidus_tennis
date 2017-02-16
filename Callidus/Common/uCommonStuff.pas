@@ -49,7 +49,7 @@ procedure CleanMonArray(var Params: array of string);
 procedure AddToMyArray(var Params: array of string; var icurrentIndexInArray: integer; const sToAdd: string);
 
 const
-  sCALLIDUS_SYSTEM_VERSION = 'v1.12';
+  sCALLIDUS_SYSTEM_VERSION = 'v1.13';
 
   sCALLIDUS_DEVICE_NAME_RADAR = 'Callidus-Radar';
   sCALLIDUS_DEVICE_NAME_DISPLAY = 'Callidus-Display';
@@ -100,12 +100,16 @@ const
   CALLIDUS_INFO_TEMPOFF = 'TimeOff';
   CALLIDUS_INFO_USETOFF = 'UseTOff';
   CALLIDUS_INFO_RESOLXY = 'ResolXY';
+  CALLIDUS_INFO_OFFSETX = 'OffsetX';
+  CALLIDUS_INFO_OFFSETY = 'OffsetY';
   CALLIDUS_INFO_SIZEHGT = 'SizeHgt';
   CALLIDUS_INFO_SERVSPD = 'ServSpd';
   CALLIDUS_INFO_SHDWSIZ = 'ShdwSiz';
   CALLIDUS_INFO_BACKCLR = 'ColBack';
   CALLIDUS_INFO_SHDWCOL = 'ShdwCol';
   CALLIDUS_INFO_SPDCOLO = 'SpdColo';
+  CALLIDUS_INFO_UNIOFFX = 'UniOffX';
+  CALLIDUS_INFO_UNIOFFY = 'UniOffY';
   CALLIDUS_INFO_UNISIZE = 'UniSize';
   CALLIDUS_INFO_UNIUNIT = 'UniUnit';
   CALLIDUS_INFO_UNICOLO = 'UniColo';
