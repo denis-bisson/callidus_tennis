@@ -86,7 +86,6 @@ type
     ToolButton7: TToolButton;
     ToolButton2: TToolButton;
     ToolButton1: TToolButton;
-    pnlBackground: TPanel;
     GroupBox3: TGroupBox;
     Label5: TLabel;
     Label6: TLabel;
@@ -101,7 +100,6 @@ type
     pnlUnitColor: TPanel;
     pnlUnitShadow: TPanel;
     cbUnitShadowSize: TComboBox;
-    Label4: TLabel;
     edtUnitUnit: tLabeledEditCallidus;
     lbDeviceDetected: TListBox;
     RefreshListTimer: TTimer;
@@ -167,6 +165,13 @@ type
     lblUnitSpacing: TLabel;
     cbUnitSize: TComboBox;
     lblUnitSize: TLabel;
+    edSpeedX: TLabeledEdit;
+    edSpeedY: TLabeledEdit;
+    pnlBackground: TPanel;
+    Label4: TLabel;
+    ApplicationEvents1: TApplicationEvents;
+    edUnitX: TLabeledEdit;
+    edUnitY: TLabeledEdit;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -765,6 +770,8 @@ begin
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedMedium.Color))
     else
       AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SPDCOLO + '=' + IntToStr(pnlSpeedSlow.Color));
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_OFFSETX + '=' + edSpeedX.Text);
+  AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_OFFSETY + '=' + edSpeedY.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SIZEHGT + '=' + cbTailleSpeedY.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_SHDWSIZ + '=' + cbShadowSize.Text);
   AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_BACKCLR + '=' + IntToStr(pnlBackground.Color));
@@ -774,6 +781,8 @@ begin
   if edtUnitUnit.Checkbox.Checked then
   begin
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISPAC + '=' + cbUnitSpacing.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIOFFX + '=' + edUnitX.Text);
+    AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIOFFY + '=' + edUnitY.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNISIZE + '=' + cbUnitSize.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNIUNIT + '=' + edtUnitUnit.Text);
     AddToMyArray(Params, icurrentIndexInArray, CALLIDUS_INFO_UNICOLO + '=' + IntToStr(pnlUnitColor.Color));
@@ -1050,8 +1059,12 @@ begin
       pnlUnitColor.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', clYellow);
       pnlUnitShadow.Color := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', clBlack);
       pgMainPagecontrol.ActivePageIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pgMainPagecontrol', 0);
+      edSpeedX.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSpeedX', '0');
+      edSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSpeedY', '0');
       cbTailleSpeedY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', '600');
       cbUnitSpacing.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitSpacing', '20');
+      edUnitX.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitX', '0');
+      edUnitY.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitY', '0');
       cbUnitSize.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', '170');
       edServiceSpeedUnitSubCheckboxClick(edtUnitUnit.Checkbox);
       cbDisplayFullScreenTime.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', 5);
@@ -1116,7 +1129,7 @@ end;
 
 procedure TfrmCallidusController.pnlColorEnter(Sender: TObject);
 begin
-pnlBackgroundClick(Sender);
+  pnlBackgroundClick(Sender);
 end;
 
 procedure TfrmCallidusController.SaveConfiguration;
@@ -1162,8 +1175,12 @@ begin
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnit', pnlUnitColor.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'colorpnlUnitShadow', pnlUnitShadow.Color);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'pgMainPagecontrol', pgMainPagecontrol.ActivePageIndex);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSpeedX', edSpeedX.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edSpeedY', edSpeedY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleSpeedY', cbTailleSpeedY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'cbUnitSpacing', cbUnitSpacing.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitX', edUnitX.Text);
+      WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edUnitY', edUnitY.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edTailleUnitY', cbUnitSize.Text);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbDisplayFullScreenTime', cbDisplayFullScreenTime.ItemIndex);
       WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'rgPubType', rgPubType.ItemIndex);
@@ -1422,7 +1439,7 @@ begin
 end;
 
 procedure TfrmCallidusController.FillVariousComboBox;
-  procedure FillThisCombobBox(paramComboBox: TComboBox; paramStart,paramEnd,paramMultiplier:integer);
+  procedure FillThisCombobBox(paramComboBox: TComboBox; paramStart, paramEnd, paramMultiplier: integer);
   var
     iSize: integer;
   begin
@@ -1431,9 +1448,9 @@ procedure TfrmCallidusController.FillVariousComboBox;
       paramComboBox.Items.Add(Format('%d', [iSize * paramMultiplier]));
   end;
 begin
-  FillThisCombobBox(cbTailleSpeedY,1,200,5);
-  FillThisCombobBox(cbUnitSize,1,200,5);
-  FillThisCombobBox(cbUnitSpacing,-20,40,5);
+  FillThisCombobBox(cbTailleSpeedY, 1, 200, 5);
+  FillThisCombobBox(cbUnitSize, 1, 200, 5);
+  FillThisCombobBox(cbUnitSpacing, -20, 40, 5);
 end;
 
 end.

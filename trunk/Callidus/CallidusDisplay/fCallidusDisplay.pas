@@ -18,10 +18,14 @@ uses
 
 type
   TInformationForShowingServiceSpeed = record
+    OffsetX: integer;
+    OffsetY: integer;
     SizY: integer;
     sSpeedValue: string;
     sSpeedUnit: string;
     iUnitSpacing: integer;
+    UnitOffsetX: integer;
+    UnitOffsetY: integer;
     UnitSizY: integer;
     iRatioUnitOnValue: integer;
     iShadowCount: integer;
@@ -207,7 +211,7 @@ var
   rWindowRect: TRect;
   iSpeedSize, iUnitShadowCount, iSpeedWidthRequired, iSpeedHeightRequired, iPosX, iThisPosXChar, iThisPosYChar, iPosY, iOffset: Integer;
   iUnitSize, iUnitWidthRequired, iTotalWidthRequired, iChar: integer;
-  iUnitOneCharHeight, iUnitHeightRequired, iThisCharWidth: integer;
+  iUnitOneCharHeight, iUnitHeightRequired, iThisCharWidth, iHauteurBandeau: integer;
   ImageCommenditaire: TImage;
   SourceRect, DestRect: TRect;
   ImageEnJpeg: TJpegImage;
@@ -241,6 +245,7 @@ var
 
 begin
   LastSpeedInformationReceived := ServiceSpeedInfo;
+  iHauteurBandeau := 0;
   Canvas.Font.Size := 12;
   Canvas.Font.Name := 'Arial';
   Canvas.Font.Color := clWhite;
@@ -270,6 +275,7 @@ begin
         DestRect.Left := ((Self.Width - ImageCommenditaire.Picture.Width) div 2);
         DestRect.Right := (DestRect.Left + ImageCommenditaire.Picture.Width);
         DestRect.Top := 0;
+        iHauteurBandeau := ImageCommenditaire.Picture.Height;
         DestRect.Bottom := ImageCommenditaire.Picture.Height;
         SourceRect.Left := 0;
         SourceRect.Right := ImageCommenditaire.Picture.Width;
@@ -306,6 +312,15 @@ begin
 
   if (ServiceSpeedInfo.sSpeedValue <> '') and (ServiceSpeedInfo.sSpeedValue <> '-1') then
   begin
+    // 00. Si nous sommes en "normal screen", on annule les offset X et Y pour que ça soit dans le centre à peu près.
+    if not FullScreen then
+    begin
+      ServiceSpeedInfo.OffsetX := 0;
+      ServiceSpeedInfo.OffsetY := 0;
+      ServiceSpeedInfo.UnitOffsetX := 0;
+      ServiceSpeedInfo.UnitOffsetY := 0;
+    end;
+
     // 01. Ajuste la taille du texte. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
     if (not FullScreen) or (ServiceSpeedInfo.SizY = 0) then
     begin
@@ -329,6 +344,8 @@ begin
 
     // 03. Calcul de la position Y pour la vitesse. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
     iPosY := ((ClientHeight - iSpeedHeightRequired) div 2);
+    if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then //2017-02-15:DB-Grrrrrr... À cause que j'avais oublié ça, je l'ai corrigé ici mais j'ai ajouté aussi la possibilité d'un offset overall X et Y.
+      iPosY := iPosY + (iHauteurBandeau div 2);
 
     // 04. Calcule de la position X pour la vitesse.
     iPosX := ((ClientWidth - iTotalWidthRequired) div 2);
@@ -338,9 +355,9 @@ begin
     Canvas.Font.Color := ServiceSpeedInfo.colorSpeedShadow;
     Canvas.Font.Size := iSpeedSize;
     for iOffset := 1 to ServiceSpeedInfo.iShadowCount do
-      Canvas.TextOut(iPosX + iOffset, iPosY + iOffset, ServiceSpeedInfo.sSpeedValue);
+      Canvas.TextOut(iPosX + iOffset + ServiceSpeedInfo.OffsetX, iPosY + iOffset + ServiceSpeedInfo.OffsetY, ServiceSpeedInfo.sSpeedValue);
     Canvas.Font.Color := ServiceSpeedInfo.colorSpeed;
-    Canvas.TextOut(iPosX, iPosY, ServiceSpeedInfo.sSpeedValue);
+    Canvas.TextOut(iPosX + ServiceSpeedInfo.OffsetX, iPosY + ServiceSpeedInfo.OffsetY, ServiceSpeedInfo.sSpeedValue);
 
     // 06. Si on le demande, on affiche notre unité de vitesse
     if ServiceSpeedInfo.sSpeedUnit <> '' then
@@ -354,6 +371,8 @@ begin
 
       // 07. Calcul de la position Y. Si nous sommes en normal screen ou que le host ne nous l'a pas pitché, on s'arrange tant bien que mal pour mettre au milieu.
       iPosY := ((ClientHeight - iUnitHeightRequired) div 2);
+      if ServiceSpeedInfo.sBanderoleCommenditaireFilename <> '' then //2017-02-15:DB-Grrrrrr... À cause que j'avais oublié ça, je l'ai corrigé ici mais j'ai ajouté aussi la possibilité d'un offset overall X et Y.
+        iPosY := iPosY + (iHauteurBandeau div 2);
 
       for iChar := 1 to length(ServiceSpeedInfo.sSpeedUnit) do
       begin
@@ -363,10 +382,10 @@ begin
 
         Canvas.Font.Color := ServiceSpeedInfo.colorUnitShadow;
         for iOffset := 1 to iUnitshadowcount do
-          Canvas.TextOut(iThisPosXChar + iOffset, iThisPosYChar + iOffset, ServiceSpeedInfo.sSpeedUnit[iChar]);
+          Canvas.TextOut(iThisPosXChar + iOffset + ServiceSpeedInfo.OffsetX + ServiceSpeedInfo.UnitOffsetX, iThisPosYChar + iOffset + ServiceSpeedInfo.OffsetY + ServiceSpeedInfo.UnitOffsetY, ServiceSpeedInfo.sSpeedUnit[iChar]);
 
         Canvas.Font.Color := ServiceSpeedInfo.colorUnit;
-        Canvas.TextOut(iThisPosXChar, iThisPosYChar, ServiceSpeedInfo.sSpeedUnit[iChar]);
+        Canvas.TextOut(iThisPosXChar + ServiceSpeedInfo.OffsetX + ServiceSpeedInfo.UnitOffsetX, iThisPosYChar + ServiceSpeedInfo.OffsetY + ServiceSpeedInfo.UnitOffsetY, ServiceSpeedInfo.sSpeedUnit[iChar]);
       end;
     end;
   end;
@@ -512,6 +531,10 @@ begin
     ServiceSpeedInfo.colorUnit := clYellow;
     ServiceSpeedInfo.colorUnitShadow := clBlack;
     ServiceSpeedInfo.sBanderoleCommenditaireFilename := '';
+    ServiceSpeedInfo.OffsetX := 0;
+    ServiceSpeedInfo.OffsetY := 0;
+    ServiceSpeedInfo.UnitOffsetX := 0;
+    ServiceSpeedInfo.UnitOffsetY := 0;
 
     // On valide que le fichier du commenditaire existe avant de répondre!
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_BANNERF);
@@ -523,6 +546,10 @@ begin
           slAnswer.Add(CALLIDUS_RSP_FILENOTFOUNT + '=' + ServiceSpeedInfo.sBanderoleCommenditaireFilename);
     end;
 
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_OFFSETX);
+    if iAnyValue <> -1 then ServiceSpeedInfo.OffsetX := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_OFFSETY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.OffsetY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_SIZEHGT);
     if iAnyValue <> -1 then ServiceSpeedInfo.SizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iSpeedValueIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SERVSPD);
@@ -530,6 +557,10 @@ begin
 
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIUNIT);
     if iAnyValue <> -1 then ServiceSpeedInfo.sSpeedUnit := slVariablesValues.Strings[iAnyValue];
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIOFFX);
+    if iAnyValue <> -1 then ServiceSpeedInfo.UnitOffsetX := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
+    iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNIOFFY);
+    if iAnyValue <> -1 then ServiceSpeedInfo.UnitOffsetY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iAnyValue := slVariablesNames.IndexOf(CALLIDUS_INFO_UNISIZE);
     if iAnyValue <> -1 then ServiceSpeedInfo.UnitSizY := StrToIntDef(slVariablesValues.Strings[iAnyValue], 0);
     iShadowIndex := slVariablesNames.IndexOf(CALLIDUS_INFO_SHDWSIZ);
