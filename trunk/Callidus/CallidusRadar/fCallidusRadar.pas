@@ -131,6 +131,9 @@ type
     btnStopAutoDetect: TSpeedButton;
     pnlAutoDetection: TMemo;
     tmrTestConnexion: TTimer;
+    tsTestManuel: TTabSheet;
+    edManualSpeedTest: TLabeledEdit;
+    btnManualTest: TButton;
     procedure RefreshDisplayedParameterTable(paramShowReadBackValues: boolean = False);
     procedure FormCreate(Sender: TObject);
     procedure AdvAnyGridGetEditorType(Sender: TObject; ACol, ARow: integer; var AEditor: TEditorType);
@@ -177,6 +180,7 @@ type
     procedure StopNetworkTest(PayloadData: TStringList);
     procedure tmrTestConnexionTimer(Sender: TObject);
     procedure SendBackToHostCurrentParameters;
+    procedure btnManualTestClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -707,6 +711,20 @@ begin
   bFlagAbort := True;
   bCurrentlyDoingNetworkCycleTest := False;
   Application.ProcessMessages;
+end;
+
+procedure TfrmCallidusRadar.btnManualTestClick(Sender: TObject);
+var
+  ServiceSpeedTemporaire: TServiceSpeed;
+begin
+  if not bCurrentlyDoingNetworkCycleTest then
+  begin
+    edManualSpeedTest.Text := IntToStr(StrToIntDef(edManualSpeedTest.text, 0));
+    ServiceSpeedTemporaire.CurrentPeakSpeed :=
+      StrToIntDef(edManualSpeedTest.text, 0);
+    ServiceSpeedTemporaire.CurrentPeekDirection := 1;
+    FaisRemonterLeServiceSpeed(addr(ServiceSpeedTemporaire));
+  end;
 end;
 
 procedure TfrmCallidusRadar.LoadRadarConfigFile;
@@ -1756,6 +1774,7 @@ begin
       itnTempsOn := ReadInteger(sConfigSectionName, 'tbTempsOn', 0);
       itnTempsOff := ReadInteger(sConfigSectionName, 'tbTempsOff', 0);
       btnIncludeTempsOff := ReadBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', True);
+      edManualSpeedTest.Text := ReadString(sConfigSectionName, 'edManualSpeedTest', '100');
       // ..LoadConfiguration
     end;
   finally
@@ -1801,6 +1820,7 @@ begin
       WriteInteger(sConfigSectionName, 'tbTempsOn', itnTempsOn);
       WriteInteger(sConfigSectionName, 'tbTempsOff', itnTempsOff);
       WriteBool(sConfigSectionName, 'ckbSendAClearScreenBetweenSpeed', btnIncludeTempsOff);
+      WriteString(sConfigSectionName, 'edManualSpeedTest', edManualSpeedTest.Text);
       // ..SaveConfiguration
     end;
   finally
