@@ -162,15 +162,11 @@ object frmCallidusRadar: TfrmCallidusRadar
     Top = 78
     Width = 584
     Height = 226
-    ActivePage = tsDebug
+    ActivePage = tsTestManuel
     Align = alClient
     TabOrder = 0
     object tsConfiguration: TTabSheet
       Caption = 'Configuration'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object btnReadStalkerConfigFile: TButton
         Left = 0
         Top = 7
@@ -238,10 +234,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object TabSheet1: TTabSheet
       Caption = 'Settings Service Speed'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object edLowServiceSpeed: TLabeledEdit
         Left = 204
         Top = 16
@@ -307,9 +299,9 @@ object frmCallidusRadar: TfrmCallidusRadar
         Top = 150
         Width = 121
         Height = 21
-        EditLabel.Width = 106
+        EditLabel.Width = 115
         EditLabel.Height = 13
-        EditLabel.Caption = 'Inactivity timout (ms):'
+        EditLabel.Caption = 'Inactivity time out (ms):'
         LabelPosition = lpLeft
         TabOrder = 5
         OnChange = ChangeServiceSettingClick
@@ -328,10 +320,6 @@ object frmCallidusRadar: TfrmCallidusRadar
     object tsOptionsAutoDetection: TTabSheet
       Caption = 'Options'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 3
         Top = 90
@@ -403,6 +391,29 @@ object frmCallidusRadar: TfrmCallidusRadar
         ParentFont = False
         TabOrder = 2
         Visible = False
+      end
+    end
+    object tsTestManuel: TTabSheet
+      Caption = 'Manual test'
+      ImageIndex = 4
+      object edManualSpeedTest: TLabeledEdit
+        Left = 24
+        Top = 36
+        Width = 230
+        Height = 21
+        EditLabel.Width = 208
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Vitesse de service de test '#224' faire remonter:'
+        TabOrder = 0
+      end
+      object btnManualTest: TButton
+        Left = 268
+        Top = 32
+        Width = 261
+        Height = 25
+        Caption = 'Fais remonter ce service (test uniquement)'
+        TabOrder = 1
+        OnClick = btnManualTestClick
       end
     end
   end
@@ -666,8 +677,8 @@ object frmCallidusRadar: TfrmCallidusRadar
       end>
   end
   object pmRadarConfig: TPopupMenu
-    Left = 232
-    Top = 62
+    Left = 364
+    Top = 30
     object RefreshCOMportlist1: TMenuItem
       Action = actRefreshComboComm
     end
@@ -800,10 +811,8 @@ object frmCallidusRadar: TfrmCallidusRadar
     FlowControl.TxContinueOnXoff = False
     DeviceName = 'COM%d'
     UserBaudrate = 9600
-    SettingsStore.RegRoot = rrCURRENTUSER
-    SettingsStore.Location = slINIFile
     OnClose = VaCommRadarClose
-    Version = '2.0.0.0'
+    Version = '1.8.0.0'
     Left = 100
     Top = 262
   end
@@ -830,7 +839,7 @@ object frmCallidusRadar: TfrmCallidusRadar
     Left = 228
     Top = 246
     Bitmap = {
-      494C010102000800C80020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102000800D40020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800000002000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000030000
@@ -1368,8 +1377,8 @@ object frmCallidusRadar: TfrmCallidusRadar
   object odMainApp: TOpenDialog
     Filter = 'Stalker config file|*.cfg'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 328
-    Top = 70
+    Left = 492
+    Top = 54
   end
   object IdUDPClientController: TIdUDPClient
     Port = 0
