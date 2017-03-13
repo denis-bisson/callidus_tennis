@@ -172,6 +172,9 @@ type
     ApplicationEvents1: TApplicationEvents;
     edUnitX: TLabeledEdit;
     edUnitY: TLabeledEdit;
+    ckbControlePubAlone: TCheckBox;
+    lblInactiviteStart: TLabel;
+    cbInactivitePeriodStartPub: TComboBox;
     procedure actCloseApplicationExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure evMainApplicationEventsIdle(Sender: TObject; var Done: Boolean);
@@ -216,6 +219,7 @@ type
     procedure actGetResolutionExecute(Sender: TObject);
     procedure tmrBroadcastServerLocationTimer(Sender: TObject);
     procedure pnlColorEnter(Sender: TObject);
+    procedure ckbControlePubAloneClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -232,6 +236,7 @@ type
     LabelPub: TLabel;
     BoutonStop: TButton;
     bDoingAnAction: boolean;
+    FreezeLastServiceReceived: dword;
   public
     { Public declarations }
   end;
@@ -258,6 +263,7 @@ uses
 const
   IDX_PANEL_VERSION = 0;
   IDX_PANEL_LOCALIP = 1;
+  IDX_PANEL_LASTSERVICE = 2;
 
   { TCallidusDevice.Create }
 constructor TCallidusDevice.Create(const paramDeviceType: tDeviceType; const paramIPAddress: string; const paramComputerName: string; const paramName: string; const paramComplementName: string; paramVersionName: string);
@@ -419,6 +425,8 @@ begin
 end;
 
 procedure TfrmCallidusController.tmrBroadcastServerLocationTimer(Sender: TObject);
+var
+  iSecondeSansService: dword;
 begin
   tmrBroadcastServerLocation.Enabled := False;
   try
@@ -426,6 +434,16 @@ begin
   finally
     tmrBroadcastServerLocation.Interval := 15000;
     tmrBroadcastServerLocation.Enabled := True;
+  end;
+
+  //2017-03-12:DB-Ajout de la publicité automatique.
+  if (FreezeLastServiceReceived <> 0) then
+  begin
+    iSecondeSansService := ((GetTickCount - FreezeLastServiceReceived) div 1000);
+    MyStatusBar.Panels[IDX_PANEL_LASTSERVICE].Text := Format('%d min %2.2d sec sans service', [(iSecondeSansService div 60), (iSecondeSansService - ((iSecondeSansService div 60) * 60))]);
+
+    if (ckbControlePubAlone.Checked) and (iSecondeSansService > ((cbInactivitePeriodStartPub.ItemIndex + 1) * 60)) and (not bModePublicite) then
+      actStartPubExecute(actStartPub);
   end;
 end;
 
@@ -922,6 +940,7 @@ end;
 
 procedure TfrmCallidusController.btnStopPubClick(Sender: TObject);
 begin
+  FreezeLastServiceReceived := 0;
   bModePublicite := False;
   Application.ProcessMessages;
   TimerPublicityFullScreen.Enabled := False;
@@ -934,6 +953,13 @@ begin
     FreeAndNil(PanelStop);
   TimerPublicityFullScreen.Enabled := False; //Si t'as pas arrêté le 1er coup, tu vas arrêter ici!
   Application.ProcessMessages;
+end;
+
+procedure TfrmCallidusController.ckbControlePubAloneClick(Sender: TObject);
+begin
+  if FreezeLastServiceReceived <> 0 then FreezeLastServiceReceived := GetTickCount;
+  lblInactiviteStart.Enabled := ckbControlePubAlone.Checked;
+  cbInactivitePeriodStartPub.Enabled := ckbControlePubAlone.Checked;
 end;
 
 procedure TfrmCallidusController.ckbPubBanniereClick(Sender: TObject);
@@ -996,6 +1022,7 @@ begin
   bModePublicite := False;
   bDoingAnAction := False;
   FillVariousComboBox;
+  FreezeLastServiceReceived := 0;
 end;
 
 procedure TfrmCallidusController.FormDestroy(Sender: TObject);
@@ -1085,6 +1112,9 @@ begin
       ckbTempsOffBetweenTest.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', True);
       edtPalierMedium.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierMedium', '120');
       edtPalierTurbo.Text := ReadString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierTurbo', '200');
+      ckbControlePubAlone.Checked := ReadBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbControlePubAlone', False);
+      cbInactivitePeriodStartPub.ItemIndex := ReadInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbInactivitePeriodStartPub', 4);
+      ckbControlePubAloneClick(cbInactivitePeriodStartPub);
       // ..LoadConfiguration
     end;
   finally
@@ -1199,6 +1229,8 @@ begin
       WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbTempsOffBetweenTest', ckbTempsOffBetweenTest.Checked);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierMedium', edtPalierMedium.Text);
       WriteString(CALLIDUSCONTROLLERCONFIGSECTION, 'edtPalierTurbo', edtPalierTurbo.Text);
+      WriteInteger(CALLIDUSCONTROLLERCONFIGSECTION, 'cbInactivitePeriodStartPub', cbInactivitePeriodStartPub.ItemIndex);
+      WriteBool(CALLIDUSCONTROLLERCONFIGSECTION, 'ckbControlePubAlone', ckbControlePubAlone.Checked);
       // ..SaveConfiguration
     end;
   finally
@@ -1227,14 +1259,21 @@ begin
         begin
           CallidusSplitVariablesNamesAndValues(PayloadData, slVariablesNames, slVariablesValues);
 
-          if bModePublicite = False then
+          if (bModePublicite = False) or (ckbControlePubAlone.Checked) then
           begin
+            if bModePublicite then
+              btnStopPubClick(BoutonStop);
+
             ServiceSpeedInfo.CurrentPeakSpeed := -2;
             iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_GOTASERVICESPEED);
             if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeakSpeed := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], -1);
             iIndexGeneric := slVariablesNames.IndexOf(CALLIDUS_CMD_SERVICEDIRECTION);
             if iIndexGeneric <> -1 then ServiceSpeedInfo.CurrentPeekDirection := StrToIntDef(slVariablesValues.Strings[iIndexGeneric], 0);
-            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
+            if ServiceSpeedInfo.CurrentPeakSpeed <> -2 then
+            begin
+              FreezeLastServiceReceived := GetTickcount;
+              InformeDisplayDuneNouvelleVitesse(ServiceSpeedInfo);
+            end;
           end;
         end;
 
@@ -1439,7 +1478,7 @@ begin
 end;
 
 procedure TfrmCallidusController.FillVariousComboBox;
-  procedure FillThisCombobBox(paramComboBox: TComboBox; paramStart, paramEnd, paramMultiplier: integer);
+  procedure FillThisComboBox(paramComboBox: TComboBox; paramStart, paramEnd, paramMultiplier: integer);
   var
     iSize: integer;
   begin
@@ -1448,9 +1487,10 @@ procedure TfrmCallidusController.FillVariousComboBox;
       paramComboBox.Items.Add(Format('%d', [iSize * paramMultiplier]));
   end;
 begin
-  FillThisCombobBox(cbTailleSpeedY, 1, 200, 5);
-  FillThisCombobBox(cbUnitSize, 1, 200, 5);
-  FillThisCombobBox(cbUnitSpacing, -20, 40, 5);
+  FillThisComboBox(cbTailleSpeedY, 1, 200, 5);
+  FillThisComboBox(cbUnitSize, 1, 200, 5);
+  FillThisComboBox(cbUnitSpacing, -20, 40, 5);
+  FillThisComboBox(cbInactivitePeriodStartPub, 1, 60, 1);
 end;
 
 end.

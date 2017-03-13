@@ -168,7 +168,7 @@ object frmCallidusController: TfrmCallidusController
         Width = 130
       end
       item
-        Width = 50
+        Width = 200
       end
       item
         Width = 50
@@ -179,7 +179,7 @@ object frmCallidusController: TfrmCallidusController
     Top = 40
     Width = 584
     Height = 343
-    ActivePage = cbCommenditaireFullScreen
+    ActivePage = tsPub
     Align = alClient
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
@@ -826,6 +826,13 @@ object frmCallidusController: TfrmCallidusController
         Font.Style = [fsItalic]
         ParentFont = False
       end
+      object lblInactiviteStart: TLabel
+        Left = 230
+        Top = 31
+        Width = 194
+        Height = 13
+        Caption = 'Minutes d'#39'inactivit'#233' avant de lancer pub:'
+      end
       object clCommenditaire: tCheckListCallidus
         Left = 3
         Top = 72
@@ -884,6 +891,25 @@ object frmCallidusController: TfrmCallidusController
           '60'
           '90'
           '120')
+      end
+      object ckbControlePubAlone: TCheckBox
+        Left = 230
+        Top = 8
+        Width = 339
+        Height = 17
+        Caption = 
+          'G'#232're la publicit'#233' automatiquement pour l'#39'embarquer et la d'#233'barqu' +
+          'er'
+        TabOrder = 4
+        OnClick = ckbControlePubAloneClick
+      end
+      object cbInactivitePeriodStartPub: TComboBox
+        Left = 429
+        Top = 27
+        Width = 93
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 5
       end
     end
     object TabSheet1: TTabSheet
@@ -1023,8 +1049,8 @@ object frmCallidusController: TfrmCallidusController
     end
   end
   object mmMainMenu: TMainMenu
-    Left = 448
-    Top = 8
+    Left = 168
+    Top = 156
     object Actions1: TMenuItem
       Caption = 'Actions'
       object StartServicing1: TMenuItem
@@ -1073,8 +1099,8 @@ object frmCallidusController: TfrmCallidusController
   end
   object amMainActionManager: TActionManager
     Images = ImageList1
-    Left = 388
-    Top = 65532
+    Left = 340
+    Top = 340
     StyleName = 'Platform Default'
     object actCloseApplication: TAction
       Caption = 'Close application'
@@ -1182,36 +1208,36 @@ object frmCallidusController: TfrmCallidusController
   object evMainApplicationEvents: TApplicationEvents
     OnException = evMainApplicationEventsException
     OnIdle = evMainApplicationEventsIdle
-    Left = 540
-    Top = 124
+    Left = 452
+    Top = 168
   end
   object ProtocolePROTO_Radar: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientRadar
     WriteDebug = True
     FriendlyNameForLog = 'RADAR'
-    Left = 516
-    Top = 82
+    Left = 512
+    Top = 346
   end
   object ProtocolePROTO_Display: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
     WorkingClientUDP = IdUDPClientDisplay
     WriteDebug = True
     FriendlyNameForLog = 'DISPLAY'
-    Left = 268
-    Top = 22
+    Left = 152
+    Top = 202
   end
   object tmrBroadcastServerLocation: TTimer
     Enabled = False
     OnTimer = tmrBroadcastServerLocationTimer
-    Left = 452
-    Top = 88
+    Left = 140
+    Top = 336
   end
   object IdUDPServerController: TIdUDPServer
     Bindings = <>
     DefaultPort = 0
-    Left = 424
-    Top = 6
+    Left = 532
+    Top = 222
   end
   object ProtocolePROTO_Controller: TProtocoleProto
     HostControllerAddress = '0.0.0.0'
@@ -1220,18 +1246,18 @@ object frmCallidusController: TfrmCallidusController
     FriendlyNameForLog = 'CONTROLLER'
     OnServerPacketReceived = ProtocolePROTO_ControllerServerPacketReceived
     Left = 500
-    Top = 22
+    Top = 106
   end
   object ColorDialog1: TColorDialog
-    Left = 296
-    Top = 104
+    Left = 532
+    Top = 276
   end
   object ImageList1: TImageList
     Height = 32
     Width = 32
     Left = 320
     Bitmap = {
-      494C01010A00C800240120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C8002C0120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2826,20 +2852,20 @@ object frmCallidusController: TfrmCallidusController
     Enabled = False
     Interval = 11000
     OnTimer = RefreshListTimerTimer
-    Left = 248
-    Top = 120
+    Left = 404
+    Top = 332
   end
   object TimerPublicityFullScreen: TTimer
     Enabled = False
     Interval = 11000
     OnTimer = TimerPublicityFullScreenTimer
-    Left = 372
-    Top = 100
+    Left = 264
+    Top = 324
   end
   object IdUDPClientRadar: TIdUDPClient
     Port = 0
-    Left = 476
-    Top = 2
+    Left = 440
+    Top = 6
   end
   object IdUDPClientDisplay: TIdUDPClient
     Port = 0
@@ -2849,7 +2875,7 @@ object frmCallidusController: TfrmCallidusController
   object ApplicationEvents1: TApplicationEvents
     OnException = evMainApplicationEventsException
     OnIdle = evMainApplicationEventsIdle
-    Left = 544
-    Top = 128
+    Left = 444
+    Top = 232
   end
 end
