@@ -442,7 +442,7 @@ begin
     iSecondeSansService := ((GetTickCount - FreezeLastServiceReceived) div 1000);
     MyStatusBar.Panels[IDX_PANEL_LASTSERVICE].Text := Format('%d min %2.2d sec sans service', [(iSecondeSansService div 60), (iSecondeSansService - ((iSecondeSansService div 60) * 60))]);
 
-    if (ckbControlePubAlone.Checked) and (iSecondeSansService > ((cbInactivitePeriodStartPub.ItemIndex + 1) * 60)) and (not bModePublicite) then
+    if (ckbControlePubAlone.Checked) and (iSecondeSansService > DWORD((cbInactivitePeriodStartPub.ItemIndex + 1) * 60)) and (not bModePublicite) then
       actStartPubExecute(actStartPub);
   end;
 end;

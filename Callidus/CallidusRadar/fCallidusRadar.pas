@@ -1414,19 +1414,25 @@ begin
 
     if bMonitorSpeed then
     begin
-      Pos0D := pos(#$0D, RadarAnswer);
-      if Pos0D <> 0 then
-      begin
-        sMsgToShow := AnsiStrings.LeftStr(RadarAnswer, pred(Pos0D));
-        // sMsgToShow := AnsiStrings.stringReplace(sMsgToShow, ' ', '', [rfReplaceAll]);
-        if sMsgToShow <> '' then
-        begin
-          WriteStatusLg('Rx - ' + GetDisplayableStuff(sMsgToShow), '', COLORINCOMINGSTREAM);
-          if pos(AnsiChar($83), sMsgToShow) <> 0 then ProcessSpeedPacket(sMsgToShow);
-        end;
+      // 1. No message by default.
+      sMsgToShow:='';
 
-        RadarAnswer := AnsiStrings.RightStr(RadarAnswer, length(RadarAnswer) - Pos0D);
-        Application.ProcessMessages;
+      // 2. Make sure to keep just the last one received.
+      repeat
+        Pos0D := pos(#$0D, RadarAnswer);
+        if Pos0D <> 0 then
+        begin
+          sMsgToShow := AnsiStrings.LeftStr(RadarAnswer, pred(Pos0D));
+          RadarAnswer := AnsiStrings.RightStr(RadarAnswer, length(RadarAnswer) - Pos0D);
+          Application.ProcessMessages;
+        end;
+      until Pos0D=0;
+
+      // 3. If we got something, process it.
+      if sMsgToShow <> '' then
+      begin
+        WriteStatusLg('Rx - ' + GetDisplayableStuff(sMsgToShow), '', COLORINCOMINGSTREAM);
+        if pos(AnsiChar($83), sMsgToShow) <> 0 then ProcessSpeedPacket(sMsgToShow);
       end;
     end;
   end;

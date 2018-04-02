@@ -2,7 +2,7 @@ object frmCallidusController: TfrmCallidusController
   Left = 0
   Top = 0
   Caption = 'frmCallidusController'
-  ClientHeight = 402
+  ClientHeight = 401
   ClientWidth = 584
   Color = clBtnFace
   Constraints.MinHeight = 460
@@ -156,7 +156,7 @@ object frmCallidusController: TfrmCallidusController
   TextHeight = 13
   object MyStatusBar: TStatusBar
     Left = 0
-    Top = 383
+    Top = 382
     Width = 584
     Height = 19
     Panels = <
@@ -178,15 +178,15 @@ object frmCallidusController: TfrmCallidusController
     Left = 0
     Top = 40
     Width = 584
-    Height = 343
-    ActivePage = tsPub
+    Height = 342
+    ActivePage = tsApplicationSatellite
     Align = alClient
     TabOrder = 1
     object tsApplicationSatellite: TTabSheet
       Caption = 'Application-satellite'
       DesignSize = (
         576
-        315)
+        314)
       object Label1: TLabel
         Left = 16
         Top = 3
@@ -198,7 +198,7 @@ object frmCallidusController: TfrmCallidusController
         Left = 16
         Top = 22
         Width = 521
-        Height = 271
+        Height = 270
         Style = lbOwnerDrawFixed
         Anchors = [akLeft, akTop, akRight, akBottom]
         Ctl3D = False
@@ -216,6 +216,10 @@ object frmCallidusController: TfrmCallidusController
     object tsRadar: TTabSheet
       Caption = 'Callidus-Radar'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbRadarConfiguration: TGroupBox
         Left = 3
         Top = 11
@@ -364,6 +368,10 @@ object frmCallidusController: TfrmCallidusController
     object cbCommenditaireFullScreen: TTabSheet
       Caption = 'Callidus-Display'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblHintForResolution: TLabel
         Left = 233
         Top = 20
@@ -795,9 +803,13 @@ object frmCallidusController: TfrmCallidusController
     object tsPub: TTabSheet
       Caption = 'Pub plein '#233'cran'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         576
-        315)
+        314)
       object Label12: TLabel
         Left = 3
         Top = 53
@@ -814,7 +826,7 @@ object frmCallidusController: TfrmCallidusController
       end
       object lblHelpFullScreen: TLabel
         Left = 3
-        Top = 251
+        Top = 250
         Width = 88
         Height = 13
         Anchors = [akLeft, akBottom]
@@ -825,6 +837,7 @@ object frmCallidusController: TfrmCallidusController
         Font.Name = 'Tahoma'
         Font.Style = [fsItalic]
         ParentFont = False
+        ExplicitTop = 251
       end
       object lblInactiviteStart: TLabel
         Left = 230
@@ -837,7 +850,7 @@ object frmCallidusController: TfrmCallidusController
         Left = 3
         Top = 72
         Width = 214
-        Height = 173
+        Height = 172
         Anchors = [akLeft, akTop, akBottom]
         ItemHeight = 13
         TabOrder = 1
@@ -917,7 +930,7 @@ object frmCallidusController: TfrmCallidusController
       ImageIndex = 4
       DesignSize = (
         576
-        315)
+        314)
       object lblBanniereFileList: TLabel
         Left = 3
         Top = 53
@@ -927,7 +940,7 @@ object frmCallidusController: TfrmCallidusController
       end
       object lblHelpBanniere: TLabel
         Left = 3
-        Top = 251
+        Top = 250
         Width = 88
         Height = 13
         Anchors = [akLeft, akBottom]
@@ -938,12 +951,13 @@ object frmCallidusController: TfrmCallidusController
         Font.Name = 'Tahoma'
         Font.Style = [fsItalic]
         ParentFont = False
+        ExplicitTop = 251
       end
       object clCommdtBanniere: tCheckListCallidus
         Left = 3
         Top = 72
         Width = 214
-        Height = 173
+        Height = 172
         Anchors = [akLeft, akTop, akBottom]
         ItemHeight = 13
         TabOrder = 2
@@ -1257,7 +1271,7 @@ object frmCallidusController: TfrmCallidusController
     Width = 32
     Left = 320
     Bitmap = {
-      494C01010A00C8002C0120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010A00C800340120002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
